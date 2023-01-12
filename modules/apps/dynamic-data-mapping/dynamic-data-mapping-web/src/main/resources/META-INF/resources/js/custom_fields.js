@@ -551,6 +551,7 @@ AUI.add(
 
 						if (/^[+-]?(\d+)*$/.test(val) || val === '') {
 							retVal = val;
+							
 						}
 					}
 
