@@ -222,10 +222,17 @@ AUI.add(
 
 					const scheduler = instance.get('scheduler');
 
+					const node = instance.get('node');
+
 					if (scheduler) {
 						const currentTime = scheduler.get('currentTime');
 
 						result = endDate.getTime() < currentTime.getTime();
+						if (result) {
+							node.setStyles({
+								backgroundColor: instance.get('color') + '40',
+							});
+						}
 					}
 					else {
 						result = false;
