@@ -43,6 +43,7 @@ interface AutoCompleteProps<
 declare type EmptyStateItem = {
 	id: string;
 	label: string;
+	externalReferenceCode: string;
 };
 export default function AutoComplete<
 	T extends {

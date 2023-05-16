@@ -50,6 +50,7 @@ interface AutoCompleteProps<
 type EmptyStateItem = {
 	id: string;
 	label: string;
+	externalReferenceCode: string;
 };
 
 export default function AutoComplete<
@@ -83,6 +84,7 @@ export default function AutoComplete<
 	const [active, setActive] = useState<boolean>(false);
 
 	const emptyStateItem = {
+		externalReferenceCode: '',
 		id: '',
 		label: Liferay.Language.get('choose-an-option'),
 	};
