@@ -139,11 +139,6 @@ export default function ContentContainer({
 								values={values}
 							/>
 
-							<Text as="span" color="secondary" size={3}>
-								{Liferay.Language.get(
-									'object-terms-cannot-be-used-in-freemarker-templates'
-								)}
-							</Text>
 						</>
 					)}
 				</>
