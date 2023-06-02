@@ -2,6 +2,7 @@
 	.data-set .management-bar-wrapper,
 	> .lfr-tooltip-scope,
 	.page-header {
+		position: -webkit-sticky;
 		position: sticky;
 		z-index: 1;
 	}
