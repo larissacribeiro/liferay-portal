@@ -47,7 +47,7 @@ export function ConfigurationContainer({
 						label={Liferay.Language.get('show-widget')}
 						name="showWidget"
 						onToggle={() => setValues({portlet: !values.portlet})}
-						toggled={values.portlet}
+						toggled={!values.portlet}
 					/>
 
 					<Toggle
