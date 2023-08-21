@@ -44,7 +44,7 @@ export default function getDigitalMarketFields(
 		});
 		if (mdfRequestActivity.activityDescription?.assetsLiferayRequired) {
 			digitalMarketingFields.push({
-				title: 'Please describe including specifications and due dates',
+				title: 'Please describe including specifications and due testtttdates',
 				value: mdfRequestActivity.activityDescription?.specificSites,
 			});
 		}
