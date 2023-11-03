@@ -416,6 +416,8 @@ public class ObjectDefinitionLocalServiceImpl
 					rootObjectDefinitionId);
 			}
 
+			_updateObjectDefinitionPortlet(objectDefinition1);
+
 			ObjectDefinition objectDefinition2 =
 				objectDefinitionLocalService.getObjectDefinition(
 					objectRelationship.getObjectDefinitionId2());
@@ -426,6 +428,8 @@ public class ObjectDefinitionLocalServiceImpl
 
 			_objectFieldLocalService.updateRequired(
 				objectRelationship.getObjectFieldId2(), true);
+
+			_updateObjectDefinitionPortlet(objectDefinition2);
 		}
 	}
 
@@ -2000,6 +2004,18 @@ public class ObjectDefinitionLocalServiceImpl
 			objectDefinition.getObjectFolderId(), oldObjectFolderId);
 
 		return objectDefinition;
+	}
+
+	private void _updateObjectDefinitionPortlet(
+			ObjectDefinition objectDefinition)
+		throws PortalException {
+
+		if (objectDefinition.isPortlet() &&
+			objectDefinition.isRootDescendantNode()) {
+
+			objectDefinitionLocalService.updatePortlet(
+				objectDefinition.getObjectDefinitionId(), false);
+		}
 	}
 
 	private ObjectDefinition _updateTitleObjectFieldId(
