@@ -174,7 +174,6 @@ export default function Relationships({
 				}
 				else {
 					deleteRelationship(itemData.id);
-					setTimeout(() => window.location.reload(), 1500);
 				}
 			}
 		},
