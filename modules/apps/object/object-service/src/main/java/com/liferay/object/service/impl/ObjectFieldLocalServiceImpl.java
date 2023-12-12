@@ -159,6 +159,9 @@ public class ObjectFieldLocalServiceImpl
 
 		ObjectField existingObjectField = null;
 
+		ObjectDefinition objectDefinition =
+			_objectDefinitionPersistence.findByPrimaryKey(objectDefinitionId);
+
 		if (objectFieldId > 0) {
 			existingObjectField = objectFieldPersistence.fetchByPrimaryKey(
 				objectFieldId);
@@ -166,10 +169,6 @@ public class ObjectFieldLocalServiceImpl
 
 		if ((existingObjectField == null) &&
 			Validator.isNotNull(externalReferenceCode)) {
-
-			ObjectDefinition objectDefinition =
-				_objectDefinitionPersistence.findByPrimaryKey(
-					objectDefinitionId);
 
 			existingObjectField = objectFieldPersistence.fetchByERC_C_ODI(
 				externalReferenceCode, objectDefinition.getCompanyId(),
@@ -183,6 +182,17 @@ public class ObjectFieldLocalServiceImpl
 				indexedAsKeyword, indexedLanguageId, labelMap, localized, name,
 				readOnly, readOnlyConditionExpression, required, state,
 				objectFieldSettings);
+		}
+
+		if (Objects.equals(
+				businessType,
+				ObjectFieldConstants.BUSINESS_TYPE_RELATIONSHIP) &&
+			objectDefinition.isRootDescendantNode() &&
+			!Objects.equals(existingObjectField.getReadOnly(), readOnly)) {
+
+			throw new ObjectFieldReadOnlyException(
+				"The readOnly configuration is set by a root object " +
+					"definition and cannot be changed");
 		}
 
 		return _updateObjectField(
