@@ -369,6 +369,16 @@ export function getUnsupportedObjectRelationshipErrorMessage(
 	}
 }
 
+function isTrustedURL(url: string): boolean {
+	const actualURL = new URL(window.location.href);
+	const targetURL = new URL(url);
+
+	return (
+		actualURL.origin === targetURL.origin &&
+		actualURL.hostname === targetURL.hostname
+	);
+}
+
 export function updatePreviousURLParam(paramType: string, paramValue: string) {
 	const previousPath = document.referrer;
 
@@ -377,11 +387,17 @@ export function updatePreviousURLParam(paramType: string, paramValue: string) {
 	const objectFolderNameParam = newPreviousURL.searchParams.get(paramType);
 
 	if (objectFolderNameParam) {
-		newPreviousURL.searchParams.set(paramType, paramValue);
+		newPreviousURL.searchParams.set(
+			encodeURIComponent(paramType),
+			encodeURIComponent(paramValue)
+		);
 
-		window.history.pushState(null, '', newPreviousURL.toString());
+		const updatedPreviousURL = newPreviousURL.toString();
 
-		window.location.href = newPreviousURL.toString();
+		if (isTrustedURL(updatedPreviousURL)) {
+			history.replaceState(null, '', updatedPreviousURL);
+			window.location.href = updatedPreviousURL;
+		}
 	}
 }
 
