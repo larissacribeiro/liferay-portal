@@ -1,0 +1,47 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2024 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+import {Locator, Page, expect} from '@playwright/test';
+
+import {PORTLET_URLS} from '../../../utils/portletUrls';
+import {ApplicationsMenuPage} from '../../product-navigation-applications-menu/ApplicationsMenuPage';
+
+export class ViewObjectEntriesPage {
+	readonly applicationsMenuPage: ApplicationsMenuPage;
+	readonly addNewObjectEntryButton: Locator;
+	readonly duplicateEntriesErrorMessage: Locator;
+	readonly page: Page;
+	readonly saveObjectEntryButton: Locator;
+
+	constructor(page: Page) {
+		this.addNewObjectEntryButton = page
+			.getByTestId('fdsCreationActionButton')
+			.first();
+		this.duplicateEntriesErrorMessage = page.getByText(
+			'Error:The field values are already in use. Please choose unique values.'
+		);
+		this.saveObjectEntryButton = page.getByRole('button', {name: 'Save'});
+		this.page = page;
+	}
+
+	async assertErrorWithDuplicateEntryValue() {
+		await this.duplicateEntriesErrorMessage.waitFor();
+		await expect(this.duplicateEntriesErrorMessage).toBeVisible();
+	}
+
+	async fillObjectEntry(fieldName: string, fieldValue: string) {
+		await this.page.getByLabel(fieldName).click();
+		await this.page.getByLabel(fieldName).fill(fieldValue);
+	}
+
+	async goto(objectDefinitionId: number, siteUrl?: Site['friendlyUrlPath']) {
+		await this.page.goto(
+			`/group${siteUrl || '/guest'}${
+				PORTLET_URLS.objects
+			}_${objectDefinitionId}`,
+			{waitUntil: 'load'}
+		);
+	}
+}
