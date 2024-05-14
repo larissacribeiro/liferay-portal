@@ -519,12 +519,10 @@ export class PageEditorPage {
 
 	async setMappingConfiguration({
 		entity,
-		entry,
 		optionValue,
 		source,
 	}: {
 		entity: string;
-		entry: string;
 		optionValue: string;
 		source?: string;
 	}) {
@@ -541,7 +539,7 @@ export class PageEditorPage {
 
 		await this.page
 			.frameLocator('iframe[title="Select"]')
-			.getByText(entry)
+			.locator('*[data-qa-id="row"]')
 			.click();
 
 		await this.page.keyboard.press('Escape');

@@ -31,6 +31,7 @@ export const test = mergeTests(
 	objectPagesTest,
 	pageEditorPagesTest
 );
+
 test.describe('Manage object entries through page templates', () => {
 	test('can view all entries related to an object in the relationship field', async ({
 		apiHelpers,
@@ -314,7 +315,6 @@ test.describe('Manage object entries through page templates', () => {
 
 		await pageEditorPage.setMappingConfiguration({
 			entity: randomObjectDefinition,
-			entry: 'object entry',
 			optionValue: `ObjectField_${randomObjectField}`,
 			source: 'Specific Content',
 		});
@@ -330,5 +330,89 @@ test.describe('Manage object entries through page templates', () => {
 		);
 
 		await displayPageTemplatesPage.deleteAllDisplayPageTemplates();
+	});
+
+	test('can see date object field entry in page Heading fragment', async ({
+		apiHelpers,
+		page,
+		pageEditorPage,
+		site,
+	}) => {
+		const objectDefinition =
+			await apiHelpers.objectAdmin.postObjectDefinition({
+				active: true,
+				externalReferenceCode: 'customObjectERC',
+				label: {
+					en_US: 'customobject',
+				},
+				name: 'CustomObject',
+				objectFields: [
+					{
+						DBType: 'Date',
+						businessType: 'Date',
+						externalReferenceCode: 'customDate',
+						indexed: true,
+						indexedAsKeyword: false,
+						indexedLanguageId: '',
+						label: {en_US: 'customDate'},
+						listTypeDefinitionId: 0,
+						name: 'customDate',
+						required: false,
+						system: false,
+						type: 'Date',
+					},
+				],
+				pluralLabel: {
+					en_US: 'customobjects',
+				},
+				portlet: true,
+				scope: 'company',
+				status: {
+					code: 0,
+				},
+			});
+
+		await apiHelpers.objectEntry.postObjectEntry(
+			{customDate: '2024-05-15'},
+			'c/customobjects'
+		);
+
+		const headingDefinition = getFragmentDefinition(
+			getRandomString(),
+			'BASIC_COMPONENT-heading'
+		);
+
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([headingDefinition]),
+			siteId: site.id,
+			title: 'Object entry of date type',
+		});
+
+		await pageEditorPage.goToEditMode(layout, site.friendlyUrlPath);
+
+		await pageEditorPage.selectFragment(headingDefinition.id);
+
+		await page.getByLabel('Select element-text').click();
+
+		await pageEditorPage.setMappingConfiguration({
+			entity: 'customobjects',
+			optionValue: 'ObjectField_customDate',
+		});
+
+		await pageEditorPage.publishPage();
+
+		await page.goto(`/web${site.friendlyUrlPath}${layout.friendlyUrlPath}`);
+
+		await expect(
+			page.getByRole('heading', {name: '5/15/24 12:00 AM'})
+		).toBeVisible();
+
+		// Clean up
+
+		await apiHelpers.jsonWebServicesLayout.deleteLayout(layout.id);
+
+		await apiHelpers.objectAdmin.deleteObjectDefinition(
+			objectDefinition.id
+		);
 	});
 });
