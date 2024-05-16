@@ -410,4 +410,102 @@ test.describe('Manage objectFields through Objects Admin UI', () => {
 			)
 		).toBeVisible();
 	});
+
+	test('can create object fields of multiple types (except AutoIncrement, Date and Time, Encrypted and Aggregation)', async ({
+		apiHelpers,
+		objectFieldsPage,
+		page,
+	}) => {
+		const {listTypeDefinitionIds, objectDefinition} = createdEntities;
+
+		const listTypeDefinition =
+			await apiHelpers.listTypeAdmin.postRandomListTypeDefinition();
+
+		listTypeDefinitionIds.push(listTypeDefinition.id);
+
+		await objectFieldsPage.goto(objectDefinition.label['en_US']);
+
+		await objectFieldsPage.addObjectField({
+			objectFieldBusinessType: 'Long Integer',
+			objectFieldLabel: 'Custom Long Integer',
+		});
+
+		await objectFieldsPage.addObjectField({
+			attachmentSource: 'Upload Directly from the User',
+			objectFieldBusinessType: 'Attachment',
+			objectFieldLabel: 'Custom Attachment',
+		});
+
+		await objectFieldsPage.addObjectField({
+			objectFieldBusinessType: 'Text',
+			objectFieldLabel: 'Custom Simple Text',
+		});
+
+		await objectFieldsPage.addObjectField({
+			listTypeDefinitionName: listTypeDefinition.name,
+			objectFieldBusinessType: 'Picklist',
+			objectFieldLabel: 'Custom Picklist',
+		});
+
+		await objectFieldsPage.addObjectField({
+			objectFieldBusinessType: 'Date',
+			objectFieldLabel: 'Custom Date',
+		});
+
+		await objectFieldsPage.addObjectField({
+			objectFieldBusinessType: 'Integer',
+			objectFieldLabel: 'Custom Integer',
+		});
+
+		await objectFieldsPage.addObjectField({
+			objectFieldBusinessType: 'Precision Decimal',
+			objectFieldLabel: 'Custom Precision Decimal',
+		});
+
+		await objectFieldsPage.addObjectField({
+			listTypeDefinitionName: listTypeDefinition.name,
+			objectFieldBusinessType: 'MultiselectPicklist',
+			objectFieldLabel: 'Custom MultiselectPicklist',
+		});
+
+		await objectFieldsPage.addObjectField({
+			objectFieldBusinessType: 'Decimal',
+			objectFieldLabel: 'Custom Decimal',
+		});
+
+		await objectFieldsPage.addObjectField({
+			objectFieldBusinessType: 'Rich Text',
+			objectFieldLabel: 'Custom Rich Text',
+		});
+
+		await objectFieldsPage.addObjectField({
+			objectFieldBusinessType: 'Boolean',
+			objectFieldLabel: 'Custom Boolean',
+		});
+
+		await objectFieldsPage.addObjectField({
+			objectFieldBusinessType: 'Long Text',
+			objectFieldLabel: 'Custom Long Text',
+		});
+
+		const fieldsLabels = [
+			'Custom Long Integer',
+			'Custom Attachment',
+			'Custom Simple Text',
+			'Custom Picklist',
+			'Custom Date',
+			'Custom Integer',
+			'Custom Precision Decimal',
+			'Custom Decimal',
+			'Custom Rich Text',
+			'Custom Boolean',
+			'Custom Long Text',
+		];
+
+		for (let i = 0; i < fieldsLabels.length; i++) {
+			const fieldLabel = fieldsLabels[i];
+
+			await expect(page.getByText(fieldLabel)).toBeVisible();
+		}
+	});
 });
