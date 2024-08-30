@@ -112,6 +112,69 @@ test.describe('Manage object relationships through Model Builder', () => {
 		).toBeVisible();
 	});
 
+	test('can create self relationship by dragging node handle and add relationship button', async ({
+		apiHelpers,
+		modelBuilderPage,
+		page
+	}) => {
+		const objectDefinition1 =
+			await apiHelpers.objectAdmin.postRandomObjectDefinition({
+				objectFolderExternalReferenceCode:
+					'Default',
+				status: {code: 0},
+			});
+
+		createdEntities.objectDefinitionIds.push(
+			objectDefinition1.id
+		);
+
+		await modelBuilderPage.goto({objectFolderName: 'Default'});
+
+		await modelBuilderPage.toggleSidebarsButton.click();
+
+		await modelBuilderPage.fitViewButton.click();
+
+		await modelBuilderPage.connectObjectDefinitionsNodeHandles(
+			objectDefinition1.id,
+			objectDefinition1.id
+		);
+
+		const objectRelationship =
+			await modelBuilderPage.createObjectRelationship(
+				'objectRelationship' + getRandomInt(),
+				'One to Many'
+		);
+
+		await modelBuilderPage.openNewFieldModal(objectDefinition1.label['en_US'], 'relationship');
+
+		const objectRelationship2 =
+			await modelBuilderPage.createObjectRelationship(
+			'objectRelationship' + getRandomInt(),
+			'One to Many'
+		);
+
+		createdEntities.objectRelationshipIds.push(objectRelationship.id, objectRelationship2.id);
+
+		await page.locator('.react-flow__edge-text').filter({ hasText: '2' }).click();
+
+		// page.getByRole('menuitem', { name: 'objectRelationship1634505730' })
+
+
+
+		// await expect(
+		// 	modelBuilderPage.objectRelationshipEdges.filter({
+		// 		hasText: objectRelationship.label,
+		// 	})
+		// ).toBeVisible();
+
+
+		// await expect(
+		// 	modelBuilderPage.objectDefinitionNodes
+		// 		.filter({hasText: objectDefinition1.label['en_US']})
+		// 		.getByText(objectRelationship.label)
+		// ).toBeVisible();
+	});
+
 	test('can delete object relationship from different folders', async ({
 		apiHelpers,
 		modelBuilderPage,

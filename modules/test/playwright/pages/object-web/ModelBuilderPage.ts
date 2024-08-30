@@ -10,6 +10,7 @@ import {ViewObjectDefinitionsPage} from './ViewObjectDefinitionsPage';
 
 export class ModelBuilderPage {
 	readonly addObjectFieldButton: Locator;
+	readonly addObjectRelationshipButton: Locator;
 	readonly createNewObjectDefinitionButton: Locator;
 	readonly deleteButton: Locator;
 	readonly deleteObjectDefinitionOption: Locator;
@@ -58,6 +59,10 @@ export class ModelBuilderPage {
 		this.addObjectFieldButton = page.getByRole('menuitem', {
 			exact: true,
 			name: 'Add Field',
+		});
+		this.addObjectRelationshipButton = page.getByRole('menuitem', {
+			exact: true,
+			name: 'Add Relationship',
 		});
 		this.createNewObjectDefinitionButton =
 			page.getByText('Create New Object');
@@ -248,7 +253,7 @@ export class ModelBuilderPage {
 		objectFieldBusinessType,
 		objectFieldLabel,
 	}: CreateObjectField) {
-		await this.openNewFieldModal(objectDefinitionName);
+		await this.openNewFieldModal(objectDefinitionName, 'field');
 
 		await this.fillNewObjectFieldLabel(objectFieldLabel);
 
@@ -275,13 +280,26 @@ export class ModelBuilderPage {
 
 	async createObjectRelationship(
 		objectRelationshipLabel: string,
-		type: string
+		type: string,
+		isSelfRelationship?: boolean
 	) {
 		await expect(this.newObjectRelationshipTitle).toBeVisible();
 
 		await this.newObjectRelationshipLabel.fill(objectRelationshipLabel);
 		await this.newObjectRelationshipType.click();
 		await this.page.getByRole('option', {name: type}).click();
+		if(isSelfRelationship){
+
+			await page.locator('div:nth-child(10) > .lfr-objects__model-builder-node-container > .lfr-objects__model-builder-node-button-container > .dropdown > .dropdown-toggle').click();
+   await page.getByRole('menuitem', { name: 'Add Relationship' }).click();
+   await page.locator('div').filter({ hasText: /^LabelMandatory$/ }).getByRole('textbox').click();
+   await page.locator('div').filter({ hasText: /^LabelMandatory$/ }).getByRole('textbox').fill('new');
+   await page.getByLabel('New Relationship').getByText('Select an Option').click();
+   await page.getByRole('option', { name: 'One to Many' }).click();
+   await page.getByLabel('Many Records OfMandatory').click();
+   await page.getByRole('option', { name: 'New Custom Object Custom' }).click();
+
+		}
 		const responsePromise = this.page.waitForResponse(
 			'**/object-relationships'
 		);
@@ -325,7 +343,8 @@ export class ModelBuilderPage {
 		await this.newObjectFieldLabel.fill(objectFieldLabel);
 	}
 
-	async openNewFieldModal(objectDefinitionName: string) {
+	async openNewFieldModal(objectDefinitionName: string, option: 'field' | 'relationship') {
+		if(option === 'field'){
 		await this.leftSidebarItems
 			.filter({hasText: objectDefinitionName})
 			.click();
@@ -335,7 +354,17 @@ export class ModelBuilderPage {
 			.getByRole('button', {name: 'Add Field or Relationship'})
 			.click();
 
-		await this.addObjectFieldButton.click();
+		
+			await this.addObjectFieldButton.click();
+		}
+		else{
+			await this.objectDefinitionNodes
+			.filter({hasText: objectDefinitionName})
+			.getByRole('button', {name: 'Add Field or Relationship'})
+			.click();
+
+			await this.addObjectRelationshipButton.click();
+		}
 	}
 
 	async selectNewObjectFieldBusinessTypeOption(

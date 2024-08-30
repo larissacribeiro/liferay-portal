@@ -81,7 +81,7 @@ test.describe('Manage object fields through Model Builder', () => {
 
 		await modelBuilderPage.goto({objectFolderName: 'Default'});
 
-		await modelBuilderPage.openNewFieldModal(objectDefinition.name);
+		await modelBuilderPage.openNewFieldModal(objectDefinition.name, 'field');
 
 		await modelBuilderPage.fillNewObjectFieldLabel(
 			'objectFieldLabel' + getRandomInt()
