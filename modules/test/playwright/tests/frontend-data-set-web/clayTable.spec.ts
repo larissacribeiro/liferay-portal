@@ -16,7 +16,6 @@ export const test = mergeTests(
 	fdsSamplePageTest,
 	featureFlagsTest({
 		'LPS-178052': {enabled: true},
-		'LPS-193005': {enabled: true},
 	}),
 	isolatedSiteTest,
 	loginTest()
@@ -109,26 +108,25 @@ test(
 			);
 		});
 
-		await test.step('Hide the Title column', async () => {
-			const titleColumnHeader = page
-				.getByRole('columnheader')
-				.getByText('Title');
+	await test.step('Hide the Title column', async () => {
+		const titleColumnHeader = page
+			.getByRole('columnheader')
+			.getByText('Title');
 
-			await expect(titleColumnHeader).toBeAttached();
+		await expect(titleColumnHeader).toBeAttached();
 
-			const button = page.getByLabel('Manage Columns Visibility');
+		const button = page.getByLabel('Manage Columns Visibility');
 
-			await expect(button).toBeAttached();
+		await expect(button).toBeAttached();
 
-			await button.click();
+		await button.click();
 
-			const titleMenuItem = page.getByRole('menuitem').nth(1);
+		const titleMenuItem = page.getByRole('menuitem').nth(1);
 
-			await titleMenuItem.click();
+		await titleMenuItem.click();
 
-			await expect(
-				page.getByRole('columnheader').getByText('Title')
-			).toBeHidden();
-		});
-	}
-);
+		await expect(
+			page.getByRole('columnheader').getByText('Title')
+		).toBeHidden();
+	});
+});
