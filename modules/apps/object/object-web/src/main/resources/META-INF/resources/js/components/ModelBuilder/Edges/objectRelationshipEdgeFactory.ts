@@ -58,6 +58,8 @@ export function objectRelationshipEdgeFactory({
 		objectRelationship.objectDefinitionExternalReferenceCode1 ===
 		objectRelationship.objectDefinitionExternalReferenceCode2;
 
+	const isRootDescendantNode = objectRelationship.edge;
+
 	objectRelationships.push(
 		...getObjectRelationships({
 			objectDefinitionExternalReferenceCode1:
@@ -83,6 +85,7 @@ export function objectRelationshipEdgeFactory({
 			data: objectRelationships.map((objectRelationship) => {
 				return {
 					defaultLanguageId: objectDefinition.defaultLanguageId,
+					edge: objectRelationship.edge,
 					id: objectRelationship.id,
 					label: stringUtils.getLocalizableLabel(
 						objectDefinition.defaultLanguageId,
@@ -106,7 +109,9 @@ export function objectRelationshipEdgeFactory({
 			target: `${objectRelationship.objectDefinitionId2}`,
 			targetHandle: isSelfObjectRelationship ? 'fixedRightHandle' : null,
 			type: isSelfObjectRelationship
-				? 'selfObjectRelationshipEdge'
+				? 'selfObjectRelationshipEdge' 
+				: isRootDescendantNode 
+				? 'rootObjectRelationshipEdge'
 				: 'defaultObjectRelationshipEdge',
 		};
 	}

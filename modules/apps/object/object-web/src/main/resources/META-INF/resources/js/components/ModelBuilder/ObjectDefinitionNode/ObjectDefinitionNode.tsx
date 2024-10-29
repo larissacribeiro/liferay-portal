@@ -39,6 +39,7 @@ export function ObjectDefinitionNode({
 		showAllObjectFields,
 		status,
 		system,
+		rootObjectDefinitionExternalReferenceCode
 	},
 }: NodeProps<ObjectDefinitionNodeData>) {
 	const [
@@ -81,6 +82,9 @@ export function ObjectDefinitionNode({
 		}
 	};
 
+	const isRootStructure =
+	!!rootObjectDefinitionExternalReferenceCode;
+
 	const handleSelectObjectDefinitionNode = () => {
 		const {edges, nodes} = store.getState();
 
@@ -104,6 +108,8 @@ export function ObjectDefinitionNode({
 							linkedObjectDefinition,
 						'lfr-objects__model-builder-node-container--selected':
 							selected,
+						'lfr-objects__model-builder-node-container--root':
+							isRootStructure,
 					}
 				)}
 				onMouseEnter={() => {
@@ -131,20 +137,22 @@ export function ObjectDefinitionNode({
 						handleSelectObjectDefinitionNode
 					}
 					isLinkedObjectDefinition={linkedObjectDefinition}
+					isRootStructure={isRootStructure}
 					objectDefinitionLabel={stringUtils.getLocalizableLabel(
 						defaultLanguageId,
 						label,
 						name
 					)}
-					status={status!}
-					system={system}
 				/>
 
 				<ObjectDefinitionNodeFields
 					defaultLanguageId={defaultLanguageId}
 					objectFields={objectFields}
 					selectedObjectDefinitionId={id}
+					isRootStructure={isRootStructure}
 					showAllObjectFields={showAllObjectFields}
+					status={status!}
+					system={system}
 				/>
 
 				<ObjectDefinitionNodeFooter

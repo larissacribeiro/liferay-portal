@@ -19,13 +19,8 @@ interface ObjectDefinitionNodeHeaderProps {
 	dropDownItems: DropDownItems[];
 	handleSelectObjectDefinitionNode: () => void;
 	isLinkedObjectDefinition: boolean;
+	isRootStructure: boolean;
 	objectDefinitionLabel: string;
-	status: {
-		code: number;
-		label: string;
-		label_i18n: string;
-	};
-	system: boolean;
 }
 
 export default function ObjectDefinitionNodeHeader({
@@ -33,14 +28,19 @@ export default function ObjectDefinitionNodeHeader({
 	dropDownItems,
 	handleSelectObjectDefinitionNode,
 	isLinkedObjectDefinition,
+	isRootStructure,
 	objectDefinitionLabel,
-	status,
-	system,
 }: ObjectDefinitionNodeHeaderProps) {
 	return (
 		<>
 			<div
-				className="lfr-objects__model-builder-node-header-container"
+				className={classNames(
+					'lfr-objects__model-builder-node-header-container',
+					{
+						'lfr-objects__model-builder-node-header-container--root':
+							isRootStructure,
+					}
+				)}
 				onClick={(event) => {
 					event.stopPropagation();
 
@@ -85,30 +85,6 @@ export default function ObjectDefinitionNodeHeader({
 							/>
 						}
 					/>
-				</div>
-
-				<div>
-					<ClayLabel displayType={system ? 'info' : 'warning'}>
-						{Liferay.Language.get(system ? 'system' : 'custom')}
-					</ClayLabel>
-
-					<ClayLabel
-						displayType={
-							status?.label === 'approved'
-								? 'success'
-								: status?.label === 'pending'
-									? 'info'
-									: 'secondary'
-						}
-					>
-						{Liferay.Language.get(
-							status?.label === 'approved'
-								? 'approved'
-								: status?.label === 'pending'
-									? 'pending'
-									: 'draft'
-						)}
-					</ClayLabel>
 				</div>
 			</div>
 		</>

@@ -17,19 +17,23 @@ const labelStyle = {
 	fontWeight: 600,
 };
 
-const DEFAULT_COLOR = '#80ACFF';
-const HIGHLIGHT_COLOR = '#0B5FFF';
+const DEFAULT_COLOR = '#80ACFF';//
+const HIGHLIGHT_COLOR = '#0B5FFF';//
 
-function getInitialObjectRelationshipEdgeStyle(edgeSelected: boolean) {
+const ROOT_DEFAULT_COLOR = '#2E5AAC';//
+const ROOT_HIGHLIGHT_COLOR = '#2E5AAC';//
+
+
+function getInitialObjectRelationshipEdgeStyle(edgeSelected: boolean, isRoot?: boolean) {	
 	return {
-		stroke: edgeSelected ? HIGHLIGHT_COLOR : DEFAULT_COLOR,
+		stroke: isRoot ? ROOT_HIGHLIGHT_COLOR : edgeSelected ? HIGHLIGHT_COLOR : DEFAULT_COLOR,
 		strokeWidth: '2px',
 	};
 }
 
-function getInitialLabelBgStyle(edgeSelected: boolean) {
+function getInitialLabelBgStyle(edgeSelected: boolean, isRoot: boolean) {
 	return {
-		fill: edgeSelected ? HIGHLIGHT_COLOR : DEFAULT_COLOR,
+		fill: isRoot ? ROOT_HIGHLIGHT_COLOR : edgeSelected ? HIGHLIGHT_COLOR : DEFAULT_COLOR,
 		height: '24px',
 	};
 }
@@ -40,6 +44,7 @@ interface ObjectRelationshipEdge
 	edgeCenterY: number;
 	edgePath: string;
 	reverseEdgePath?: string;
+	isRoot?: boolean;
 }
 
 export interface BaseObjectRepationShipEdgeProps {
@@ -61,16 +66,16 @@ export default function ObjectRelationshipEdge({
 	reverseEdgePath,
 	style = {},
 }: ObjectRelationshipEdge) {
-	const [{id, label, markerEndId, markerStartId, selected}] = data!;
+	const [{id, label, markerEndId, markerStartId, selected, edge}] = data!;
 
 	const [activePopover, setActivePopover] = useState(false);
 	const [objectRelationshipEdgeStyle, setObjectRelationshipEdgeStyle] =
 		useState<React.CSSProperties>({
 			...style,
-			...getInitialObjectRelationshipEdgeStyle(selected),
+			...getInitialObjectRelationshipEdgeStyle(selected, edge),
 		});
 	const [labelBgStyle, setLabelBgStyle] = useState(
-		getInitialLabelBgStyle(selected)
+		getInitialLabelBgStyle(selected, edge)
 	);
 
 	const hasManyObjectRelationships = data && data.length > 1;
@@ -87,6 +92,17 @@ export default function ObjectRelationshipEdge({
 				};
 			});
 		}
+		if(edge){
+			setObjectRelationshipEdgeStyle((style) => {
+				return {...style, stroke: ROOT_DEFAULT_COLOR};
+			});
+			setLabelBgStyle((style) => {
+				return {
+					...style,
+					fill: ROOT_DEFAULT_COLOR,
+				};
+			});
+		}
 		else {
 			setObjectRelationshipEdgeStyle((style) => {
 				return {...style, stroke: DEFAULT_COLOR};
@@ -98,7 +114,7 @@ export default function ObjectRelationshipEdge({
 				};
 			});
 		}
-	}, [activePopover, selected]);
+	}, [activePopover, selected, edge]);
 
 	return hasManyObjectRelationships ? (
 		<ManyObjectRelationshipEdge

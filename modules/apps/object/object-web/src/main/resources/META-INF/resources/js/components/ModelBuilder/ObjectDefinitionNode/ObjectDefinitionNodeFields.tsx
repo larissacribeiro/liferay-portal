@@ -4,6 +4,7 @@
  */
 
 import {stringUtils} from '@liferay/object-js-components-web';
+import ClayLabel from '@clayui/label';
 import classNames from 'classnames';
 import React from 'react';
 import {useStore} from 'react-flow-renderer';
@@ -16,16 +17,26 @@ import './ObjectDefinitionNodeFields.scss';
 
 interface ObjectDefinitionNodeFieldsProps {
 	defaultLanguageId: Liferay.Language.Locale;
+	isRootStructure: boolean;
 	objectFields: ObjectFieldNodeRow[];
 	selectedObjectDefinitionId: number;
 	showAllObjectFields: boolean;
+	status: {
+		code: number;
+		label: string;
+		label_i18n: string;
+	};
+	system: boolean;
 }
 
 export function ObjectDefinitionNodeFields({
 	defaultLanguageId,
+	isRootStructure,
 	objectFields,
 	selectedObjectDefinitionId,
 	showAllObjectFields,
+	status,
+	system,
 }: ObjectDefinitionNodeFieldsProps) {
 	const [_, dispatch] = useObjectFolderContext();
 
@@ -50,6 +61,33 @@ export function ObjectDefinitionNodeFields({
 
 	return (
 		<>
+		<div>
+
+						<ClayLabel displayType={isRootStructure ?'info': 'secondary'}>
+							{Liferay.Language.get(isRootStructure ? 'root' : 'standard')}
+						</ClayLabel>
+						<ClayLabel displayType={system ? 'info' : 'warning'}>
+							{Liferay.Language.get(system ? 'system' : 'custom')}
+						</ClayLabel>
+	
+						<ClayLabel
+							displayType={
+								status?.label === 'approved'
+									? 'success'
+									: status?.label === 'pending'
+										? 'info'
+										: 'secondary'
+							}
+						>
+							{Liferay.Language.get(
+								status?.label === 'approved'
+									? 'approved'
+									: status?.label === 'pending'
+										? 'pending'
+										: 'draft'
+							)}
+						</ClayLabel>
+					</div>
 			{objectFields.map((objectField, index) => {
 				if (index < 5 || showAllObjectFields) {
 					return (

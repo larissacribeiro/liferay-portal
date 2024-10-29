@@ -11,6 +11,14 @@ hr {
 		height: 5.3rem;
 		min-width: 17.5rem;
 		padding: 1rem;
+
+		&--root{
+			background: #89A7E0;
+			border-radius: 0.25rem 0.25rem 0 0;
+			height: 5.3rem;
+			min-width: 17.5rem;
+			padding: 1rem;
+		}
 	}
 
 	&-label-container {

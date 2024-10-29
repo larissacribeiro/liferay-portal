@@ -54,6 +54,7 @@ const NODE_TYPES = {
 
 const EDGE_TYPES = {
 	defaultObjectRelationshipEdge: DefaultObjectRelationshipEdge,
+	rootObjectRelationshipEdge: DefaultObjectRelationshipEdge,
 	selfObjectRelationshipEdge: SelfObjectRelationshipEdge,
 };
 
