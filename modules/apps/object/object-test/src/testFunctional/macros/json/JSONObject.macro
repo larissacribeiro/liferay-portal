@@ -253,7 +253,7 @@ definition {
 	}
 
 	@summary = "Default summary"
-	macro addObjectField(externalReferenceCode = null, fieldName = null, fieldBusinessType = null, fieldLabelName = null, fieldType = null, fileSource = null, formulaScript = null, isRequired = null, objectName = null, outputOption = null, picklistName = null, timeStorageOption = null) {
+	macro addObjectField(externalReferenceCode = null, fieldName = null, fieldBusinessType = null, fieldLabelName = null, fieldType = null, fileSource = null, formulaScript = null, isRequired = null, localized = null, objectName = null, outputOption = null, picklistName = null, timeStorageOption = null) {
 		var portalURL = JSONCompany.getPortalURL();
 		var objectId = JSONObject.getObjectId(
 			objectName = ${objectName},
@@ -564,6 +564,7 @@ definition {
 							"en_US": "${fieldLabelName}"
 						},
 						"listTypeDefinitionId": ${picklistId},
+						"localized": ${localized},
 						"externalReferenceCode": "${externalReferenceCode}",
 						"name": "${fieldName}",
 						"readOnly": "${isReadOnly}",

@@ -1910,6 +1910,7 @@ definition {
 				fieldLabelName = "Custom Field",
 				fieldName = "customObjectField",
 				fieldType = "String",
+				localized = "false",
 				isRequired = "true",
 				objectName = "CustomObject185");
 
