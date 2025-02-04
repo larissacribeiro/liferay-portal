@@ -49,7 +49,8 @@ export class ObjectRelationshipFormPage {
 			.getByRole('button', {name: 'Save'});
 		this.typeSelect = page
 			.locator(formContainerSelector)
-			.getByLabel('Type');
+			.getByLabel('Type')
+			.or(page.getByText('Many to Many'));
 	}
 
 	async selectManyRecordsOf(option: string) {
