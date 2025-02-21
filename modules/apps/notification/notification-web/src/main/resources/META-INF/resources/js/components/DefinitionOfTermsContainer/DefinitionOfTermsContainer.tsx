@@ -60,7 +60,7 @@ export default function DefinitionOfTermsContainer({
 					title={`${Liferay.Language.get('info')}:`}
 				>
 					{Liferay.Language.get(
-						'definition-of-terms-translatable-fields-info'
+						'this-object-includes-translatable-fields.-notification-terms-always-use-the-object-entrys-default-language'
 					)}
 				</ClayAlert>
 			)}
