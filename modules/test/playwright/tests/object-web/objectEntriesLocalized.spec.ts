@@ -25,7 +25,7 @@ import {getRandomDouble} from '../../utils/getRandomDouble';
 import {getRandomInt} from '../../utils/getRandomInt';
 import getRandomString from '../../utils/getRandomString';
 import {journalPagesTest} from '../journal-web/fixtures/journalPagesTest';
-import {mockObjectFields} from './utils/mockObjectFields';
+import {createObjectFields, mockObjectFields} from './utils/mockObjectFields';
 
 export const test = mergeTests(
 	accountSettingsPagesTest,
@@ -880,23 +880,17 @@ test.describe('Required localized object fields', () => {
 		const objectDefinitionLabel = 'ObjectDefinitionLabel' + getRandomInt();
 		const objectDefinitionName = 'ObjectDefinitionName' + getRandomInt();
 
-		const objectFields: ObjectField[] = [
-			{
-				DBType: ObjectField.DBTypeEnum.String,
-				businessType: ObjectField.BusinessTypeEnum.Text,
-				externalReferenceCode: 'textField',
-				indexed: true,
-				indexedAsKeyword: false,
-				indexedLanguageId: '',
-				label: {en_US: 'textField'},
-				listTypeDefinitionId: 0,
-				localized: true,
-				name: 'textField',
-				required: true,
-				system: false,
-				type: ObjectField.TypeEnum.String,
-			},
-		];
+		const objectFields = createObjectFields(
+			'text',
+			[
+				{
+					label: 'textField',
+					name: 'textField',
+				},
+			],
+			{required: true},
+			true
+		);
 
 		const objectDefinitionAPIClient =
 			await apiHelpers.buildRestClient(ObjectDefinitionApi);
@@ -928,7 +922,6 @@ test.describe('Required localized object fields', () => {
 		const objectEntry = await apiHelpers.objectEntry.postObjectEntry(
 			{
 				defaultLanguageId: 'ca_ES',
-				richTextField: getRandomString(),
 				textField: getRandomString(),
 			},
 			'c/' + objectDefinition.name.toLowerCase() + 's'
@@ -938,9 +931,7 @@ test.describe('Required localized object fields', () => {
 
 		await page.getByRole('link', {name: String(objectEntry.id)}).click();
 
-		await expect(
-			page.getByRole('button', {name: 'ca-es'}).first()
-		).toBeVisible();
+		await expect(page.getByRole('button', {name: 'ca-es'})).toBeVisible();
 
 		const translationsDropdownTrigger = page
 			.getByTestId('triggerButton')
@@ -948,17 +939,18 @@ test.describe('Required localized object fields', () => {
 
 		await translationsDropdownTrigger.click();
 
-		const catalanOptions = page.getByTestId(
-			'availableLocalesDropdownca_ES'
+		const catalanOption = page.getByTestId('availableLocalesDropdownca_ES');
+
+		await expect(catalanOption.locator('.label-item-expand')).toHaveText(
+			'default',
+			{ignoreCase: true}
 		);
 
-		await expect(
-			catalanOptions.first().locator('.label-item-expand')
-		).toHaveText('default', {ignoreCase: true});
+		await catalanOption.locator('.label-item-expand').click();
 
-		await catalanOptions.first().locator('.label-item-expand').click();
+		const fieldInput = page.getByTestId('visibleChangeInput');
 
-		await page.getByTestId('visibleChangeInput').fill(getRandomString());
+		await fieldInput.fill(getRandomString());
 
 		await viewObjectEntriesPage.saveObjectEntryButton.click();
 
@@ -966,7 +958,7 @@ test.describe('Required localized object fields', () => {
 			page.getByText('Success:Your request completed successfully.')
 		).toBeVisible();
 
-		await page.getByTestId('visibleChangeInput').fill('');
+		await fieldInput.fill('');
 
 		await viewObjectEntriesPage.saveObjectEntryButton.click();
 
@@ -978,9 +970,9 @@ test.describe('Required localized object fields', () => {
 
 		const englishOption = page.getByTestId('availableLocalesDropdownen_US');
 
-		await englishOption.first().locator('.label-item-expand').click();
+		await englishOption.locator('.label-item-expand').click();
 
-		await page.getByTestId('visibleChangeInput').fill(getRandomString());
+		await fieldInput.fill(getRandomString());
 
 		await viewObjectEntriesPage.saveObjectEntryButton.click();
 
