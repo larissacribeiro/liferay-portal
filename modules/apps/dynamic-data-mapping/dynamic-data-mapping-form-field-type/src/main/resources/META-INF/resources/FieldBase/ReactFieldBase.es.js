@@ -193,6 +193,7 @@ export default function FieldBase({
 	required,
 	showLabel = true,
 	style,
+	supportLocalization,
 	text,
 	tip,
 	tooltip,
@@ -257,6 +258,15 @@ export default function FieldBase({
 		name,
 		type,
 	]);
+
+	const nonLocalizableFieldMessage =
+		supportLocalization === undefined
+			? Liferay.Language.get('this-field-cannot-be-localized')
+			: supportLocalization
+				? Liferay.Language.get('translation-is-disabled-for-this-field')
+				: Liferay.Language.get(
+						'this-field-does-not-support-translations'
+					);
 
 	const renderLabel =
 		(label && showLabel) || hideField || repeatable || required || tooltip;
@@ -670,9 +680,7 @@ export default function FieldBase({
 
 							{showDisabledFieldIcon && (
 								<FieldInformation
-									tooltip={Liferay.Language.get(
-										'this-field-cannot-be-localized'
-									)}
+									tooltip={nonLocalizableFieldMessage}
 								/>
 							)}
 
@@ -711,9 +719,7 @@ export default function FieldBase({
 
 							{showDisabledFieldIcon && (
 								<FieldInformation
-									tooltip={Liferay.Language.get(
-										'this-field-cannot-be-localized'
-									)}
+									tooltip={nonLocalizableFieldMessage}
 								/>
 							)}
 
