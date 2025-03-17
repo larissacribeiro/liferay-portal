@@ -12,8 +12,11 @@ let REVALIDATE_UPDATES = [];
 
 const skipPageEvaluationFieldNames = ['name', 'requiredErrorMessage'];
 
-const needsPageEvaluation = (fieldName) => {
-	return !skipPageEvaluationFieldNames.includes(fieldName);
+const needsPageEvaluation = (fieldName, fieldInstance) => {
+	return (
+		!skipPageEvaluationFieldNames.includes(fieldName) &&
+		!fieldInstance.name.includes('ObjectDefinitionsPortlet')
+	);
 };
 
 const getEditedPages = ({
@@ -107,7 +110,10 @@ export default function fieldChange({
 			}
 		}
 
-		if (evaluable && (viewMode || needsPageEvaluation(fieldName))) {
+		if (
+			evaluable &&
+			(viewMode || needsPageEvaluation(fieldName, fieldInstance))
+		) {
 			try {
 				disableSubmitButton(submitButtonId);
 
