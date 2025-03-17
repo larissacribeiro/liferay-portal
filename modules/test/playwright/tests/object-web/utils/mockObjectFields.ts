@@ -143,6 +143,7 @@ function isLocalizable(businessType: ObjectFieldBusinessTypes) {
 		'multiselectPicklist',
 		'picklist',
 		'precisionDecimal',
+		'richText',
 		'text',
 	];
 
