@@ -120,10 +120,12 @@ const RichText = ({
 	}, [currentEditingLocale]);
 
 	useEffect(() => {
-		changeLanguage(editingLanguageId ?? defaultLocale?.localeId ?? locale);
+		changeLanguage(
+			currentEditingLocale.localeId ?? defaultLocale?.localeId ?? locale
+		);
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [editingLanguageId, locale, predefinedValue]);
+	}, [currentEditingLocale.localeId, locale, predefinedValue]);
 
 	const changeLanguage = (localeId) => {
 		if (!localeId) {
