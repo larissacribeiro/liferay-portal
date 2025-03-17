@@ -1133,4 +1133,146 @@ test.describe('Required localized object fields', () => {
 			page.getByText('This field is required.', {exact: true})
 		).toBeVisible();
 	});
+
+	test('verify that labels of single select picklist options are present when the field is required', async ({
+		apiHelpers,
+		formFieldsPage,
+		page,
+		viewObjectEntriesPage,
+	}) => {
+		const objectDefinitionLabel = 'ObjectDefinitionLabel' + getRandomInt();
+		const objectDefinitionName = 'ObjectDefinitionName' + getRandomInt();
+
+		const {listTypeDefinitionItems, objectFields, titleObjectFieldName} =
+			await mockObjectFields({
+				apiHelpers,
+				localizeAllLocalizable: true,
+				objectFieldBusinessTypes: ['picklist'],
+			});
+
+		const objectDefinitionAPIClient =
+			await apiHelpers.buildRestClient(ObjectDefinitionApi);
+
+		const {body: objectDefinition} =
+			await objectDefinitionAPIClient.postObjectDefinition({
+				active: true,
+				enableLocalization: true,
+				label: {
+					en_US: objectDefinitionLabel,
+				},
+				name: objectDefinitionName,
+				objectFields,
+				pluralLabel: {
+					en_US: objectDefinitionLabel,
+				},
+				portlet: true,
+				scope: 'company',
+				status: {
+					code: 0,
+				},
+				titleObjectFieldName,
+			});
+
+		apiHelpers.data.push({
+			id: objectDefinition.id,
+			type: 'objectDefinition',
+		});
+
+		await viewObjectEntriesPage.goto(objectDefinition.className);
+
+		await viewObjectEntriesPage.addObjectEntryButton.click();
+
+		await expect(page.getByRole('button', {name: 'en-us'})).toBeVisible();
+
+		await formFieldsPage.addSelectItem(listTypeDefinitionItems[0], 0);
+
+		await page.getByRole('combobox').click();
+
+		listTypeDefinitionItems.forEach((item) => {
+			expect(page.getByRole('option', {name: item})).toBeVisible();
+		});
+	});
+
+	test('verify that required evaluation for the rich text field does not happen onChange, only onSubmit', async ({
+		apiHelpers,
+		page,
+		viewObjectEntriesPage,
+	}) => {
+		const objectDefinitionLabel = 'ObjectDefinitionLabel' + getRandomInt();
+		const objectDefinitionName = 'ObjectDefinitionName' + getRandomInt();
+
+		const objectFields = createObjectFields(
+			'richText',
+			[
+				{
+					label: 'richTextField',
+					name: 'richTextField',
+				},
+			],
+			{required: true},
+			true
+		);
+
+		const objectDefinitionAPIClient =
+			await apiHelpers.buildRestClient(ObjectDefinitionApi);
+
+		const {body: objectDefinition} =
+			await objectDefinitionAPIClient.postObjectDefinition({
+				active: true,
+				enableLocalization: true,
+				label: {
+					en_US: objectDefinitionLabel,
+				},
+				name: objectDefinitionName,
+				objectFields,
+				pluralLabel: {
+					en_US: objectDefinitionLabel,
+				},
+				portlet: true,
+				scope: 'company',
+				status: {
+					code: 0,
+				},
+			});
+
+		apiHelpers.data.push({
+			id: objectDefinition.id,
+			type: 'objectDefinition',
+		});
+
+		await viewObjectEntriesPage.goto(objectDefinition.className);
+
+		await viewObjectEntriesPage.addObjectEntryButton.click();
+
+		await expect(page.getByRole('button', {name: 'en-us'})).toBeVisible();
+
+		const translationsDropdownTrigger = page
+			.getByTestId('triggerButton')
+			.first();
+
+		await translationsDropdownTrigger.click();
+
+		const catalanOption = page.getByTestId('availableLocalesDropdownca_ES');
+
+		await catalanOption.locator('.label-item-expand').click();
+
+		await page
+			.frameLocator('iframe[title="editor"]')
+			.getByRole('textbox')
+			.fill('fill rich text only in catalan');
+
+		await expect(page.getByRole('button', {name: 'ca-es'})).toBeVisible();
+
+		await expect(
+			page.getByText('This field is required.', {exact: true})
+		).not.toBeVisible();
+
+		await viewObjectEntriesPage.saveObjectEntryButton.click();
+
+		await expect(page.getByRole('button', {name: 'en-us'})).toBeVisible();
+
+		await expect(
+			page.getByText('This field is required.', {exact: true})
+		).toBeVisible();
+	});
 });
