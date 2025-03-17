@@ -154,7 +154,8 @@ export function createObjectFields(
 	businessType: keyof ObjectFieldBusinessTypesLabelName,
 	objectFieldsBusinessTypeLabelName: LabelNameObject[],
 	additionalSettings: Partial<ObjectField> = {},
-	localizeAllLocalizable: boolean = false
+	localizeAllLocalizable: boolean = false,
+	required: boolean = false
 ): Partial<ObjectField>[] {
 	const baseObjectField: ObjectField = {
 		indexedAsKeyword: false,
@@ -162,7 +163,7 @@ export function createObjectFields(
 		localized: !!(isLocalizable(businessType) && localizeAllLocalizable),
 		readOnly: 'false',
 		readOnlyConditionExpression: '',
-		required: false,
+		required,
 		state: false,
 		system: false,
 		unique: false,
@@ -233,6 +234,7 @@ export async function mockObjectFields({
 	localizeAllLocalizable,
 	objectEntryReturn,
 	objectFieldBusinessTypes,
+	required,
 	titleObjectFieldName,
 }: {
 	apiHelpers: DataApiHelpers;
@@ -240,6 +242,7 @@ export async function mockObjectFields({
 	localizeAllLocalizable?: boolean;
 	objectEntryReturn?: {format: 'API' | 'UI'};
 	objectFieldBusinessTypes: ObjectFieldBusinessTypes[];
+	required?: boolean;
 	titleObjectFieldName?: ObjectFieldBusinessTypes;
 }): Promise<MockObjectFieldsReturn> {
 	let translatedListTypeDefinitionItems: string[];
@@ -380,7 +383,8 @@ export async function mockObjectFields({
 				setObjectFieldsAdditionalSettings(
 					objectFieldBusinessType as ObjectFieldBusinessTypes
 				),
-				localizeAllLocalizable
+				localizeAllLocalizable,
+				required
 			)
 		);
 
