@@ -1193,7 +1193,7 @@ test.describe('Required localized object fields', () => {
 		});
 	});
 
-	test('verify that required evaluation for the rich text field does not happen onChange, only onSubmit', async ({
+	test('verify that required evaluation for rich text and multiselect picklist fields happens only onSubmit', async ({
 		apiHelpers,
 		page,
 		viewObjectEntriesPage,
@@ -1201,17 +1201,12 @@ test.describe('Required localized object fields', () => {
 		const objectDefinitionLabel = 'ObjectDefinitionLabel' + getRandomInt();
 		const objectDefinitionName = 'ObjectDefinitionName' + getRandomInt();
 
-		const objectFields = createObjectFields(
-			'richText',
-			[
-				{
-					label: 'richTextField',
-					name: 'richTextField',
-				},
-			],
-			{required: true},
-			true
-		);
+		const {objectFields, titleObjectFieldName} = await mockObjectFields({
+			apiHelpers,
+			localizeAllLocalizable: true,
+			objectFieldBusinessTypes: ['multiselectPicklist', 'richText'],
+			required: true,
+		});
 
 		const objectDefinitionAPIClient =
 			await apiHelpers.buildRestClient(ObjectDefinitionApi);
@@ -1233,6 +1228,7 @@ test.describe('Required localized object fields', () => {
 				status: {
 					code: 0,
 				},
+				titleObjectFieldName,
 			});
 
 		apiHelpers.data.push({
@@ -1244,7 +1240,13 @@ test.describe('Required localized object fields', () => {
 
 		await viewObjectEntriesPage.addObjectEntryButton.click();
 
-		await expect(page.getByRole('button', {name: 'en-us'})).toBeVisible();
+		await expect(
+			page.getByRole('button', {name: 'en-us'}).first()
+		).toBeVisible();
+
+		await expect(
+			page.getByText('This field is required.', {exact: true})
+		).not.toBeVisible();
 
 		const translationsDropdownTrigger = page
 			.getByTestId('triggerButton')
@@ -1254,22 +1256,22 @@ test.describe('Required localized object fields', () => {
 
 		const catalanOption = page.getByTestId('availableLocalesDropdownca_ES');
 
-		await catalanOption.locator('.label-item-expand').click();
+		await catalanOption.locator('.label-item-expand').nth(1).click();
 
 		await page
 			.frameLocator('iframe[title="editor"]')
 			.getByRole('textbox')
 			.fill('fill rich text only in catalan');
 
-		await expect(page.getByRole('button', {name: 'ca-es'})).toBeVisible();
+		await expect(
+			page.getByRole('button', {name: 'ca-es'}).first()
+		).toBeVisible();
 
 		await expect(
 			page.getByText('This field is required.', {exact: true})
 		).not.toBeVisible();
 
 		await viewObjectEntriesPage.saveObjectEntryButton.click();
-
-		await expect(page.getByRole('button', {name: 'en-us'})).toBeVisible();
 
 		await expect(
 			page.getByText('This field is required.', {exact: true})
