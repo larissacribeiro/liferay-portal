@@ -16,6 +16,7 @@ import React, {
 import {DndProvider} from 'react-dnd';
 import {HTML5Backend} from 'react-dnd-html5-backend';
 
+import {EVENT_TYPES} from '../../core/actions/eventTypes.es';
 import Pages from '../../core/components/Pages.es';
 import {INITIAL_CONFIG_STATE} from '../../core/config/initialConfigState.es';
 import {INITIAL_STATE} from '../../core/config/initialState.es';
@@ -281,6 +282,20 @@ const usePublicAPI = ({apiRef, containerRef, unstable_onEventRef}) => {
 		]
 	);
 
+	/**
+	 * Switches the LocalesDropdown back to the default language id.
+	 * This is necessary within objects entries context since the
+	 * entry is only required in the default locale.
+	 */
+
+	const updateLocalesDropdownToDefaultLanguage = () =>
+		dispatch({
+			payload: {
+				editingLanguageId: defaultLanguageId,
+			},
+			type: EVENT_TYPES.LANGUAGE.LOCALES_DROPDOWN_CHANGE,
+		});
+
 	useEffect(() => {
 		Liferay.component(
 			containerId,
@@ -375,6 +390,7 @@ const usePublicAPI = ({apiRef, containerRef, unstable_onEventRef}) => {
 					readOnly,
 				})
 			),
+		updateLocalesDropdownToDefaultLanguage,
 		validate,
 	}));
 };
