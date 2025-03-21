@@ -232,6 +232,11 @@ public class RelationshipObjectFieldBusinessType
 		return null;
 	}
 
+	@Override
+	public boolean supportLocalization(ObjectField objectField) {
+		return false;
+	}
+
 	private ObjectDefinition _getObjectDefinition(ObjectField objectField)
 		throws PortalException {
 

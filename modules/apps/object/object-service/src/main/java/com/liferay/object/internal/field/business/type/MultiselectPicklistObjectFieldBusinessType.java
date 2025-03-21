@@ -159,11 +159,6 @@ public class MultiselectPicklistObjectFieldBusinessType
 			values);
 	}
 
-	@Override
-	public boolean isLocalizable() {
-		return true;
-	}
-
 	private Object _getValue(
 		String objectFieldName, Object value, Map<String, Object> values) {
 
