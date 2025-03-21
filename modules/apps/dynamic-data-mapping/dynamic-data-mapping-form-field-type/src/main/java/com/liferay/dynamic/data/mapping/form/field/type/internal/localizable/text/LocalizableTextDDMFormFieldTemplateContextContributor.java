@@ -54,6 +54,10 @@ public class LocalizableTextDDMFormFieldTemplateContextContributor
 		if (ddmFormFieldRenderingContext.isReturnFullContext()) {
 			parameters.put("displayStyle", _getDisplayStyle(ddmFormField));
 			parameters.put(
+				"editOnlyInDefaultLanguage",
+				GetterUtil.getBoolean(
+					ddmFormField.getProperty("editOnlyInDefaultLanguage")));
+			parameters.put(
 				"placeholder",
 				_getPlaceholder(ddmFormField, ddmFormFieldRenderingContext));
 			parameters.put(
@@ -61,6 +65,10 @@ public class LocalizableTextDDMFormFieldTemplateContextContributor
 				JSONUtil.toJSONArray(
 					_language.getAvailableLocales(),
 					this::_getPlaceholdersSubmitLabelJSONObject, _log));
+			parameters.put(
+				"supportLocalization",
+				GetterUtil.getBoolean(
+					ddmFormField.getProperty("supportLocalization")));
 			parameters.put(
 				"tooltip",
 				_getTooltip(ddmFormField, ddmFormFieldRenderingContext));

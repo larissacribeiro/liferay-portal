@@ -48,6 +48,10 @@ public class CheckboxDDMFormFieldTemplateContextContributor
 			ddmFormField.getProperty("localizedObjectField"));
 
 		return HashMapBuilder.<String, Object>put(
+			"editOnlyInDefaultLanguage",
+			GetterUtil.getBoolean(
+				ddmFormField.getProperty("editOnlyInDefaultLanguage"))
+		).put(
 			"localizedObjectField", localizedObjectField
 		).put(
 			"predefinedValue",
@@ -63,6 +67,10 @@ public class CheckboxDDMFormFieldTemplateContextContributor
 			"showMaximumRepetitionsInfo",
 			GetterUtil.getBoolean(
 				ddmFormField.getProperty("showMaximumRepetitionsInfo"))
+		).put(
+			"supportLocalization",
+			GetterUtil.getBoolean(
+				ddmFormField.getProperty("supportLocalization"))
 		).put(
 			"systemSettingsURL",
 			() -> {

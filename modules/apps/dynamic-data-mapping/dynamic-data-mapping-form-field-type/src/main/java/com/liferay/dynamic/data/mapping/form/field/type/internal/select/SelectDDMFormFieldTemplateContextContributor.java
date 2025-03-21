@@ -91,6 +91,10 @@ public class SelectDDMFormFieldTemplateContextContributor
 			"defaultSearch",
 			GetterUtil.getBoolean(ddmFormField.getProperty("defaultSearch"))
 		).put(
+			"editOnlyInDefaultLanguage",
+			GetterUtil.getBoolean(
+				ddmFormField.getProperty("editOnlyInDefaultLanguage"))
+		).put(
 			"localizedObjectField", localizedObjectField
 		).put(
 			"multiple",
@@ -118,6 +122,10 @@ public class SelectDDMFormFieldTemplateContextContributor
 				ddmFormField.getProperty("showEmptyOption"), true)
 		).put(
 			"strings", _getStrings(ddmFormFieldRenderingContext)
+		).put(
+			"supportLocalization",
+			GetterUtil.getBoolean(
+				ddmFormField.getProperty("supportLocalization"))
 		).put(
 			"tooltip",
 			DDMFormFieldTypeUtil.getPropertyValue(

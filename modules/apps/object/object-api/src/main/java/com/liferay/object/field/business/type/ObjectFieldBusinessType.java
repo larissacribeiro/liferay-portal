@@ -94,7 +94,14 @@ public interface ObjectFieldBusinessType {
 		throws PortalException {
 
 		return HashMapBuilder.<String, Object>put(
+			"editOnlyInDefaultLanguage",
+			FeatureFlagManagerUtil.isEnabled("LPD-32050") &&
+			!GetterUtil.getBoolean(objectField.getReadOnly()) &&
+			!objectField.isLocalized()
+		).put(
 			"localizedObjectField", objectField.isLocalized()
+		).put(
+			"supportLocalization", supportLocalization(objectField)
 		).build();
 	}
 

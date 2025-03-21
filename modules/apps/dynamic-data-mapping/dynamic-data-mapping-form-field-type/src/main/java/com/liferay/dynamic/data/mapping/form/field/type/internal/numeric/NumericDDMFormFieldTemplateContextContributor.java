@@ -68,6 +68,10 @@ public class NumericDDMFormFieldTemplateContextContributor
 		).put(
 			"direction", ddmFormField.getProperty("direction")
 		).put(
+			"editOnlyInDefaultLanguage",
+			GetterUtil.getBoolean(
+				ddmFormField.getProperty("editOnlyInDefaultLanguage"))
+		).put(
 			"hideField",
 			GetterUtil.getBoolean(ddmFormField.getProperty("hideField"))
 		).put(
@@ -91,6 +95,10 @@ public class NumericDDMFormFieldTemplateContextContributor
 			"requireConfirmation",
 			GetterUtil.getBoolean(
 				ddmFormField.getProperty("requireConfirmation"))
+		).put(
+			"supportLocalization",
+			GetterUtil.getBoolean(
+				ddmFormField.getProperty("supportLocalization"))
 		).put(
 			"tooltip",
 			DDMFormFieldTypeUtil.getPropertyValue(
