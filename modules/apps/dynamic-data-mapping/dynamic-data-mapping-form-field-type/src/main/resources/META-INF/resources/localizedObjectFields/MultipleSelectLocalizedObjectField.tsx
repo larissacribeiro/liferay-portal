@@ -5,16 +5,15 @@
 
 import {ClayInput} from '@clayui/form';
 import {stringUtils} from '@liferay/object-js-components-web';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useFormState} from 'data-engine-js-components-web';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {MultipleSelectBase} from '../Select/MultipleSelectBase';
 import {MultipleSelectBaseProps} from '../Select/select.d';
 import {LocalizedValue} from '../types';
 import LocalesDropdown, {
 	AvailableLocale,
-	EditingLocale,
 } from '../util/localizable/LocalesDropdown';
-import {getEditingLocales, getLocale} from './util/locales';
 
 import type {Locale} from '../types';
 
@@ -23,17 +22,14 @@ type valueTypes = string[] | LocalizedValue<string[]>;
 export interface MultipleSelectLocalizedObjectFieldProps
 	extends MultipleSelectBaseProps<string[] | LocalizedValue<string[]>> {
 	availableLocales: AvailableLocale[];
-	defaultLocale: EditingLocale;
 }
 
-function getDefaultValue(locale: Locale, values: valueTypes) {
-	return Array.isArray(values) ? {[locale]: values} : values;
+function getDefaultValue(locale: Locale, value: valueTypes) {
+	return Array.isArray(value) ? {[locale]: value} : value;
 }
 
 export default function MultipleSelectLocalizedObjectField({
 	availableLocales,
-	defaultLanguageId,
-	defaultLocale,
 	errorMessage,
 	fieldName,
 	id,
@@ -44,70 +40,23 @@ export default function MultipleSelectLocalizedObjectField({
 	readOnly,
 	required,
 	tip,
-	value: values,
+	value,
 }: MultipleSelectLocalizedObjectFieldProps) {
-	const [editingLocales, setEditingLocales] = useState<EditingLocale[]>(
-		getEditingLocales(
-			availableLocales,
-			defaultLocale,
-			getDefaultValue(defaultLanguageId, values)
-		)
+	const {defaultLanguageId, editingLanguageId} = useFormState();
+
+	const [localizedValues, setLocalizedValues] = useState(
+		getDefaultValue(editingLanguageId, value)
 	);
-
-	const [currentEditingLocale, setCurrentEditingLocale] =
-		useState<EditingLocale>({
-			...getLocale(editingLocales, defaultLocale, defaultLocale.localeId),
-		});
-
-	const currentEditingLocaleIdRef = useRef<Locale>(
-		currentEditingLocale.localeId
-	);
-
-	const [localizedValues, setLocalizedValues] = useState<
-		LocalizedValue<string[]>
-	>(getDefaultValue(currentEditingLocale.localeId, values));
-
-	useEffect(() => {
-		currentEditingLocaleIdRef.current = currentEditingLocale.localeId;
-	}, [currentEditingLocale]);
-
-	const updateLocalizedValues = (localeId: Locale, items: string[]) => {
-		const newLocalizedValues = {
-			...localizedValues,
-			[localeId]: items,
-		};
-		setLocalizedValues(newLocalizedValues);
-
-		onChange({}, newLocalizedValues);
-	};
 
 	const handleChange = (_: object, uniqueItems: string[]) => {
-		updateLocalizedValues(currentEditingLocaleIdRef.current, uniqueItems);
-	};
+		const newLocalizedValues = {
+			...localizedValues,
+			[editingLanguageId]: uniqueItems,
+		};
 
-	const handleTranslationChange = (localeId: Liferay.Language.Locale) => {
-		if (!Object.hasOwn(localizedValues, localeId)) {
-			updateLocalizedValues(
-				localeId,
-				localizedValues[defaultLanguageId]!
-			);
-		}
+		onChange({}, newLocalizedValues);
 
-		const currentLocale = getLocale(
-			editingLocales,
-			defaultLocale,
-			localeId
-		);
-
-		const updatedLocale = {...currentLocale, isTranslated: true};
-
-		setEditingLocales((previous) =>
-			previous.map((locale) =>
-				locale.localeId === localeId ? updatedLocale : locale
-			)
-		);
-
-		setCurrentEditingLocale(updatedLocale);
+		setLocalizedValues(newLocalizedValues);
 	};
 
 	const localizedOptions = useMemo(() => {
@@ -115,16 +64,27 @@ export default function MultipleSelectLocalizedObjectField({
 			...option,
 			label: stringUtils.getLocalizableLabel({
 				labels: option.labelMap,
-				preferredLanguageId: currentEditingLocale.localeId,
+				preferredLanguageId: editingLanguageId,
 			}),
 		}));
-	}, [options, currentEditingLocale.localeId]);
+	}, [options, editingLanguageId]);
 
 	const handleAsyncOptions = useCallback(() => {
 		return new Promise((resolve) => {
 			resolve(localizedOptions);
 		});
 	}, [localizedOptions]);
+
+	useEffect(() => {
+		if (!Object.hasOwn(localizedValues, editingLanguageId)) {
+			setLocalizedValues((previous) => {
+				return {
+					...previous,
+					[editingLanguageId]: localizedValues[defaultLanguageId],
+				};
+			});
+		}
+	}, [defaultLanguageId, editingLanguageId, localizedValues]);
 
 	return (
 		<ClayInput.Group>
@@ -141,15 +101,14 @@ export default function MultipleSelectLocalizedObjectField({
 				readOnly={readOnly}
 				required={required}
 				tip={tip}
-				value={localizedValues[currentEditingLocale.localeId] ?? ['']}
+				value={localizedValues[editingLanguageId] ?? ['']}
 			/>
 
 			<ClayInput.GroupItem shrink>
 				<LocalesDropdown
-					availableLocales={editingLocales}
-					editingLocale={currentEditingLocale}
+					availableLocales={availableLocales}
 					fieldName={fieldName}
-					onLanguageClicked={handleTranslationChange}
+					value={localizedValues}
 				/>
 			</ClayInput.GroupItem>
 		</ClayInput.Group>

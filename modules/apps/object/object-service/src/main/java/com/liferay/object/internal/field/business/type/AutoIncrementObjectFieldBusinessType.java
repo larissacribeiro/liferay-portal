@@ -106,6 +106,11 @@ public class AutoIncrementObjectFieldBusinessType
 	}
 
 	@Override
+	public boolean supportLocalization(ObjectField objectField) {
+		return false;
+	}
+
+	@Override
 	public void validateObjectFieldSettings(
 			ObjectField objectField,
 			List<ObjectFieldSetting> objectFieldSettings)

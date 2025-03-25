@@ -60,6 +60,10 @@ public class ObjectRelationshipDDMFormFieldTemplateContextContributor
 		return HashMapBuilder.<String, Object>put(
 			"apiURL", _getAPIURL(ddmFormField, ddmFormFieldRenderingContext)
 		).put(
+			"editOnlyInDefaultLanguage",
+			GetterUtil.getBoolean(
+				ddmFormField.getProperty("editOnlyInDefaultLanguage"))
+		).put(
 			"inputName", ddmFormField.getName()
 		).put(
 			"labelKey", _getLabelKey(ddmFormField, objectDefinition)
@@ -100,6 +104,10 @@ public class ObjectRelationshipDDMFormFieldTemplateContextContributor
 					localizedValue.getString(
 						ddmFormFieldRenderingContext.getLocale()));
 			}
+		).put(
+			"supportLocalization",
+			GetterUtil.getBoolean(
+				ddmFormField.getProperty("supportLocalization"))
 		).put(
 			"value",
 			() -> {

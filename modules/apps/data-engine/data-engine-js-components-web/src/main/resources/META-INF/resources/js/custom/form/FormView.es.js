@@ -255,6 +255,7 @@ const usePublicAPI = ({apiRef, containerRef, unstable_onEventRef}) => {
 			dispatch(
 				formValidate({
 					activePage,
+					containerId,
 					defaultLanguageId,
 					editingLanguageId,
 					formId: containerRef.current
@@ -268,6 +269,7 @@ const usePublicAPI = ({apiRef, containerRef, unstable_onEventRef}) => {
 				})
 			),
 		[
+			containerId,
 			dispatch,
 			activePage,
 			containerRef,
@@ -280,6 +282,18 @@ const usePublicAPI = ({apiRef, containerRef, unstable_onEventRef}) => {
 			viewMode,
 		]
 	);
+
+	const updateLocalesDropdownToDefaultLanguage = () =>
+
+		// Switches the LocalesDropdown back to the default language id.
+		// This is necessary within objects entries context since the entry is only required in the default locale.
+
+		dispatch({
+			payload: {
+				editingLanguageId: defaultLanguageId,
+			},
+			type: 'language_locales_dropdown_change',
+		});
 
 	useEffect(() => {
 		Liferay.component(
@@ -375,6 +389,7 @@ const usePublicAPI = ({apiRef, containerRef, unstable_onEventRef}) => {
 					readOnly,
 				})
 			),
+		updateLocalesDropdownToDefaultLanguage,
 		validate,
 	}));
 };

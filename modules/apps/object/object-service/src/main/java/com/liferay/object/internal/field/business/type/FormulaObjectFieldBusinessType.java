@@ -83,6 +83,11 @@ public class FormulaObjectFieldBusinessType
 	}
 
 	@Override
+	public boolean supportLocalization(ObjectField objectField) {
+		return false;
+	}
+
+	@Override
 	public void validateObjectFieldSettings(
 			ObjectField objectField,
 			List<ObjectFieldSetting> objectFieldSettings)

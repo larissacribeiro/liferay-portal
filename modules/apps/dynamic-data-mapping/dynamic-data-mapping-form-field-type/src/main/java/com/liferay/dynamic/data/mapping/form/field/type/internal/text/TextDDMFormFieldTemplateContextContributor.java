@@ -61,6 +61,10 @@ public class TextDDMFormFieldTemplateContextContributor
 			).put(
 				"displayStyle", _getDisplayStyle(ddmFormField)
 			).put(
+				"editOnlyInDefaultLanguage",
+				GetterUtil.getBoolean(
+					ddmFormField.getProperty("editOnlyInDefaultLanguage"))
+			).put(
 				"hideField",
 				GetterUtil.getBoolean(ddmFormField.getProperty("hideField"))
 			).put(
@@ -98,6 +102,10 @@ public class TextDDMFormFieldTemplateContextContributor
 
 					return null;
 				}
+			).put(
+				"supportLocalization",
+				GetterUtil.getBoolean(
+					ddmFormField.getProperty("supportLocalization"))
 			).put(
 				"tooltip",
 				DDMFormFieldTypeUtil.getPropertyValue(

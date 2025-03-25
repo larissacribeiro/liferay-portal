@@ -97,12 +97,20 @@ public class AttachmentDDMFormFieldTemplateContextContributor
 				).buildString();
 			}
 		).put(
+			"editOnlyInDefaultLanguage",
+			GetterUtil.getBoolean(
+				ddmFormField.getProperty("editOnlyInDefaultLanguage"))
+		).put(
 			"fileSource", ddmFormField.getProperty("fileSource")
 		).put(
 			"maximumFileSize", maximumFileSize
 		).put(
 			"overallMaximumUploadRequestSize",
 			_uploadServletRequestConfigurationProvider.getMaxSize()
+		).put(
+			"supportLocalization",
+			GetterUtil.getBoolean(
+				ddmFormField.getProperty("supportLocalization"))
 		).put(
 			"tip",
 			_language.format(
