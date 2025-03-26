@@ -22,6 +22,7 @@ import {getSymbols, maxLengthExceeded} from './numericUtil';
 import './Numeric.scss';
 
 import type {FieldChangeEventHandler, Locale, LocalizedValue} from '../types';
+import {debounce, throttle} from 'frontend-js-web';
 
 const Numeric: React.FC<NumericProps> = (props) => {
 	const {
@@ -69,7 +70,7 @@ const Numeric: React.FC<NumericProps> = (props) => {
 			'',
 	});
 
-	const handleChange = (formattedValue: IMaskedNumber) => {
+	const handleChange = throttle((formattedValue: IMaskedNumber) => {
 		if (maxLengthExceeded(formattedValue.raw, inputMaskFormat)) {
 			return;
 		}
@@ -79,7 +80,7 @@ const Numeric: React.FC<NumericProps> = (props) => {
 				target: {value: formattedValue?.raw ? formattedValue.raw : ''},
 			});
 		}
-	};
+	}, 300);
 
 	return (
 		<NumericBase
