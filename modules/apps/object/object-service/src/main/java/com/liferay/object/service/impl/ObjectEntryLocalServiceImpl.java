@@ -5669,6 +5669,51 @@ public class ObjectEntryLocalServiceImpl
 		}
 	}
 
+	private void _validateRequiredValues(
+			ObjectField objectField, ServiceContext serviceContext,
+			Serializable value)
+		throws PortalException {
+
+		if (!objectField.isRequired() ||
+			(serviceContext.getWorkflowAction() ==
+				WorkflowConstants.ACTION_SAVE_DRAFT)) {
+
+			return;
+		}
+
+		if (Validator.isNull(value)) {
+			throw new ObjectEntryValuesException.Required(
+				objectField.getName());
+		}
+		else if (objectField.compareBusinessType(
+					ObjectFieldConstants.BUSINESS_TYPE_BOOLEAN)) {
+
+			if (!GetterUtil.getBoolean(value)) {
+				throw new ObjectEntryValuesException.Required(
+					objectField.getName());
+			}
+		}
+		else if (objectField.compareBusinessType(
+					ObjectFieldConstants.BUSINESS_TYPE_MULTISELECT_PICKLIST)) {
+
+			List<String> listTypeEntryKeys = null;
+
+			if (value instanceof List) {
+				listTypeEntryKeys = (List<String>)value;
+			}
+			else {
+				listTypeEntryKeys = ListUtil.fromString(
+					GetterUtil.getString(String.valueOf(value)),
+					StringPool.COMMA_AND_SPACE);
+			}
+
+			if (listTypeEntryKeys.isEmpty()) {
+				throw new ObjectEntryValuesException.Required(
+					objectField.getName());
+			}
+		}
+	}
+
 	private void _validateTextMaxLength(
 			int defaultMaxLength, String objectEntryValue, long objectFieldId,
 			String objectFieldName, List<ValidationError> validationErrors)
@@ -5790,18 +5835,9 @@ public class ObjectEntryLocalServiceImpl
 			String valueLanguageId)
 		throws PortalException {
 
-		if (Validator.isNull(value) && !objectField.isLocalized() &&
-			objectField.isRequired() &&
-			(serviceContext.getWorkflowAction() !=
-				WorkflowConstants.ACTION_SAVE_DRAFT)) {
-
-			_handle(
-				new ObjectEntryValuesException.Required(objectField.getName()),
-				validationErrors);
-		}
-		else if (StringUtil.equals(
-					objectField.getBusinessType(),
-					ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT)) {
+		if (StringUtil.equals(
+				objectField.getBusinessType(),
+				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT)) {
 
 			DLFileEntry dlFileEntry = _dlFileEntryLocalService.fetchDLFileEntry(
 				GetterUtil.getLong(value));
@@ -5841,20 +5877,16 @@ public class ObjectEntryLocalServiceImpl
 					 (serviceContext.getWorkflowAction() !=
 						 WorkflowConstants.ACTION_SAVE_DRAFT)) {
 
-				_handle(
-					new ObjectEntryValuesException.Required(
-						objectField.getName()),
-					validationErrors);
+				throw new ObjectEntryValuesException.Required(
+					objectField.getName());
 			}
 		}
 		else if (objectField.compareBusinessType(
 					ObjectFieldConstants.BUSINESS_TYPE_BOOLEAN)) {
 
 			if (!GetterUtil.getBoolean(value) && objectField.isRequired()) {
-				_handle(
-					new ObjectEntryValuesException.Required(
-						objectField.getName()),
-					validationErrors);
+				throw new ObjectEntryValuesException.Required(
+					objectField.getName());
 			}
 		}
 		else if (objectField.compareBusinessType(
@@ -5993,10 +6025,8 @@ public class ObjectEntryLocalServiceImpl
 					(serviceContext.getWorkflowAction() !=
 						WorkflowConstants.ACTION_SAVE_DRAFT)) {
 
-					_handle(
-						new ObjectEntryValuesException.Required(
-							objectField.getName()),
-						validationErrors);
+					throw new ObjectEntryValuesException.Required(
+						objectField.getName());
 				}
 
 				for (String listTypeEntryKey : listTypeEntryKeys) {
@@ -6040,6 +6070,9 @@ public class ObjectEntryLocalServiceImpl
 			if (!objectField.isLocalized() &&
 				values.containsKey(objectField.getName())) {
 
+				_validateRequiredValues(
+					objectField, serviceContext,
+					values.get(objectField.getName()));
 				_validateValues(
 					dlFileEntries, existingObjectEntry, guestUser, groupId,
 					objectDefinition, objectField, serviceContext, userId,
@@ -6056,6 +6089,15 @@ public class ObjectEntryLocalServiceImpl
 			}
 
 			for (Map.Entry<String, String> entry : localizedValues.entrySet()) {
+				if (Objects.equals(
+						objectDefinition.getDefaultLanguageId(),
+						entry.getKey())) {
+
+					_validateRequiredValues(
+						objectField, serviceContext,
+						values.get(objectField.getName()));
+				}
+
 				_validateValues(
 					dlFileEntries, existingObjectEntry, guestUser, groupId,
 					objectDefinition, objectField, serviceContext, userId,
