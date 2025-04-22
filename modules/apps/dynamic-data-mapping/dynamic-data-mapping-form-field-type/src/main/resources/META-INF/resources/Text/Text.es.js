@@ -168,7 +168,6 @@ const Text = ({
 						{...(htmlAutocompleteAttribute && {
 							autoComplete: htmlAutocompleteAttribute,
 						})}
-						aria-describedby={`${name}_fieldError`}
 						className="ddm-field-text"
 						dir={Liferay.Language.direction[editingLanguageId]}
 						disabled={disabled}

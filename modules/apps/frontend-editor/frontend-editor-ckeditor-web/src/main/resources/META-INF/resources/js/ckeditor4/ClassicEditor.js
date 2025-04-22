@@ -11,6 +11,7 @@ import BaseEditor from './BaseEditor';
 const ClassicEditor = forwardRef(
 	(
 		{
+			ariaDescribedby,
 			ariaLabel,
 			ariaRequired,
 			className,
@@ -27,6 +28,7 @@ const ClassicEditor = forwardRef(
 		return (
 			<div
 				aria-label={ariaLabel}
+				aria-describedby={`${name}_fieldHelp`}
 				className={className}
 				id={`${name}Container`}
 				role="textbox"

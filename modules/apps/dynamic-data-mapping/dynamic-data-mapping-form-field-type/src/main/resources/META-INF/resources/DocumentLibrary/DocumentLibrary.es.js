@@ -109,12 +109,11 @@ const DocumentLibrary = ({
 							aria-label={Liferay.Language.get('file')}
 							className="bg-light field"
 							dir={Liferay.Language.direction[editingLanguageId]}
-							disabled={readOnly}
+							disabled={false}
 							id={`${name}inputFile`}
 							lang={editingLanguageId}
 							onClick={onSelectButtonClicked}
-							readonly="true"
-							tabindex="-1"
+							readonly="false"
 							value={transformedFileEntryTitle || ''}
 						/>
 					</ClayInput.GroupItem>
@@ -667,6 +666,13 @@ const Main = ({
 			) : (
 				<DocumentLibrary
 					accessibleProps={{
+						...(otherProps.tip && {
+							'aria-describedby': `${id ?? name}_fieldHelp`,
+						}),
+						...(otherProps.requiredErrorMessage && {
+							'aria-errormessage': `${id ?? name}_fieldError`,
+						}),
+						'aria-invalid': !valid,
 						'aria-required': otherProps.required,
 					}}
 					editingLanguageId={editingLanguageId}
