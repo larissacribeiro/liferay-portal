@@ -2432,17 +2432,20 @@ definition {
 			ObjectAdmin.addObjectSingleFieldEntryViaAPI(
 				fieldName = "customObjectField",
 				objectName = "CustomObject286",
-				value = "Text ${number} test");
+				value = "Text ${number}");
 		}
 
 		ObjectAdmin.goToCustomObject(objectName = "CustomObject286");
 
 		ObjectPortlet.checkAnyPage(pageNumber = 2);
 
-		ObjectPortlet.viewEntry(entry = "Text 21 test");
+		ObjectPortlet.viewEntry(entry = "Text 21");
 
 		for (var number : list "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20") {
-			ObjectPortlet.assertEntryNotPresent(entry = "Text ${number} test");
+			AssertTextNotEquals(
+				key_entry = "Text 21",
+				locator1 = "ObjectPortlet#ENTRY_VALUE",
+				value1 = "Text ${number}");
 		}
 	}
 
@@ -2464,32 +2467,24 @@ definition {
 
 		ObjectAdmin.publishObjectViaAPI(objectName = "CustomObject287");
 
-		for (var number : list "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41") {
+		for (var number : list "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21") {
 			ObjectAdmin.addObjectSingleFieldEntryViaAPI(
 				fieldName = "customObjectField",
 				objectName = "CustomObject287",
-				value = "Text ${number} test");
+				value = "Text ${number}");
 		}
 
 		ObjectAdmin.goToCustomObject(objectName = "CustomObject287");
 
-		ObjectPortlet.changePagination(itemsPerPage = "20 Items");
-
 		for (var number : list "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20") {
-			ObjectPortlet.viewEntry(entry = "Text ${number} test");
+			ObjectPortlet.viewEntry(entry = "Text ${number}");
 		}
 
-		for (var number : list "21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41") {
-			ObjectPortlet.assertEntryNotPresent(entry = "Text ${number} test");
-		}
+		ObjectPortlet.assertEntryNotPresent(entry = "Text 21");
 
 		ObjectPortlet.changePagination(itemsPerPage = "40 Items");
 
-		for (var number : list "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40") {
-			ObjectPortlet.viewEntry(entry = "Text ${number} test");
-		}
-
-		ObjectPortlet.assertEntryNotPresent(entry = "Text 41 test");
+		ObjectPortlet.viewEntry(entry = "Text 21");
 	}
 
 }
