@@ -163,7 +163,7 @@ test('cannot create an object custom view using empty multiselectpicklist entry'
 	).toBeVisible();
 });
 
-test('assert that the user is able to use the ERC field in Sort, on the Custom Views tab', async ({
+test('user is able to use the ERC field in Sort, on the Custom Views tab', async ({
 	apiHelpers,
 	page,
 	viewObjectEntriesPage,
