@@ -163,42 +163,23 @@ test('cannot create an object custom view using empty multiselectpicklist entry'
 	).toBeVisible();
 });
 
-test('table is updated when changing page on the Custom Object Portlet', async ({
+test('table is updated when changing page/pagination number', async ({
 	apiHelpers,
 	page,
 	viewObjectEntriesPage,
 }) => {
-	const objectDefinitionLabel = 'ObjectDefinitionLabel' + getRandomInt();
-	const objectDefinitionName = 'ObjectDefinitionName' + getRandomInt();
+	const {objectFields, titleObjectFieldName} = await mockObjectFields({
+		apiHelpers,
+		objectEntryReturn: {format: 'UI'},
+		objectFieldBusinessTypes: ['text'],
+		titleObjectFieldName: 'text',
+	});
 
-	const {objectEntry, objectFields, titleObjectFieldName} =
-		await mockObjectFields({
-			apiHelpers,
-			objectEntryReturn: {format: 'API'},
-			objectFieldBusinessTypes: ['text'],
-			titleObjectFieldName: 'text',
-		});
-
-	const objectDefinitionAPIClient =
-		await apiHelpers.buildRestClient(ObjectDefinitionAPI);
-
-	const {body: objectDefinition} =
-		await objectDefinitionAPIClient.postObjectDefinition({
-			active: true,
-			enableLocalization: true,
-			label: {
-				en_US: objectDefinitionLabel,
-			},
-			name: objectDefinitionName,
+	const objectDefinition =
+		await apiHelpers.objectAdmin.postRandomObjectDefinition({
 			objectFields,
-			pluralLabel: {
-				en_US: objectDefinitionLabel,
-			},
-			portlet: true,
-			scope: 'company',
-			status: {
-				code: 0,
-			},
+			objectFolderExternalReferenceCode: 'default',
+			status: {code: 0},
 			titleObjectFieldName,
 		});
 
@@ -207,163 +188,38 @@ test('table is updated when changing page on the Custom Object Portlet', async (
 		type: 'objectDefinition',
 	});
 
-	const objectViewAPIClient = await apiHelpers.buildRestClient(ObjectViewAPI);
-
-	await objectViewAPIClient.postObjectDefinitionObjectView(
-		objectDefinition.id,
-		{
-			defaultObjectView: true,
-			name: {en_US: getRandomString()},
-			objectViewColumns: [
-				{
-					objectFieldName: titleObjectFieldName,
-					priority: 0,
-				},
-				{
-					objectFieldName: 'externalReferenceCode',
-					priority: 1,
-				},
-				{
-					objectFieldName: 'createDate',
-					priority: 1,
-				},
-			],
-			objectViewSortColumns: [
-				{
-					objectFieldName: 'externalReferenceCode',
-					priority: 0,
-					sortOrder: 'asc',
-				},
-			],
-		}
-	);
-
 	const applicationName = 'c/' + objectDefinition.name.toLowerCase() + 's';
 
 	for (let i = 1; i <= 21; i++) {
 		await apiHelpers.objectEntry.postObjectEntry(
-			{...objectEntry, externalReferenceCode: `Entry ${i}`},
+			{[objectFields[0].name]: i},
 			applicationName
 		);
 	}
 
 	await viewObjectEntriesPage.goto(objectDefinition.className);
 
-	await page.getByRole('columnheader', {name: 'Create Date'}).click();
-
 	for (let i = 1; i <= 20; i++) {
 		expect(
-			page.getByRole('cell', {exact: true, name: `Entry ${i}`})
+			page.getByRole('cell', {exact: true, name: `${i}`})
 		).toBeVisible();
 	}
 
-	await expect(page.getByRole('cell', {name: 'Entry 21'})).not.toBeVisible();
+	await expect(
+		page.getByRole('cell', {name: '21', exact: true})
+	).not.toBeVisible();
 
 	await page.getByLabel('Go to page, 2').click();
 
-	expect(page.getByRole('cell', {name: 'Entry 21'})).toBeVisible();
-});
+	expect(page.getByRole('cell', {name: '21'})).toBeVisible();
 
-test('table is updated when changing pagination number on the Custom Object Portlet', async ({
-	apiHelpers,
-	page,
-	viewObjectEntriesPage,
-}) => {
-	const objectDefinitionLabel = 'ObjectDefinitionLabel' + getRandomInt();
-	const objectDefinitionName = 'ObjectDefinitionName' + getRandomInt();
-
-	const {objectEntry, objectFields, titleObjectFieldName} =
-		await mockObjectFields({
-			apiHelpers,
-			objectEntryReturn: {format: 'API'},
-			objectFieldBusinessTypes: ['text'],
-			titleObjectFieldName: 'text',
-		});
-
-	const objectDefinitionAPIClient =
-		await apiHelpers.buildRestClient(ObjectDefinitionAPI);
-
-	const {body: objectDefinition} =
-		await objectDefinitionAPIClient.postObjectDefinition({
-			active: true,
-			enableLocalization: true,
-			label: {
-				en_US: objectDefinitionLabel,
-			},
-			name: objectDefinitionName,
-			objectFields,
-			pluralLabel: {
-				en_US: objectDefinitionLabel,
-			},
-			portlet: true,
-			scope: 'company',
-			status: {
-				code: 0,
-			},
-			titleObjectFieldName,
-		});
-
-	apiHelpers.data.push({
-		id: objectDefinition.id,
-		type: 'objectDefinition',
-	});
-
-	const objectViewAPIClient = await apiHelpers.buildRestClient(ObjectViewAPI);
-
-	await objectViewAPIClient.postObjectDefinitionObjectView(
-		objectDefinition.id,
-		{
-			defaultObjectView: true,
-			name: {en_US: getRandomString()},
-			objectViewColumns: [
-				{
-					objectFieldName: titleObjectFieldName,
-					priority: 0,
-				},
-				{
-					objectFieldName: 'externalReferenceCode',
-					priority: 1,
-				},
-				{
-					objectFieldName: 'createDate',
-					priority: 1,
-				},
-			],
-			objectViewSortColumns: [
-				{
-					objectFieldName: 'externalReferenceCode',
-					priority: 0,
-					sortOrder: 'asc',
-				},
-			],
-		}
-	);
-
-	const applicationName = 'c/' + objectDefinition.name.toLowerCase() + 's';
-	for (let i = 1; i <= 21; i++) {
-		await apiHelpers.objectEntry.postObjectEntry(
-			{...objectEntry, externalReferenceCode: `Entry ${i}`},
-			applicationName
-		);
-	}
-
-	await viewObjectEntriesPage.goto(objectDefinition.className);
-
-	await page.getByRole('columnheader', {name: 'Create Date'}).click();
-
-	for (let i = 1; i <= 20; i++) {
-		expect(
-			page.getByRole('cell', {exact: true, name: `Entry ${i}`})
-		).toBeVisible();
-	}
-
-	await expect(page.getByRole('cell', {name: 'Entry 21'})).not.toBeVisible();
+	await page.getByLabel('Go to page, 1').click();
 
 	await page.getByLabel('Items Per Page').click();
 
 	await page.getByRole('option', {name: '40 Items'}).click();
 
-	expect(page.getByRole('cell', {name: 'Entry 21'})).toBeVisible();
+	expect(page.getByRole('cell', {name: '21', exact: true})).toBeVisible();
 });
 
 test('user is able to use the ERC field in Sort, on the Custom Views tab', async ({
