@@ -17,7 +17,7 @@ interface MockObjectFieldsReturn {
 	listTypeDefinition: ListTypeDefinition;
 	listTypeDefinitionItems: string[];
 	objectEntry: ObjectEntry;
-	objectFields: Partial<ObjectField>[];
+	objectFields: Omit<ObjectField, 'externalReferenceCode'>[];
 	titleObjectFieldName?: string;
 	translatedListTypeDefinitionItems?: string[];
 }
@@ -154,7 +154,7 @@ export function createObjectFields(
 	objectFieldsBusinessTypeLabelName: LabelNameObject[],
 	additionalSettings: Partial<ObjectField> = {},
 	localizeAllLocalizable: boolean = false
-): Partial<ObjectField>[] {
+): Omit<ObjectField, 'externalReferenceCode'>[] {
 	const baseObjectField: ObjectField = {
 		indexedAsKeyword: false,
 		indexedLanguageId: '',
@@ -369,7 +369,7 @@ export async function mockObjectFields({
 
 	const objectEntry = {} as ObjectEntry;
 
-	let objectFields: Partial<ObjectField>[] = [];
+	let objectFields: Omit<ObjectField, 'externalReferenceCode'>[] = [];
 
 	for (const objectFieldBusinessType in objectFieldBusinessTypesLabelName) {
 		objectFields = objectFields.concat(
