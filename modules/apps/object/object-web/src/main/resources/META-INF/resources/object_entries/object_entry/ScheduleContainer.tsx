@@ -4,7 +4,7 @@
  */
 
 import ClayPanel from '@clayui/panel';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import ScheduleField from './ScheduleField';
 
@@ -59,6 +59,29 @@ export default function ScheduleContainer({
 			setDateError('');
 		}
 	};
+
+	useEffect(() => {
+		const saveButton = document.getElementById(
+			portletNamespace + 'saveObjectEntryButton'
+		);
+
+		if (!saveButton) {
+			return;
+		}
+
+		const handleClick = () => {
+			handleError(scheduledProps.reviewDate.value);
+		};
+
+		saveButton.addEventListener('click', handleClick);
+
+		return () => {
+			saveButton.removeEventListener('click', handleClick);
+		};
+
+		// eslint-disable-next-line react-compiler/react-compiler
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [neverReview, scheduledProps.reviewDate.value]);
 
 	return (
 		<ClayPanel

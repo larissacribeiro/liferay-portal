@@ -86,6 +86,7 @@ portletDisplay.setURLBack(backURL);
 		<liferay-frontend:edit-form-footer>
 			<liferay-frontend:edit-form-buttons
 				redirect="<%= backURL %>"
+				submitId="saveObjectEntryButton"
 				submitOnClick='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "submitObjectEntry();" %>'
 			/>
 		</liferay-frontend:edit-form-footer>
@@ -154,6 +155,10 @@ portletDisplay.setURLBack(backURL);
 			}, {});
 		}
 
+		function hasEmptyString(object) {
+			return Object.values(object).some((value) => value === '');
+		}
+
 		Liferay.provide(window, '<portlet:namespace />submitObjectEntry', () => {
 			const form = document.getElementById('<portlet:namespace />fm');
 
@@ -197,6 +202,20 @@ portletDisplay.setURLBack(backURL);
 							return false;
 						}
 					});
+
+					const scheduleContainerInputValue = JSON.parse(
+						document.getElementById(
+							'<portlet:namespace />scheduleContainer'
+						).value
+					);
+
+					if (hasEmptyString(scheduleContainerInputValue)) {
+						shouldSubmitForm = false;
+
+						loadingElement.remove();
+
+						return false;
+					}
 
 					if (shouldSubmitForm) {
 						let values = <portlet:namespace />getValues(fields);
@@ -259,12 +278,6 @@ portletDisplay.setURLBack(backURL);
 								['friendlyUrlPath_i18n']: friendlyURLValues,
 							});
 						}
-
-						const scheduleContainerInputValue = JSON.parse(
-							document.getElementById(
-								'<portlet:namespace />scheduleContainer'
-							).value
-						);
 
 						if (scheduleContainerInputValue) {
 							values = {
