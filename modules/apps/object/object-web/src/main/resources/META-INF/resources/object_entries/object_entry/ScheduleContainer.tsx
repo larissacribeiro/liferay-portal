@@ -4,13 +4,13 @@
  */
 
 import ClayPanel from '@clayui/panel';
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 
 import ScheduleField from './ScheduleField';
 
 import './ScheduleContainer.scss';
 
-type SchedulePropertyKey = 'reviewDate';
+type SchedulePropertyKey = 'reviewDate' | 'expirationDate';
 
 interface SchedulePropertyValues {
 	checked: boolean;
@@ -19,10 +19,10 @@ interface SchedulePropertyValues {
 
 interface ScheduleContainerProps {
 	portletNamespace: string;
-	scheduleProperties: {[key in SchedulePropertyKey]: SchedulePropertyValues};
+	scheduleProperties: { [key in SchedulePropertyKey]: SchedulePropertyValues };
 }
 
-type HiddenValue = {[key in SchedulePropertyKey]: string | null};
+type HiddenValue = { [key in SchedulePropertyKey]: string | null };
 
 export default function ScheduleContainer({
 	portletNamespace,
@@ -31,6 +31,10 @@ export default function ScheduleContainer({
 	const [displayedScheduleValues, setDisplayedScheduleValues] = useState<{
 		[key in SchedulePropertyKey]: SchedulePropertyValues;
 	}>({
+		expirationDate: {
+			checked: scheduleProperties.expirationDate.checked,
+			value: scheduleProperties.expirationDate.value ?? '',
+		},
 		reviewDate: {
 			checked: scheduleProperties.reviewDate.checked,
 			value: scheduleProperties.reviewDate.value ?? '',
@@ -39,6 +43,7 @@ export default function ScheduleContainer({
 
 	const [hiddenScheduleValues, setHiddenScheduleValues] =
 		useState<HiddenValue>({
+			expirationDate: scheduleProperties.expirationDate.value ?? null,
 			reviewDate: scheduleProperties.reviewDate.value ?? null,
 		});
 
@@ -87,10 +92,35 @@ export default function ScheduleContainer({
 									value,
 								},
 							});
-							setHiddenScheduleValues({reviewDate: value});
+							setHiddenScheduleValues({ ...hiddenScheduleValues, reviewDate: value });
 						}}
 						portletNamespace={portletNamespace}
 						value={displayedScheduleValues.reviewDate.value}
+					/>
+
+					<ScheduleField
+						checkboxLabel='Never Expire'
+						dateLabel='Expiration Date'
+						id={portletNamespace + 'expirationDate'}
+						isChecked={displayedScheduleValues.expirationDate.checked}
+						onCheckboxChange={(event) => {
+							handleCheckboxChange({
+								event,
+								property: 'expirationDate',
+							});
+						}}
+						onDateChange={(value: string) => {
+							setDisplayedScheduleValues({
+								...displayedScheduleValues,
+								expirationDate: {
+									...scheduleProperties.expirationDate,
+									value,
+								},
+							});
+							setHiddenScheduleValues({ ...hiddenScheduleValues, expirationDate: value });
+						}}
+						portletNamespace={portletNamespace}
+						value={displayedScheduleValues.expirationDate.value}
 					/>
 
 					<input

@@ -60,6 +60,9 @@ public interface ObjectEntryDisplayContext {
 		return FriendlyURLResolverConstants.URL_SEPARATOR_OBJECT_ENTRY;
 	}
 
+	public Map<String, Object> getScheduleProperties()
+		throws PortalException;
+
 	public boolean isGuestUser();
 
 	public boolean isReadOnly();
