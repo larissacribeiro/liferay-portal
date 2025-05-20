@@ -139,6 +139,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
+import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.dao.jdbc.postgresql.PostgreSQLJDBCUtil;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.db.DBType;
@@ -171,6 +172,7 @@ import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.UserNotificationDeliveryConstants;
 import com.liferay.portal.kernel.model.Users_OrgsTable;
 import com.liferay.portal.kernel.model.WorkflowInstanceLink;
 import com.liferay.portal.kernel.model.role.RoleConstants;
@@ -198,6 +200,7 @@ import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.UserNotificationEventLocalService;
 import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
@@ -272,6 +275,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
@@ -605,6 +609,15 @@ public class ObjectEntryLocalServiceImpl
 		_reindex(objectEntry);
 
 		return objectEntry;
+	}
+
+	@Override
+	public void checkObjectEntries(long companyId) throws PortalException {
+		Date date = new Date();
+
+		_checkObjectEntriesByReviewDate(companyId, date);
+
+		_companyPreviousCheckDate.put(companyId, date);
 	}
 
 	@Override
@@ -2060,6 +2073,9 @@ public class ObjectEntryLocalServiceImpl
 			ObjectConfiguration.class, properties);
 	}
 
+	@Reference
+	protected ConfigurationProvider configurationProvider;
+
 	private void _addDLFileEntries(
 			Map<ObjectField, Set<DLFileEntry>> dlFileEntriesMap,
 			ObjectDefinition objectDefinition, long objectEntryId,
@@ -2393,6 +2409,42 @@ public class ObjectEntryLocalServiceImpl
 
 			values.put(
 				objectRelationshipERCObjectFieldName, externalReferenceCode);
+		}
+	}
+
+	private void _checkObjectEntriesByReviewDate(
+			long companyId, Date currentDate)
+		throws PortalException {
+
+		List<ObjectEntry> objectEntries = objectEntryPersistence.dslQuery(
+			DSLQueryFactoryUtil.select(
+				ObjectEntryTable.INSTANCE
+			).from(
+				ObjectEntryTable.INSTANCE
+			).where(
+				ObjectEntryTable.INSTANCE.companyId.eq(
+					companyId
+				).and(
+					ObjectEntryTable.INSTANCE.reviewDate.gte(
+						_companyPreviousCheckDate.get(companyId))
+				).and(
+					ObjectEntryTable.INSTANCE.reviewDate.lte(currentDate)
+				)
+			));
+
+		for (ObjectEntry objectEntry : objectEntries) {
+			ObjectDefinition objectDefinition =
+				_objectDefinitionPersistence.fetchByPrimaryKey(
+					objectEntry.getObjectDefinitionId());
+
+			_userNotificationEventLocalService.sendUserNotificationEvents(
+				objectEntry.getUserId(), objectDefinition.getPortletId(),
+				UserNotificationDeliveryConstants.TYPE_WEBSITE, false,
+				JSONUtil.put(
+					"notificationMessage",
+					StringBundler.concat(
+						"The review date of object entry ",
+						objectEntry.getTitleValue(), " has been reached.")));
 		}
 	}
 
@@ -6591,6 +6643,9 @@ public class ObjectEntryLocalServiceImpl
 	@Reference
 	private CompanyLocalService _companyLocalService;
 
+	private final Map<Long, Date> _companyPreviousCheckDate =
+		new ConcurrentHashMap<>();
+
 	@Reference
 	private CurrentConnection _currentConnection;
 
@@ -6725,6 +6780,10 @@ public class ObjectEntryLocalServiceImpl
 
 	@Reference
 	private UserLocalService _userLocalService;
+
+	@Reference
+	private UserNotificationEventLocalService
+		_userNotificationEventLocalService;
 
 	@Reference
 	private WorkflowInstanceLinkLocalService _workflowInstanceLinkLocalService;
