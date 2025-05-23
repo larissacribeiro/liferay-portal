@@ -11,6 +11,7 @@
 ObjectEntryDisplayContext objectEntryDisplayContext = (ObjectEntryDisplayContext)request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT);
 
 String backURL = objectEntryDisplayContext.getBackURL();
+String portletNamespace = portletDisplay.getNamespace();
 ObjectDefinition objectDefinition = objectEntryDisplayContext.getObjectDefinition1();
 ObjectEntry objectEntry = objectEntryDisplayContext.getObjectEntry();
 
@@ -70,7 +71,7 @@ portletDisplay.setURLBack(backURL);
 						module="{ScheduleContainer} from object-web"
 						props='<%=
 							HashMapBuilder.<String, Object>put(
-								"portletNamespace", portletDisplay.getNamespace()
+								"portletNamespace", portletNamespace
 							).put(
 								"scheduleProperties", objectEntryDisplayContext.getScheduleProperties()
 							).build()
@@ -93,7 +94,7 @@ portletDisplay.setURLBack(backURL);
 							HashMapBuilder.<String, Object>put(
 								"backURL", backURL
 							).put(
-								"submitRef", portletDisplay.getNamespace() + "submitObjectEntry"
+								"submitRef", portletNamespace + "submitObjectEntry"
 							).build()
 						%>'
 					/>
@@ -104,7 +105,7 @@ portletDisplay.setURLBack(backURL);
 					<liferay-frontend:edit-form-buttons
 						redirect="<%= backURL %>"
 						submitId="saveObjectEntryButton"
-						submitOnClick='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "submitObjectEntry();" %>'
+						submitOnClick='<%= "event.preventDefault(); " + portletNamespace + "submitObjectEntry();" %>'
 					/>
 				</liferay-frontend:edit-form-footer>
 			</c:otherwise>
