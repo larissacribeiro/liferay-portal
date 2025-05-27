@@ -92,6 +92,8 @@ portletDisplay.setURLBack(backURL);
 							HashMapBuilder.<String, Object>put(
 								"backURL", backURL
 							).put(
+								"portletNamespace", portletNamespace
+							).put(
 								"submitRef", portletNamespace + "submitObjectEntry"
 							).build()
 						%>'
@@ -102,7 +104,6 @@ portletDisplay.setURLBack(backURL);
 				<liferay-frontend:edit-form-footer>
 					<liferay-frontend:edit-form-buttons
 						redirect="<%= backURL %>"
-						submitId="saveObjectEntryButton"
 						submitOnClick='<%= "event.preventDefault(); " + portletNamespace + "submitObjectEntry();" %>'
 					/>
 				</liferay-frontend:edit-form-footer>
