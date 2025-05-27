@@ -388,6 +388,18 @@ public class DefaultObjectEntryManagerImpl
 				getGroupId(objectDefinition, scopeKey)));
 	}
 
+	public ObjectEntry expireObjectEntry(
+			DTOConverterContext dtoConverterContext, long objectEntryId)
+		throws Exception {
+
+		com.liferay.object.model.ObjectEntry objectEntry =
+			_objectEntryService.expireObjectEntry(
+				dtoConverterContext.getUserId(), objectEntryId,
+				ServiceContextUtil.createServiceContext(objectEntryId));
+
+		return _objectEntryDTOConverter.toDTO(dtoConverterContext, objectEntry);
+	}
+
 	@Override
 	public ObjectEntry expireObjectEntryByVersion(
 			DTOConverterContext dtoConverterContext,
@@ -1364,7 +1376,7 @@ public class DefaultObjectEntryManagerImpl
 		_checkObjectEntryObjectDefinitionId(
 			objectDefinition, serviceBuilderObjectEntry);
 
-		_objectEntryService.expireObjectEntry(
+		_objectEntryService.expireObjectEntryVersion(
 			dtoConverterContext.getUserId(),
 			serviceBuilderObjectEntry.getObjectEntryId(), version,
 			ServiceContextUtil.createServiceContext(
