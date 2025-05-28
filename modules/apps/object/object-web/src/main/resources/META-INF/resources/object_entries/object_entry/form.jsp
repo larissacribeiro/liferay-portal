@@ -72,6 +72,8 @@ portletDisplay.setURLBack(backURL);
 						props='<%=
 							HashMapBuilder.<String, Object>put(
 								"portletNamespace", portletNamespace
+							).put(
+								"submitRef", portletNamespace + "submitObjectEntry"
 							).build()
 						%>'
 					/>
