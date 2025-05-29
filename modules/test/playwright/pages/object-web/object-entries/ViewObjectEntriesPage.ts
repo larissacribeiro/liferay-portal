@@ -21,9 +21,13 @@ export class ViewObjectEntriesPage {
 	readonly frontendDatasetDeleteAction: Locator;
 	readonly neverReview: Locator;
 	readonly page: Page;
+	readonly publishDateInput: Locator;
+	readonly publishObjectEntryDropdown: Locator;
+	readonly publishOption: Locator;
 	readonly reviewDateInput: Locator;
 	readonly saveObjectEntryButton: Locator;
 	readonly saveObjectEntryButtonArabic: Locator;
+	readonly schedulePublicationOption: Locator;
 	readonly searchBar: Locator;
 	readonly searchButton: Locator;
 	readonly searchContainer: Locator;
@@ -60,8 +64,18 @@ export class ViewObjectEntriesPage {
 		});
 		this.neverReview = page.getByLabel('Never Review', {exact: true});
 		this.page = page;
+		this.publishDateInput = page.getByLabel('Publish Date' + 'Mandatory', {
+			exact: true,
+		});
+		this.publishObjectEntryDropdown = page.getByRole('button', {
+			name: 'Publish',
+		});
+		this.publishOption = page.getByRole('menuitem', {name: 'Publish'});
 		this.reviewDateInput = page.getByLabel('Review Date' + 'Mandatory', {
 			exact: true,
+		});
+		this.schedulePublicationOption = page.getByRole('menuitem', {
+			name: 'Schedule Publication',
 		});
 		this.searchBar = this.frameSelect.getByPlaceholder('Search for');
 		this.searchButton = this.frameSelect.getByRole('button', {
@@ -95,6 +109,17 @@ export class ViewObjectEntriesPage {
 	async assertErrorWithDuplicateEntryValue() {
 		await this.duplicateEntryErrorMessage.waitFor();
 		await expect(this.duplicateEntryErrorMessage).toBeVisible();
+	}
+
+	async choosePublicationOption(option: 'schedule' | 'publish') {
+		await this.publishObjectEntryDropdown.click();
+
+		if (option === 'schedule') {
+			await this.schedulePublicationOption.click();
+		}
+		else {
+			await this.publishOption.click();
+		}
 	}
 
 	async clickAddObjectEntry(objectName?: string) {
