@@ -11,7 +11,7 @@ import ScheduleField from './ScheduleField';
 import './ScheduleContainer.scss';
 import ModalSchedulePublication from './ModalSchedulePublication';
 
-type HiddenValue = {[key in SchedulePropertyKey]: string | null};
+type HiddenValue = {[key: string]: string | null};
 
 interface ScheduleContainerProps {
 	portletNamespace: string;
@@ -27,7 +27,7 @@ interface ScheduleFieldProps {
 }
 
 export type ScheduleProperties = {
-	[key in SchedulePropertyKey]: SchedulePropertyValues;
+	[key: string]: SchedulePropertyValues;
 };
 
 type SchedulePropertyKey = 'expirationDate' | 'reviewDate';
@@ -57,6 +57,7 @@ export default function ScheduleContainer({
 
 	const [hiddenScheduleValues, setHiddenScheduleValues] =
 		useState<HiddenValue>({
+			displayDate: scheduleProperties.displayDate.value ?? null,
 			expirationDate: scheduleProperties.expirationDate.value ?? null,
 			reviewDate: scheduleProperties.reviewDate.value ?? null,
 		});
