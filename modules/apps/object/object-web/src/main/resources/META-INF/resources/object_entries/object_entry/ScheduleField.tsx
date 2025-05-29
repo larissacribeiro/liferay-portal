@@ -51,6 +51,18 @@ export default function ScheduleField({
 	);
 
 	useEffect(() => {
+		const handleSubmit = () => {
+			handleError(value);
+		};
+
+		Liferay.on('closeModalSchedulePublication', handleSubmit);
+
+		return () => {
+			Liferay.detach('closeModalSchedulePublication', handleSubmit);
+		};
+	}, [handleError, value]);
+
+	useEffect(() => {
 		const saveButton = document.getElementById(
 			portletNamespace + 'saveObjectEntryButton'
 		);
