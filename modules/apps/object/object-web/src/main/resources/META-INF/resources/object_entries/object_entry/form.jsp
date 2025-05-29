@@ -246,10 +246,18 @@ portletDisplay.setURLBack(backURL);
 							scheduleContainerInput.value
 						);
 
+						if (isPastDate(scheduleContainerInputValue.displayDate)) {
+							shouldSubmitForm = false;
+
+							return false;
+						}
+
 						if (
 							hasEmptyString(scheduleContainerInputValue) ||
 							isPastDate(scheduleContainerInputValue.expirationDate)
 						) {
+							Liferay.fire('closeModalSchedulePublication');
+
 							shouldSubmitForm = false;
 
 							loadingElement.remove();
