@@ -9,6 +9,7 @@ import React, {useState} from 'react';
 import ScheduleField from './ScheduleField';
 
 import './ScheduleContainer.scss';
+import {convertToUTC} from '../../js/utils/convertToUTC';
 import ModalSchedulePublication from './ModalSchedulePublication';
 
 type HiddenValue = {[key: string]: string | null};
@@ -152,7 +153,7 @@ export default function ScheduleContainer({
 										});
 										setHiddenScheduleValues((prev) => ({
 											...prev,
-											[schedulePropertyKey]: value,
+											[schedulePropertyKey]: convertToUTC(value),
 										}));
 									}}
 									portletNamespace={portletNamespace}
