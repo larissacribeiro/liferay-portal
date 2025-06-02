@@ -9,6 +9,7 @@ export class ModelBuilderRightSidebarPage {
 	readonly deleteButton: Locator;
 	readonly deleteObjectRelationshipButton: Locator;
 	readonly deleteTrashButton: Locator;
+	readonly disableButton: Locator;
 	readonly inheritanceCheckbox: Locator;
 	readonly managePicklistsButton: Locator;
 	readonly modalDeleteObjectRelationshipTextField: Locator;
@@ -25,6 +26,8 @@ export class ModelBuilderRightSidebarPage {
 	readonly objectRelationshipOneRecordOf: Locator;
 	readonly objectRelationshipType: Locator;
 	readonly page: Page;
+	readonly scheduleConfigurationToggle: Locator;
+	readonly scheduleModalHeader: Locator;
 	readonly sidebarLabelInput: Locator;
 	readonly sidebarName: Locator;
 
@@ -39,6 +42,7 @@ export class ModelBuilderRightSidebarPage {
 		this.deleteTrashButton = page
 			.getByRole('tabpanel')
 			.getByTitle('Delete');
+		this.disableButton = page.getByRole('button', {name: 'Disable'});
 		this.inheritanceCheckbox = page.getByRole('checkbox');
 		this.managePicklistsButton = page.getByRole('button', {
 			name: 'Manage Picklists',
@@ -74,6 +78,12 @@ export class ModelBuilderRightSidebarPage {
 		this.objectRelationshipOneRecordOf = page.getByLabel('One Record Of');
 		this.objectRelationshipType = page.getByLabel('Type');
 		this.page = page;
+		this.scheduleConfigurationToggle = page.getByRole('switch', {
+			name: 'Allow Users to Schedule a Display, Expiration and Review Date for Entries',
+		});
+		this.scheduleModalHeader = page.getByRole('heading', {
+			name: 'Disable Schedule for Object Entries',
+		});
 	}
 
 	async deleteObjectRelationship(objectRelationshipName: string) {
