@@ -10,7 +10,6 @@ import com.liferay.object.field.builder.TextObjectFieldBuilder;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.related.models.test.util.ObjectEntryTestUtil;
-import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.petra.function.UnsafeRunnable;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -20,6 +19,7 @@ import com.liferay.portal.kernel.scheduler.SchedulerJobConfiguration;
 import com.liferay.portal.kernel.scheduler.TimeUnit;
 import com.liferay.portal.kernel.service.UserNotificationEventLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.Sync;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -41,6 +42,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,43 +63,76 @@ public class CheckObjectEntrySchedulerJobConfigurationTest {
 			new LiferayIntegrationTestRule(),
 			SynchronousDestinationTestRule.INSTANCE);
 
+	@Before
+	public void setUp() throws Exception {
+		_objectDefinition = ObjectDefinitionTestUtil.publishObjectDefinition(
+			List.of(
+				new TextObjectFieldBuilder(
+				).userId(
+					TestPropsValues.getUserId()
+				).labelMap(
+					LocalizedMapUtil.getLocalizedMap(
+						RandomTestUtil.randomString())
+				).name(
+					_OBJECT_FIELD_NAME
+				).build()));
+	}
+
+	@Test
+	public void testCheckObjectEntryExpirationDate() throws Exception {
+		UserTestUtil.setUser(TestPropsValues.getUser());
+
+		ObjectEntry objectEntry1 = ObjectEntryTestUtil.addObjectEntry(
+			0, _objectDefinition.getObjectDefinitionId(),
+			HashMapBuilder.<String, Serializable>put(
+				_OBJECT_FIELD_NAME, RandomTestUtil.randomString()
+			).put(
+				"expirationDate",
+				new Date(System.currentTimeMillis() - TimeUnit.DAY.toMillis(1))
+			).build());
+
+		ObjectEntry objectEntry2 = ObjectEntryTestUtil.addObjectEntry(
+			0, _objectDefinition.getObjectDefinitionId(),
+			HashMapBuilder.<String, Serializable>put(
+				_OBJECT_FIELD_NAME, RandomTestUtil.randomString()
+			).put(
+				"expirationDate",
+				new Date(System.currentTimeMillis() + TimeUnit.DAY.toMillis(1))
+			).build());
+
+		UnsafeRunnable<Exception> jobExecutorUnsafeRunnable =
+			_schedulerJobConfiguration.getJobExecutorUnsafeRunnable();
+
+		jobExecutorUnsafeRunnable.run();
+
+		Assert.assertEquals(
+			WorkflowConstants.STATUS_EXPIRED, objectEntry1.getStatus());
+
+		Assert.assertTrue(objectEntry1.isExpired());
+
+		Assert.assertFalse(objectEntry2.isExpired());
+	}
+
 	@Test
 	public void testCheckObjectEntryReviewDate() throws Exception {
 		UserTestUtil.setUser(TestPropsValues.getUser());
 
-		String objectFieldName = "a" + RandomTestUtil.randomString();
-
-		ObjectDefinition objectDefinition =
-			ObjectDefinitionTestUtil.publishObjectDefinition(
-				List.of(
-					new TextObjectFieldBuilder(
-					).userId(
-						TestPropsValues.getUserId()
-					).labelMap(
-						LocalizedMapUtil.getLocalizedMap(
-							RandomTestUtil.randomString())
-					).name(
-						objectFieldName
-					).build()));
-
 		ObjectEntry objectEntry = ObjectEntryTestUtil.addObjectEntry(
-			0, objectDefinition.getObjectDefinitionId(),
+			0, _objectDefinition.getObjectDefinitionId(),
 			HashMapBuilder.<String, Serializable>put(
-				objectFieldName, RandomTestUtil.randomString()
+				_OBJECT_FIELD_NAME, RandomTestUtil.randomString()
 			).put(
 				"reviewDate",
-				new Date(
-					System.currentTimeMillis() - TimeUnit.MINUTE.toMillis(1))
+				new Date(System.currentTimeMillis() - TimeUnit.DAY.toMillis(1))
 			).build());
 
 		ObjectEntryTestUtil.addObjectEntry(
-			0, objectDefinition.getObjectDefinitionId(),
+			0, _objectDefinition.getObjectDefinitionId(),
 			HashMapBuilder.<String, Serializable>put(
-				objectFieldName, RandomTestUtil.randomString()
+				_OBJECT_FIELD_NAME, RandomTestUtil.randomString()
 			).put(
 				"reviewDate",
-				new Date(
-					System.currentTimeMillis() + TimeUnit.MINUTE.toMillis(1))
+				new Date(System.currentTimeMillis() + TimeUnit.DAY.toMillis(1))
 			).build());
 
 		UnsafeRunnable<Exception> jobExecutorUnsafeRunnable =
@@ -107,7 +142,7 @@ public class CheckObjectEntrySchedulerJobConfigurationTest {
 
 		List<UserNotificationEvent> userNotificationEvents =
 			_userNotificationEventLocalService.getUserNotificationEvents(
-				objectEntry.getUserId(), objectDefinition.getPortletId(),
+				objectEntry.getUserId(), _objectDefinition.getPortletId(),
 				LocalDate.now(
 				).atStartOfDay(
 					ZoneId.systemDefault()
@@ -128,8 +163,11 @@ public class CheckObjectEntrySchedulerJobConfigurationTest {
 			Validator.isNotNull(jsonObject.get("notificationMessage")));
 	}
 
-	@Inject
-	private ObjectEntryLocalService _objectEntryLocalService;
+	private static final String _OBJECT_FIELD_NAME =
+		"a" + RandomTestUtil.randomString();
+
+	@DeleteAfterTestRun
+	private ObjectDefinition _objectDefinition;
 
 	@Inject(
 		filter = "component.name=com.liferay.object.web.internal.scheduler.CheckObjectEntrySchedulerJobConfiguration"
