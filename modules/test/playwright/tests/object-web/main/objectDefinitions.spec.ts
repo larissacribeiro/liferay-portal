@@ -39,6 +39,13 @@ export const test = mergeTests(
 	pageEditorPagesTest
 );
 
+const scheduleTest = mergeTests(
+	test,
+	featureFlagsTest({
+		'LPD-17564': {enabled: true},
+	})
+);
+
 test.describe('Manage object definitions through Model Builder', () => {
 	test.beforeEach(({page}) => {
 		page.setViewportSize({height: 1080, width: 1920});
@@ -822,4 +829,70 @@ test.describe('Manage object definitions through a Page', () => {
 				.getByRole('menuitem', {name: objectDefinition.name})
 		).toBeVisible();
 	});
+});
+
+scheduleTest.describe('Manage object definition schedule configuration', () => {
+	scheduleTest(
+		'shows a warnig modal when unchecking the schedule configuration',
+		async ({
+			apiHelpers,
+			modelBuilderDiagramPage,
+			modelBuilderLeftSidebarPage,
+			modelBuilderRightSidebarPage,
+			page,
+		}) => {
+			const objectDefinition =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					status: {code: 0},
+				});
+
+			apiHelpers.data.push({
+				id: objectDefinition.id,
+				type: 'objectDefinition',
+			});
+
+			await modelBuilderDiagramPage.goto({
+				objectFolderName: 'Default',
+			});
+
+			await modelBuilderLeftSidebarPage.sidebarItems
+				.filter({hasText: objectDefinition.label['en_US']})
+				.click();
+
+			const rightSidebar =
+				modelBuilderRightSidebarPage.getRightSidebarLocator(
+					modelBuilderLeftSidebarPage.createNewObjectDefinitionButton
+				);
+
+			await expect(
+				rightSidebar.getByTitle(
+					`${objectDefinition.label['en_US']} Details`
+				)
+			).toBeVisible();
+
+			await modelBuilderRightSidebarPage.scheduleConfigurationToggle.check();
+
+			await waitForAlert(
+				page,
+				'Success:The object was saved successfully.'
+			);
+
+			await modelBuilderRightSidebarPage.scheduleConfigurationToggle.click();
+
+			await expect(
+				modelBuilderRightSidebarPage.scheduleModalHeader
+			).toBeVisible();
+
+			await modelBuilderRightSidebarPage.disableButton.click();
+
+			await waitForAlert(
+				page,
+				'Success:The object was saved successfully.'
+			);
+
+			await expect(
+				modelBuilderRightSidebarPage.scheduleConfigurationToggle
+			).not.toBeChecked();
+		}
+	);
 });
