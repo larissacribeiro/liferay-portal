@@ -161,12 +161,45 @@ export function RightSidebarObjectDefinitionDetails({
 					},
 					type: TYPES.SET_SHOW_CHANGES_SAVED,
 				});
+
+				openToast({
+					message: Liferay.Language.get(
+						'the-object-was-saved-successfully'
+					),
+					type: 'success',
+				});
 			}
 			catch (error: unknown) {
 				const {message} = error as Error;
 
 				openToast({autoClose: 15000, message, type: 'danger'});
 			}
+		}
+	};
+
+	const handleScheduleToggleChange = async (toggled: boolean) => {
+		if (toggled) {
+			setValues({
+				...values,
+				enableObjectEntrySchedule: true,
+			});
+
+			await onSubmit({...values, enableObjectEntrySchedule: true});
+		}
+		else {
+			Liferay.fire('openModalDisableScheduleConfiguration', {
+				handleDisable: async () => {
+					setValues({
+						...values,
+						enableObjectEntrySchedule: false,
+					});
+
+					await onSubmit({
+						...values,
+						enableObjectEntrySchedule: false,
+					});
+				},
+			});
 		}
 	};
 
@@ -273,6 +306,7 @@ export function RightSidebarObjectDefinitionDetails({
 							?.linkedObjectDefinition ?? false
 					}
 					isRootDescendantNode={isRootDescendantNode}
+					onScheduleToggleChange={handleScheduleToggleChange}
 					onSubmit={onSubmit}
 					setValues={setValues}
 					values={values as ObjectDefinition}

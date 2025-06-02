@@ -104,6 +104,25 @@ export default function EditObjectDetails({
 			onSubmit: () => {},
 		});
 
+	const handleScheduleToggleChange = (toggled: boolean) => {
+		if (toggled) {
+			setValues({
+				...values,
+				enableObjectEntrySchedule: true,
+			});
+		}
+		else {
+			Liferay.fire('openModalDisableScheduleConfiguration', {
+				handleDisable: async () => {
+					setValues({
+						...values,
+						enableObjectEntrySchedule: false,
+					});
+				},
+			});
+		}
+	};
+
 	const onSubmit = async (draft: boolean) => {
 		const validationErrors = handleValidate();
 
@@ -348,6 +367,9 @@ export default function EditObjectDetails({
 									hasUpdateObjectDefinitionPermission
 								}
 								isRootDescendantNode={isRootDescendantNode}
+								onScheduleToggleChange={
+									handleScheduleToggleChange
+								}
 								setValues={setValues}
 								values={values}
 							/>
