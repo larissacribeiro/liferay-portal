@@ -73,6 +73,8 @@ portletDisplay.setURLBack(backURL);
 							HashMapBuilder.<String, Object>put(
 								"portletNamespace", portletNamespace
 							).put(
+								"scheduleProperties", objectEntryDisplayContext.getScheduleProperties()
+							).put(
 								"submitRef", portletNamespace + "submitObjectEntry"
 							).build()
 						%>'

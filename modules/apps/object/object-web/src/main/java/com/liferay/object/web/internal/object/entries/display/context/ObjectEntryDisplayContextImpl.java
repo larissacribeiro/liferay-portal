@@ -575,6 +575,36 @@ public class ObjectEntryDisplayContextImpl
 	}
 
 	@Override
+	public Map<String, Object> getScheduleProperties() {
+		return HashMapBuilder.<String, Object>put(
+			"reviewDate",
+			() -> {
+				return JSONUtil.put(
+					"checked", true
+				).put(
+					"value", () -> null
+				);
+			}
+		).put(			
+			"expirationDate",
+			() -> {
+				return JSONUtil.put(
+					"checked", true
+				).put(
+					"value", () -> null
+				);
+			}
+		).put(			
+			"displayDate",
+			() -> {
+				return JSONUtil.put(
+					"value", () -> null
+				);
+			}
+		).build();
+	}
+
+	@Override
 	public String getURLSeparator() {
 		StringBundler sb = new StringBundler(4);
 
