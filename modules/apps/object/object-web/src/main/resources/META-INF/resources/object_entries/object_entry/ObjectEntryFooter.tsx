@@ -36,11 +36,10 @@ export default function ObjectEntryFooter({
 					>
 						<ClayDropDown.ItemList>
 							<ClayDropDown.Item
-								id={portletNamespace + 'saveObjectEntryButton'}
-								onClick={(event) => {
-									event.preventDefault();
-
+								onClick={() => {
 									callWindowGlobalFunction(submitRef);
+
+									Liferay.fire('submitObjectEntry');
 								}}
 								symbolLeft="arrow-right-full"
 							>

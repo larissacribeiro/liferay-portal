@@ -12,40 +12,46 @@ import './ScheduleContainer.scss';
 import {convertToUTC} from '../../js/utils/convertToUTC';
 import ModalSchedulePublication from './ModalSchedulePublication';
 
-type HiddenValue = {[key: string]: string | null};
+type DateProperties = {
+	expirationDate: {
+		checked: boolean;
+		value: string;
+	};
+	reviewDate: {
+		checked: boolean;
+		value: string;
+	};
+}
 
-interface ScheduleContainerProps {
+type HiddenValue = {
+	[key in 'expirationDate' | 'reviewDate' | 'displayDate']: string | null;
+};
+
+interface ContainerProperties {
 	portletNamespace: string;
 	scheduleProperties: ScheduleProperties;
 	submitRef: string;
 }
 
-interface ScheduleFieldProps {
+interface FieldProperties {
 	checkboxLabel: string;
 	customValidation?: (date: string) => string;
 	dateLabel: string;
-	schedulePropertyKey: SchedulePropertyKey;
+	schedulePropertyKey: 'expirationDate' | 'reviewDate';
 }
 
-export type ScheduleProperties = {
-	[key: string]: SchedulePropertyValues;
+export interface ScheduleProperties extends DateProperties {
+	displayDate: {
+		value: string;
+	};
 };
-
-type SchedulePropertyKey = 'expirationDate' | 'reviewDate';
-
-interface SchedulePropertyValues {
-	checked: boolean;
-	value: string;
-}
 
 export default function ScheduleContainer({
 	portletNamespace,
 	scheduleProperties,
 	submitRef,
-}: ScheduleContainerProps) {
-	const [displayedScheduleValues, setDisplayedScheduleValues] = useState<{
-		[key in SchedulePropertyKey]: SchedulePropertyValues;
-	}>({
+}: ContainerProperties) {
+	const [displayedScheduleValues, setDisplayedScheduleValues] = useState<DateProperties>({
 		expirationDate: {
 			...scheduleProperties.expirationDate,
 			value: scheduleProperties.expirationDate.value ?? '',
@@ -68,7 +74,7 @@ export default function ScheduleContainer({
 		property,
 	}: {
 		event: React.ChangeEvent<HTMLInputElement>;
-		property: SchedulePropertyKey;
+		property: 'expirationDate' | 'reviewDate';
 	}) => {
 		const checked = event.target.checked;
 
@@ -80,7 +86,7 @@ export default function ScheduleContainer({
 		}));
 	};
 
-	const scheduleFieldProps: ScheduleFieldProps[] = [
+	const scheduleFieldProps: FieldProperties[] = [
 		{
 			checkboxLabel: Liferay.Language.get('never-expire'),
 			customValidation: (date: string) => {
@@ -153,10 +159,10 @@ export default function ScheduleContainer({
 										});
 										setHiddenScheduleValues((prev) => ({
 											...prev,
-											[schedulePropertyKey]: convertToUTC(value),
+											[schedulePropertyKey]:
+												convertToUTC(value),
 										}));
 									}}
-									portletNamespace={portletNamespace}
 									value={
 										displayedScheduleValues[
 											schedulePropertyKey

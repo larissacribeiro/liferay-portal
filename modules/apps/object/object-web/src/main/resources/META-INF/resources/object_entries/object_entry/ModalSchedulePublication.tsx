@@ -42,24 +42,12 @@ export default function ModalSchedulePublication({
 			return false;
 		}
 
-		const date = new Date(value);
-
-		if (date <= new Date()) {
-			setDateError(
-				Liferay.Language.get('the-date-entered-is-in-the-past')
-			);
-
-			return false;
-		}
-
 		setDateError('');
 
 		return true;
 	};
 
-	const handleSubmit = (
-		event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-	) => {
+	const handleSubmit = () => {
 		const isValid = handleError(displayDate);
 
 		if (!isValid) {
@@ -75,32 +63,25 @@ export default function ModalSchedulePublication({
 			displayDate,
 		});
 
-		event.preventDefault();
-
 		callWindowGlobalFunction(submitRef);
+
+		onClose();
+
+		Liferay.fire('submitObjectEntry');
 	};
 
 	useEffect(() => {
-		const closeModal = () => onClose();
-
 		const openModal = () => setVisible(true);
-
-		Liferay.on('closeModalSchedulePublication', closeModal);
 
 		Liferay.on('openModalSchedulePublication', openModal);
 
 		return () => {
 			Liferay.detach(
-				'closeModalSchedulePublication',
-				closeModal as () => void
-			);
-
-			Liferay.detach(
 				'openModalSchedulePublication',
 				openModal as () => void
 			);
 		};
-	}, [onClose]);
+	}, []);
 
 	return (
 		<>
@@ -146,14 +127,9 @@ export default function ModalSchedulePublication({
 
 								<ClayButton
 									displayType="primary"
-									onClick={(event) => {
-										handleSubmit(event);
+									onClick={() => {
+										handleSubmit();
 									}}
-									type={
-										dateError || !displayDate
-											? 'button'
-											: 'submit'
-									}
 								>
 									{Liferay.Language.get('schedule')}
 								</ClayButton>

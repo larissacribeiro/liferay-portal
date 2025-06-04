@@ -1991,9 +1991,7 @@ scheduleTest.describe('Manage object entries schedule properties', () => {
 		async ({apiHelpers, page, viewObjectEntriesPage}) => {
 			const objectDefinition =
 				await apiHelpers.objectAdmin.postRandomObjectDefinition({
-					objectFolderExternalReferenceCode: 'default',
 					status: {code: 0},
-					titleObjectFieldName: 'textField',
 				});
 
 			apiHelpers.data.push({
@@ -2079,74 +2077,6 @@ scheduleTest.describe('Manage object entries schedule properties', () => {
 			await expect(
 				page.getByText('This field is required')
 			).toBeVisible();
-		}
-	);
-
-	scheduleTest(
-		'cannot schedule a publication when the date is in the past',
-		async ({apiHelpers, page, viewObjectEntriesPage}) => {
-			const objectDefinition =
-				await apiHelpers.objectAdmin.postRandomObjectDefinition({
-					objectFolderExternalReferenceCode: 'default',
-					status: {code: 0},
-					titleObjectFieldName: 'textField',
-				});
-
-			apiHelpers.data.push({
-				id: objectDefinition.id,
-				type: 'objectDefinition',
-			});
-
-			await viewObjectEntriesPage.goto(objectDefinition.className);
-
-			await viewObjectEntriesPage.clickAddObjectEntry(
-				objectDefinition.label['en_US']
-			);
-
-			await viewObjectEntriesPage.choosePublicationOption('schedule');
-
-			await page
-				.getByLabel('Schedule Publication')
-				.getByLabel('Choose date')
-				.click();
-
-			await page
-				.getByRole('button', {name: 'Select current date'})
-				.click();
-
-			await page.keyboard.press('Escape');
-
-			await expect(
-				page.getByText('The date entered is in the past')
-			).toBeVisible();
-
-			await page
-				.getByLabel('Schedule Publication')
-				.getByRole('button', {name: 'Schedule'})
-				.click();
-
-			await expect(
-				viewObjectEntriesPage.successMessage
-			).not.toBeVisible();
-
-			const date = new Date();
-
-			date.setDate(date.getDate() + 1);
-
-			const tomorrow = getObjectEntryUIDateTimeFormat(date);
-
-			await viewObjectEntriesPage.publishDateInput.fill(tomorrow);
-
-			await expect(
-				page.getByText('The date entered is in the past')
-			).not.toBeVisible();
-
-			await page
-				.getByLabel('Schedule Publication')
-				.getByRole('button', {name: 'Schedule'})
-				.click();
-
-			await expect(viewObjectEntriesPage.successMessage).toBeVisible();
 		}
 	);
 });
