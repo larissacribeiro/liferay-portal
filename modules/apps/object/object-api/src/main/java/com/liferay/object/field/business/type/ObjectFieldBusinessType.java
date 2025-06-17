@@ -26,6 +26,8 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.vulcan.extension.PropertyDefinition;
 
+import java.sql.Timestamp;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -111,6 +113,12 @@ public interface ObjectFieldBusinessType {
 		ObjectField objectField) {
 
 		return Collections.emptySet();
+	}
+
+	public default Timestamp getTimeStamp(
+		List<ObjectFieldSetting> objectFieldSettings, User user, String value) {
+
+		return null;
 	}
 
 	public default Set<String> getUnmodifiableObjectFieldSettingsNames() {

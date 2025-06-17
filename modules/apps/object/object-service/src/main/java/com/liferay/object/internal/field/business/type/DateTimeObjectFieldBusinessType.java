@@ -142,7 +142,7 @@ public class DateTimeObjectFieldBusinessType
 		for (Map.Entry<String, Object> entry : localizedValues.entrySet()) {
 			localizedValues.put(
 				entry.getKey(),
-				_getTimestamp(
+				getTimeStamp(
 					objectField.getObjectFieldSettings(), user,
 					GetterUtil.getString(entry.getValue())));
 		}
@@ -169,6 +169,20 @@ public class DateTimeObjectFieldBusinessType
 	}
 
 	@Override
+	public Timestamp getTimeStamp(
+		List<ObjectFieldSetting> objectFieldSettings, User user, String value) {
+
+		if (Validator.isNull(value)) {
+			return null;
+		}
+
+		return Timestamp.valueOf(
+			_getLocalDateTime(
+				ObjectFieldSettingUtil.getTimeZoneId(objectFieldSettings, user),
+				StringPool.UTC, value));
+	}
+
+	@Override
 	public Set<String> getUnmodifiableObjectFieldSettingsNames() {
 		return Collections.singleton(
 			ObjectFieldSettingConstants.NAME_TIME_STORAGE);
@@ -192,7 +206,7 @@ public class DateTimeObjectFieldBusinessType
 			return new Timestamp(date.getTime());
 		}
 
-		return _getTimestamp(
+		return getTimeStamp(
 			objectField.getObjectFieldSettings(),
 			_userLocalService.getUser(userId), String.valueOf(value));
 	}
@@ -237,19 +251,6 @@ public class DateTimeObjectFieldBusinessType
 
 		return LocalDateTime.ofInstant(
 			zonedDateTime.toInstant(), ZoneId.of(targetTimeZoneId));
-	}
-
-	private Timestamp _getTimestamp(
-		List<ObjectFieldSetting> objectFieldSettings, User user, String value) {
-
-		if (Validator.isNull(value)) {
-			return null;
-		}
-
-		return Timestamp.valueOf(
-			_getLocalDateTime(
-				ObjectFieldSettingUtil.getTimeZoneId(objectFieldSettings, user),
-				StringPool.UTC, value));
 	}
 
 	@Reference
