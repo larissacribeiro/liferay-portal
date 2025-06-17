@@ -40,6 +40,7 @@ import com.liferay.object.rest.filter.factory.FilterFactory;
 import com.liferay.object.rest.filter.parser.ObjectDefinitionFilterParser;
 import com.liferay.object.rest.internal.resource.v1_0.ObjectEntryRelatedObjectsResourceImpl;
 import com.liferay.object.rest.internal.resource.v1_0.ObjectEntryResourceImpl;
+import com.liferay.object.rest.internal.util.ObjectDateTimeFieldUtil;
 import com.liferay.object.rest.internal.util.ObjectEntryValuesUtil;
 import com.liferay.object.rest.internal.util.ServiceContextUtil;
 import com.liferay.object.rest.manager.v1_0.BaseObjectEntryManager;
@@ -136,8 +137,10 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -2220,12 +2223,55 @@ public class DefaultObjectEntryManagerImpl
 				continue;
 			}
 
-			if (!Objects.equals(
-					objectField.getDBType(),
-					ObjectFieldConstants.DB_TYPE_DATE_TIME) &&
-				(value == null) &&
-				(!objectField.isRequired() ||
-				 _isObjectEntryDraft(objectEntry.getStatus()))) {
+			String name = objectField.getName();
+
+			if (name.equals("displayDate") || name.equals("expirationDate") ||
+				name.equals("reviewDate")) {
+
+				Date dateValue;
+
+				if (name.equals("displayDate")) {
+					dateValue = objectEntry.getDisplayDate();
+				}
+				else if (name.equals("expirationDate")) {
+					dateValue = objectEntry.getExpirationDate();
+				}
+				else {
+					dateValue = objectEntry.getReviewDate();
+				}
+
+				if (dateValue != null) {
+					Calendar calendar = Calendar.getInstance();
+
+					calendar.setTime(dateValue);
+					calendar.set(Calendar.SECOND, 0);
+					calendar.set(Calendar.MILLISECOND, 0);
+
+					dateValue = calendar.getTime();
+
+					String formattedDate = new SimpleDateFormat(
+						"yyyy-MM-dd HH:mm"
+					).format(
+						dateValue
+					);
+
+					dateValue = (Date)ObjectDateTimeFieldUtil.getTimeStamp(
+						objectField, objectFieldBusinessTypeRegistry,
+						objectField.getObjectFieldSettings(),
+						_userLocalService.getUser(serviceContext.getUserId()),
+						formattedDate);
+				}
+
+				values.put(name, dateValue);
+
+				continue;
+			}
+			else if (!Objects.equals(
+						objectField.getDBType(),
+						ObjectFieldConstants.DB_TYPE_DATE_TIME) &&
+					 (value == null) &&
+					 (!objectField.isRequired() ||
+					  _isObjectEntryDraft(objectEntry.getStatus()))) {
 
 				continue;
 			}
@@ -2233,10 +2279,6 @@ public class DefaultObjectEntryManagerImpl
 			values.put(
 				objectField.getName(), _getValue(locale, objectField, value));
 		}
-
-		values.put("displayDate", objectEntry.getDisplayDate());
-		values.put("expirationDate", objectEntry.getExpirationDate());
-		values.put("reviewDate", objectEntry.getReviewDate());
 
 		return values;
 	}

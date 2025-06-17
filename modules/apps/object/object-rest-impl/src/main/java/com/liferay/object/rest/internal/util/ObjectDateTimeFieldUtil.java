@@ -28,7 +28,7 @@ public class ObjectDateTimeFieldUtil {
 				objectField.getBusinessType());
 
 		return objectFieldBusinessType.getTimeStamp(
-			objectFieldSettings, user, value);
+			objectFieldSettings, user, String.valueOf(value));
 	}
 
 }
