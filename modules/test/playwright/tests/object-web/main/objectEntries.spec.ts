@@ -2269,9 +2269,7 @@ scheduleTest.describe('Manage object entries schedule properties', () => {
 				_objectDefinition.label['en_US']
 			);
 
-			await viewObjectEntriesPage.page
-				.getByLabel('Never Expire', {exact: true})
-				.uncheck();
+			await viewObjectEntriesPage.neverExpire.uncheck();
 
 			await viewObjectEntriesPage.scheduleForCurrentDate('Expiration');
 
@@ -2296,6 +2294,37 @@ scheduleTest.describe('Manage object entries schedule properties', () => {
 			await expect(
 				page.getByText('The date entered is in the past')
 			).toBeVisible();
+		}
+	);
+
+	scheduleTest(
+		'schedule container is not visible when enableObjectEntrySchedule is disabled',
+		{tag: '@enableObjectEntryScheduleFalse'},
+		async ({apiHelpers, viewObjectEntriesPage}) => {
+			const objectDefinitionAPIClient =
+				await apiHelpers.buildRestClient(ObjectDefinitionAPI);
+
+			await objectDefinitionAPIClient.postObjectDefinitionPublish(
+				_objectDefinition.id
+			);
+
+			await viewObjectEntriesPage.goto(_objectDefinition.className);
+
+			await viewObjectEntriesPage.clickAddObjectEntry(
+				_objectDefinition.label['en_US']
+			);
+
+			await expect(
+				viewObjectEntriesPage.schedulePanelButton
+			).not.toBeVisible();
+
+			await expect(
+				viewObjectEntriesPage.expirationDateInput
+			).not.toBeVisible();
+
+			await expect(
+				viewObjectEntriesPage.reviewDateInput
+			).not.toBeVisible();
 		}
 	);
 });
