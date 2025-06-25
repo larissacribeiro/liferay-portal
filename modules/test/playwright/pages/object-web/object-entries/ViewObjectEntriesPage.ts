@@ -206,7 +206,7 @@ export class ViewObjectEntriesPage {
 	}
 
 	async scheduleForCurrentDate(
-		scheduleField: 'Display' | 'Expiration' | 'Review'
+		scheduleField: 'Expiration' | 'Publish' | 'Review'
 	) {
 		const fieldLabel = `${scheduleField} DateMandatory`;
 

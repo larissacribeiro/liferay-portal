@@ -2073,6 +2073,77 @@ scheduleTest.describe('Manage object entries schedule properties', () => {
 	});
 
 	scheduleTest(
+		'can create, read, update, and delete a displayDate of an object entry',
+		async ({apiHelpers, page, viewObjectEntriesPage}) => {
+			const objectDefinition =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					status: {code: 0},
+				});
+
+			apiHelpers.data.push({
+				id: objectDefinition.id,
+				type: 'objectDefinition',
+			});
+
+			await viewObjectEntriesPage.goto(objectDefinition.className);
+
+			await viewObjectEntriesPage.clickAddObjectEntry(
+				objectDefinition.label['en_US']
+			);
+
+			await viewObjectEntriesPage.choosePublicationOption('schedule');
+
+			await viewObjectEntriesPage.scheduleForCurrentDate('Publish');
+
+			await page.keyboard.press('Escape');
+
+			await viewObjectEntriesPage.schedulePublicationButton.click();
+
+			await waitForAlert(page);
+
+			const date = new Date();
+
+			const today = getObjectEntryUIDateTimeFormat(date);
+
+			await viewObjectEntriesPage.choosePublicationOption('schedule');
+
+			await expect(viewObjectEntriesPage.publishDateInput).toHaveValue(
+				today
+			);
+
+			date.setDate(date.getDate() + 1);
+
+			const tomorrow = getObjectEntryUIDateTimeFormat(date);
+
+			await viewObjectEntriesPage.publishDateInput.fill(tomorrow);
+
+			await viewObjectEntriesPage.schedulePublicationButton.click();
+
+			await waitForAlert(page);
+
+			await viewObjectEntriesPage.choosePublicationOption('schedule');
+
+			await expect(viewObjectEntriesPage.publishDateInput).toHaveValue(
+				tomorrow
+			);
+
+			await page.getByRole('button', {name: 'Close'}).click();
+
+			await viewObjectEntriesPage.choosePublicationOption('publish');
+
+			await waitForAlert(page);
+
+			await viewObjectEntriesPage.choosePublicationOption('schedule');
+
+			await expect(viewObjectEntriesPage.publishDateInput).toHaveValue(
+				''
+			);
+
+			await page.getByRole('button', {name: 'Close'}).click();
+		}
+	);
+
+	scheduleTest(
 		'can create, read, update, and delete a expirationDate of an object entry',
 		async ({page, viewObjectEntriesPage}) => {
 			await viewObjectEntriesPage.goto(_objectDefinition.className);
@@ -2177,6 +2248,59 @@ scheduleTest.describe('Manage object entries schedule properties', () => {
 			await waitForAlert(page);
 
 			await expect(viewObjectEntriesPage.reviewDateInput).toHaveValue('');
+		}
+	);
+
+	scheduleTest(
+		'can see approved and scheduled labels for entry with a display date versioning enabled and at least one version approved',
+		async ({apiHelpers, page, viewObjectEntriesPage}) => {
+			const objectDefinitionAPIClient =
+				await apiHelpers.buildRestClient(ObjectDefinitionAPI);
+
+			await objectDefinitionAPIClient.patchObjectDefinition(
+				_objectDefinition.id,
+				{
+					enableObjectEntryVersioning: true,
+				}
+			);
+
+			await viewObjectEntriesPage.goto(_objectDefinition.className);
+
+			await viewObjectEntriesPage.clickAddObjectEntry(
+				_objectDefinition.label['en_US']
+			);
+
+			await viewObjectEntriesPage.choosePublicationOption('publish');
+
+			await waitForAlert(page);
+
+			await viewObjectEntriesPage.backButton.click();
+
+			await expect(page.getByText('Approved')).toBeVisible();
+
+			await expect(page.getByText('Scheduled')).not.toBeVisible();
+
+			await page.locator('.cell-id').nth(1).getByRole('link').click();
+
+			const date = new Date();
+
+			date.setDate(date.getDate() + 1);
+
+			const tomorrow = getObjectEntryUIDateTimeFormat(date);
+
+			await viewObjectEntriesPage.choosePublicationOption('schedule');
+
+			await viewObjectEntriesPage.publishDateInput.fill(tomorrow);
+
+			await viewObjectEntriesPage.schedulePublicationButton.click();
+
+			await waitForAlert(page);
+
+			await viewObjectEntriesPage.backButton.click();
+
+			await expect(page.getByText('Approved')).toBeVisible();
+
+			await expect(page.getByText('Scheduled')).toBeVisible();
 		}
 	);
 
