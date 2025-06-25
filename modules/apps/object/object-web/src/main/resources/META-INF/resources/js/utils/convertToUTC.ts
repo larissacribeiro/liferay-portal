@@ -28,3 +28,9 @@ export function convertToUTC(value: string | undefined) {
 
 	return dateInUTCFormat;
 }
+
+export function formatDisplayDate(value: Date) {
+	const date = new Date(value);
+
+	return `${date?.toLocaleDateString('default', {month: 'short'})} ${date?.getDate()} ${date?.getFullYear()} ${date?.toLocaleTimeString('default', {hour: '2-digit', minute: '2-digit'})}`;
+}

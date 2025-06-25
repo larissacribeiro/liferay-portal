@@ -3,17 +3,29 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import DecimalDataRenderer from './FDSDataRenderers/DecimalDataRenderer';
-import MultiselectPicklistDataRenderer from './FDSDataRenderers/MultiselectPicklistDataRenderer';
-import StatusDataRenderer from './FDSDataRenderers/StatusDataRenderer';
+import React from 'react';
 
-export default function ViewObjectEntriesFDSPropsTransformer({...otherProps}) {
+import DecimalDataRenderer from './FDSDataRenderers/DecimalDataRenderer';
+import EntryStatusDataRenderer from './FDSDataRenderers/EntryStatusDataRenderer';
+import MultiselectPicklistDataRenderer from './FDSDataRenderers/MultiselectPicklistDataRenderer';
+
+
+export default function ViewObjectEntriesFDSPropsTransformer({
+	...otherProps
+}) {
+	const {apiURL} = otherProps;
+
+	const wrapper = (Component, additionalProps) => (props: any) =>
+		<Component {...props} {...additionalProps} />;
+
 	return {
 		...otherProps,
 		customDataRenderers: {
 			decimalDataRenderer: DecimalDataRenderer,
 			multiselectPicklistDataRenderer: MultiselectPicklistDataRenderer,
-			statusDataRenderer: StatusDataRenderer,
+			statusDataRenderer: wrapper(EntryStatusDataRenderer, {
+				apiURL,
+			}),
 		},
 		onActionDropdownItemClick({
 			action,
