@@ -120,6 +120,7 @@ import com.liferay.portal.kernel.dao.orm.DefaultActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dependency.manager.DependencyManagerSyncUtil;
@@ -226,11 +227,11 @@ public class ObjectDefinitionLocalServiceImpl
 			long userId, long objectFolderId, String className,
 			boolean enableComments, boolean enableFriendlyURLCustomization,
 			boolean enableIndexSearch, boolean enableLocalization,
-			boolean enableObjectEntryDraft, boolean enableObjectEntryVersioning,
-			String friendlyURLSeparator, Map<Locale, String> labelMap,
-			String name, String panelAppOrder, String panelCategoryKey,
-			Map<Locale, String> pluralLabelMap, boolean portlet, String scope,
-			String storageType,
+			boolean enableObjectEntryDraft, boolean enableObjectEntrySchedule,
+			boolean enableObjectEntryVersioning, String friendlyURLSeparator,
+			Map<Locale, String> labelMap, String name, String panelAppOrder,
+			String panelCategoryKey, Map<Locale, String> pluralLabelMap,
+			boolean portlet, String scope, String storageType,
 			List<ObjectDefinitionSetting> objectDefinitionSettings,
 			List<ObjectField> objectFields)
 		throws PortalException {
@@ -239,11 +240,11 @@ public class ObjectDefinitionLocalServiceImpl
 			null, userId, objectFolderId, className, null, enableComments,
 			enableFriendlyURLCustomization, enableIndexSearch,
 			enableLocalization, enableObjectEntryDraft,
-			enableObjectEntryVersioning, friendlyURLSeparator, labelMap, true,
-			name, panelAppOrder, panelCategoryKey, null, null, pluralLabelMap,
-			portlet, scope, storageType, false, null, 0,
-			WorkflowConstants.STATUS_DRAFT, objectDefinitionSettings,
-			objectFields);
+			enableObjectEntrySchedule, enableObjectEntryVersioning,
+			friendlyURLSeparator, labelMap, true, name, panelAppOrder,
+			panelCategoryKey, null, null, pluralLabelMap, portlet, scope,
+			storageType, false, null, 0, WorkflowConstants.STATUS_DRAFT,
+			objectDefinitionSettings, objectFields);
 	}
 
 	@Indexable(type = IndexableType.REINDEX)
@@ -327,8 +328,8 @@ public class ObjectDefinitionLocalServiceImpl
 				systemObjectDefinitionManager.getModelClassName(),
 				table.getTableName(), false, false, true,
 				systemObjectDefinitionManager.isEnableLocalization(), false,
-				false, null, systemObjectDefinitionManager.getLabelMap(), false,
-				systemObjectDefinitionManager.getName(), null, null,
+				false, false, null, systemObjectDefinitionManager.getLabelMap(),
+				false, systemObjectDefinitionManager.getName(), null, null,
 				primaryKeyColumn.getName(), primaryKeyColumn.getName(),
 				systemObjectDefinitionManager.getPluralLabelMap(), false,
 				systemObjectDefinitionManager.getScope(),
@@ -422,6 +423,7 @@ public class ObjectDefinitionLocalServiceImpl
 			String className, String dbTableName, boolean enableComments,
 			boolean enableFriendlyURLCustomization, boolean enableIndexSearch,
 			boolean enableLocalization, boolean enableObjectEntryDraft,
+			boolean enableObjectEntrySchedule,
 			boolean enableObjectEntryVersioning, String friendlyURLSeparator,
 			Map<Locale, String> labelMap, boolean modifiable, String name,
 			String panelAppOrder, String panelCategoryKey,
@@ -436,12 +438,13 @@ public class ObjectDefinitionLocalServiceImpl
 			externalReferenceCode, userId, objectFolderId, className,
 			dbTableName, enableComments, enableFriendlyURLCustomization,
 			enableIndexSearch, enableLocalization, enableObjectEntryDraft,
-			enableObjectEntryVersioning, friendlyURLSeparator, labelMap,
-			modifiable, name, panelAppOrder, panelCategoryKey,
-			pkObjectFieldDBColumnName, pkObjectFieldName, pluralLabelMap,
-			portlet, scope, ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
-			true, titleObjectFieldName, version, status,
-			objectDefinitionSettings, objectFields);
+			enableObjectEntrySchedule, enableObjectEntryVersioning,
+			friendlyURLSeparator, labelMap, modifiable, name, panelAppOrder,
+			panelCategoryKey, pkObjectFieldDBColumnName, pkObjectFieldName,
+			pluralLabelMap, portlet, scope,
+			ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT, true,
+			titleObjectFieldName, version, status, objectDefinitionSettings,
+			objectFields);
 	}
 
 	@Override
@@ -1153,6 +1156,7 @@ public class ObjectDefinitionLocalServiceImpl
 			boolean enableComments, boolean enableFriendlyURLCustomization,
 			boolean enableIndexSearch, boolean enableLocalization,
 			boolean enableObjectEntryDraft, boolean enableObjectEntryHistory,
+			boolean enableObjectEntrySchedule,
 			boolean enableObjectEntryVersioning, String friendlyURLSeparator,
 			Map<Locale, String> labelMap, String name, String panelAppOrder,
 			String panelCategoryKey, boolean portlet,
@@ -1212,10 +1216,10 @@ public class ObjectDefinitionLocalServiceImpl
 			className, null, enableCategorization, enableComments,
 			enableFriendlyURLCustomization, enableIndexSearch,
 			enableLocalization, enableObjectEntryDraft,
-			enableObjectEntryHistory, enableObjectEntryVersioning,
-			friendlyURLSeparator, labelMap, name, panelAppOrder,
-			panelCategoryKey, portlet, null, null, pluralLabelMap, scope,
-			status, objectDefinitionSettings);
+			enableObjectEntryHistory, enableObjectEntrySchedule,
+			enableObjectEntryVersioning, friendlyURLSeparator, labelMap, name,
+			panelAppOrder, panelCategoryKey, portlet, null, null,
+			pluralLabelMap, scope, status, objectDefinitionSettings);
 	}
 
 	@Indexable(type = IndexableType.REINDEX)
@@ -1421,6 +1425,7 @@ public class ObjectDefinitionLocalServiceImpl
 			String className, String dbTableName, boolean enableComments,
 			boolean enableFriendlyURLCustomization, boolean enableIndexSearch,
 			boolean enableLocalization, boolean enableObjectEntryDraft,
+			boolean enableObjectEntrySchedule,
 			boolean enableObjectEntryVersioning, String friendlyURLSeparator,
 			Map<Locale, String> labelMap, boolean modifiable, String name,
 			String panelAppOrder, String panelCategoryKey,
@@ -1504,6 +1509,9 @@ public class ObjectDefinitionLocalServiceImpl
 
 		if (FeatureFlagManagerUtil.isEnabled(
 				user.getCompanyId(), "LPD-17564")) {
+
+			objectDefinition.setEnableObjectEntryVersioning(
+				enableObjectEntrySchedule);
 
 			objectDefinition.setEnableObjectEntryVersioning(
 				enableObjectEntryVersioning);
@@ -2235,6 +2243,39 @@ public class ObjectDefinitionLocalServiceImpl
 		return false;
 	}
 
+	private void _performEnableObjectEntrySchedule(
+		boolean enableObjectEntryDraft, boolean enableObjectEntrySchedule,
+		ObjectDefinition objectDefinition) {
+
+		if (enableObjectEntrySchedule) {
+			return;
+		}
+
+		List<ObjectEntry> objectEntries =
+			_objectEntryLocalService.getObjectEntries(
+				objectDefinition.getCompanyId(),
+				objectDefinition.getObjectDefinitionId(), 7, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS);
+
+		if (objectEntries.isEmpty()) {
+			return;
+		}
+
+		if (enableObjectEntryDraft) {
+			for (ObjectEntry objectEntry : objectEntries) {
+				objectEntry.setStatus(2);
+
+				_objectEntryLocalService.updateObjectEntry(objectEntry);
+			}
+		}
+
+		for (ObjectEntry objectEntry : objectEntries) {
+			objectEntry.setStatus(0);
+
+			_objectEntryLocalService.updateObjectEntry(objectEntry);
+		}
+	}
+
 	private ObjectDefinition _publishObjectDefinition(
 			long userId, ObjectDefinition objectDefinition)
 		throws PortalException {
@@ -2502,7 +2543,7 @@ public class ObjectDefinitionLocalServiceImpl
 			boolean enableCategorization, boolean enableComments,
 			boolean enableFriendlyURLCustomization, boolean enableIndexSearch,
 			boolean enableLocalization, boolean enableObjectEntryDraft,
-			boolean enableObjectEntryHistory,
+			boolean enableObjectEntryHistory, boolean enableObjectEntrySchedule,
 			boolean enableObjectEntryVersioning, String friendlyURLSeparator,
 			Map<Locale, String> labelMap, String name, String panelAppOrder,
 			String panelCategoryKey, boolean portlet,
@@ -2611,6 +2652,13 @@ public class ObjectDefinitionLocalServiceImpl
 
 		if (FeatureFlagManagerUtil.isEnabled(
 				objectDefinition.getCompanyId(), "LPD-17564")) {
+
+			objectDefinition.setEnableObjectEntrySchedule(
+				enableObjectEntrySchedule);
+
+			_performEnableObjectEntrySchedule(
+				enableObjectEntryDraft, enableObjectEntrySchedule,
+				objectDefinition);
 
 			objectDefinition.setEnableObjectEntryVersioning(
 				enableObjectEntryVersioning);
