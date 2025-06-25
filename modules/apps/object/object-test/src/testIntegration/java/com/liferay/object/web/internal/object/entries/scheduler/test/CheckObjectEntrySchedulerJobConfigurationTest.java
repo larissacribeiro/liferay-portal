@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.UserNotificationEventLocalService;
 import com.liferay.portal.kernel.test.AssertUtils;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.Sync;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -81,6 +82,7 @@ public class CheckObjectEntrySchedulerJobConfigurationTest {
 
 		_jobExecutorUnsafeRunnable =
 			_schedulerJobConfiguration.getJobExecutorUnsafeRunnable();
+
 		_objectDefinition = ObjectDefinitionTestUtil.publishObjectDefinition(
 			List.of(
 				new TextObjectFieldBuilder(
@@ -106,6 +108,43 @@ public class CheckObjectEntrySchedulerJobConfigurationTest {
 		_configurationProvider.deleteCompanyConfiguration(
 			ObjectEntryVersionConfiguration.class,
 			TestPropsValues.getCompanyId());
+	}
+
+	@Test
+	public void testCheckObjectEntryDisplayDate() throws Exception {
+		Date date = new Date();
+
+		ObjectEntry objectEntry1 = ObjectEntryTestUtil.addObjectEntry(
+			0, _objectDefinition.getObjectDefinitionId(),
+			HashMapBuilder.<String, Serializable>put(
+				_OBJECT_FIELD_NAME, RandomTestUtil.randomString()
+			).put(
+				"displayDate", date
+			).build());
+
+		Assert.assertTrue(objectEntry1.isApproved());
+
+		ObjectEntry objectEntry2 = ObjectEntryTestUtil.addObjectEntry(
+			0, _objectDefinition.getObjectDefinitionId(),
+			HashMapBuilder.<String, Serializable>put(
+				_OBJECT_FIELD_NAME, RandomTestUtil.randomString()
+			).put(
+				"displayDate",
+				new Date(date.getTime() + TimeUnit.MINUTE.toMillis(5))
+			).build());
+
+		Assert.assertTrue(objectEntry2.isApproved());
+
+		_jobExecutorUnsafeRunnable.run();
+
+		objectEntry1 = _objectEntryLocalService.getObjectEntry(
+			objectEntry1.getObjectEntryId());
+		objectEntry2 = _objectEntryLocalService.getObjectEntry(
+			objectEntry2.getObjectEntryId());
+
+		Assert.assertTrue(objectEntry1.isScheduled());
+
+		Assert.assertTrue(objectEntry2.isApproved());
 	}
 
 	@Test
@@ -193,11 +232,10 @@ public class CheckObjectEntrySchedulerJobConfigurationTest {
 			userNotificationEvents.toString(), 1,
 			userNotificationEvents.size());
 
-		UserNotificationEvent userNotificationEvent =
-			userNotificationEvents.get(0);
-
 		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
-			userNotificationEvent.getPayload());
+			userNotificationEvents.get(
+				0
+			).getPayload());
 
 		Assert.assertEquals(
 			StringBundler.concat(
@@ -321,6 +359,8 @@ public class CheckObjectEntrySchedulerJobConfigurationTest {
 	private static ConfigurationProvider _configurationProvider;
 
 	private static UnsafeRunnable<Exception> _jobExecutorUnsafeRunnable;
+
+	@DeleteAfterTestRun
 	private static ObjectDefinition _objectDefinition;
 
 	@Inject
