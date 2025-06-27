@@ -32,6 +32,7 @@ interface ContainerProperties {
 	portletNamespace: string;
 	scheduleProperties: ScheduleProperties;
 	submitRef: string;
+	timeZoneOffset: number;
 }
 
 interface FieldProperties {
@@ -51,6 +52,7 @@ export default function ScheduleContainer({
 	portletNamespace,
 	scheduleProperties,
 	submitRef,
+	timeZoneOffset,
 }: ContainerProperties) {
 	const [displayedScheduleValues, setDisplayedScheduleValues] =
 		useState<DateProperties>({
@@ -175,6 +177,7 @@ export default function ScheduleContainer({
 												convertToUTC(value),
 										}));
 									}}
+									timeZoneOffset={timeZoneOffset}
 									value={
 										displayedScheduleValues[
 											schedulePropertyKey
@@ -197,6 +200,7 @@ export default function ScheduleContainer({
 				hiddenScheduleValues={hiddenScheduleValues}
 				portletNamespace={portletNamespace}
 				submitRef={submitRef}
+				timeZoneOffset={timeZoneOffset}
 				value={scheduleProperties.displayDate?.value}
 			/>
 		</>

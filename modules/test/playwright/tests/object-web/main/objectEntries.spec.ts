@@ -1622,7 +1622,55 @@ test.describe('Manage object entries through View Object Entries', () => {
 		});
 	});
 
-	test('Verify that temporary files are deleted from the database if the object creation is not completed', async ({
+	test('save button is temporalily disabled upon submission attempt', async ({
+		apiHelpers,
+		page,
+		viewObjectEntriesPage,
+	}) => {
+		const {objectFields} =
+			await mockObjectFields({
+				apiHelpers,
+				objectFieldBusinessTypes: [
+					'boolean',
+					'decimal',
+					'integer',
+					'longInteger',
+					'longText',
+					'precisionDecimal',
+					'richText',
+					'text',
+				],
+				requireAllRequirable: true
+			});
+
+			const objectDefinition =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					objectFields,
+					objectFolderExternalReferenceCode: 'default',
+					panelCategoryKey: 'control_panel.object',
+					status: {code: 0},
+					titleObjectFieldName: 'customField',
+				});
+
+			apiHelpers.data.push({
+				id: objectDefinition.id,
+				type: 'objectDefinition',
+			});
+
+		await viewObjectEntriesPage.goto(objectDefinition.className);
+
+		await viewObjectEntriesPage.addObjectEntryButton.click();
+
+		await viewObjectEntriesPage.saveObjectEntryButton.click();
+
+		await expect(viewObjectEntriesPage.saveObjectEntryButton).not.toBeEnabled();
+
+		await viewObjectEntriesPage.saveObjectEntryButton.click();
+
+		await expect(viewObjectEntriesPage.successMessage).toBeVisible();
+	});
+
+	test('verify that temporary files are deleted from the database if the object creation is not completed', async ({
 		apiHelpers,
 		page,
 		viewObjectEntriesPage,

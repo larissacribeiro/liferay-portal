@@ -14,6 +14,7 @@ interface ModalSchedulePublicationProps {
 	hiddenScheduleValues: {[key: string]: string | null};
 	portletNamespace: string;
 	submitRef: string;
+	timeZoneOffset: number;
 	value: string;
 }
 
@@ -21,6 +22,7 @@ export default function ModalSchedulePublication({
 	hiddenScheduleValues,
 	portletNamespace,
 	submitRef,
+	timeZoneOffset,
 	value,
 }: ModalSchedulePublicationProps) {
 	const [dateError, setDateError] = useState('');
@@ -35,9 +37,19 @@ export default function ModalSchedulePublication({
 		},
 	});
 
+	const isInDifferentTimezone =
+		Math.floor(timeZoneOffset / (1000 * 60)) !==
+		-new Date().getTimezoneOffset();
+
 	const handleError = (value: string): boolean => {
 		if (!value) {
 			setDateError(Liferay.Language.get('this-field-is-required'));
+
+			return false;
+		}
+
+		if (value && isInDifferentTimezone) {
+			setDateError(Liferay.Language.get('to-be-defined'));
 
 			return false;
 		}

@@ -16,6 +16,7 @@ interface ScheduleFieldProps {
 	isChecked: boolean;
 	onCheckboxChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 	onDateChange: (value: string) => void;
+	timeZoneOffset: number;
 	value: string;
 }
 
@@ -27,16 +28,24 @@ export default function ScheduleField({
 	isChecked,
 	onCheckboxChange,
 	onDateChange,
+	timeZoneOffset,
 	value,
 }: ScheduleFieldProps) {
 	const [dateError, setDateError] = useState<string>('');
 
 	const [checked, setChecked] = useState<boolean>(isChecked);
 
+	const isInDifferentTimezone =
+		Math.floor(timeZoneOffset / (1000 * 60)) !==
+		-new Date().getTimezoneOffset();
+
 	const handleError = useCallback(
 		(value: string) => {
 			if (!value && !checked) {
 				setDateError(Liferay.Language.get('this-field-is-required'));
+			}
+			if (value && !checked && isInDifferentTimezone) {
+				setDateError(Liferay.Language.get('to-be-defined'));
 			}
 			else if (customValidation) {
 				setDateError(() => customValidation(value));
@@ -45,7 +54,7 @@ export default function ScheduleField({
 				setDateError('');
 			}
 		},
-		[checked, customValidation]
+		[checked, customValidation, isInDifferentTimezone]
 	);
 
 	useEffect(() => {

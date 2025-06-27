@@ -29,7 +29,11 @@ export default function ObjectEntryFooter({
 						closeOnClick
 						hasLeftSymbols
 						trigger={
-							<ClayButton displayType="primary" type="button">
+							<ClayButton
+								displayType="primary"
+								id={`${portletNamespace}publishObjectEntryOptionsButton`}
+								type="button"
+							>
 								{Liferay.Language.get('publish')}
 							</ClayButton>
 						}

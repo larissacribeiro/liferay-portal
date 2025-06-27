@@ -14,6 +14,7 @@ String backURL = objectEntryDisplayContext.getBackURL();
 ObjectDefinition objectDefinition = objectEntryDisplayContext.getObjectDefinition1();
 ObjectEntry objectEntry = objectEntryDisplayContext.getObjectEntry();
 String portletNamespace = portletDisplay.getNamespace();
+TimeZone userTimeZone = user.getTimeZone();
 
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(backURL);
@@ -76,6 +77,8 @@ portletDisplay.setURLBack(backURL);
 								"scheduleProperties", objectEntryDisplayContext.getScheduleProperties()
 							).put(
 								"submitRef", portletNamespace + "submitObjectEntry"
+							).put(
+								"timeZoneOffset", userTimeZone.getOffset(System.currentTimeMillis())
 							).build()
 						%>'
 					/>
@@ -108,6 +111,7 @@ portletDisplay.setURLBack(backURL);
 				<liferay-frontend:edit-form-footer>
 					<liferay-frontend:edit-form-buttons
 						redirect="<%= backURL %>"
+						submitId="saveObjectEntryButton"
 						submitOnClick='<%= "event.preventDefault(); " + portletNamespace + "submitObjectEntry();" %>'
 					/>
 				</liferay-frontend:edit-form-footer>
@@ -214,6 +218,22 @@ portletDisplay.setURLBack(backURL);
 			loadingElement.ariaHidden = 'true';
 
 			form.insertAdjacentElement('afterbegin', loadingElement);
+
+			const saveButton = document.getElementById(
+				'<portlet:namespace />saveObjectEntryButton'
+			);
+
+			const publishButton = document.getElementById(
+				'<portlet:namespace />publishObjectEntryOptionsButton'
+			);
+
+			if (saveButton) {
+				saveButton.disabled = true;
+			}
+
+			if (publishButton) {
+				publishButton.disabled = true;
+			}
 
 			current.validate().then((result) => {
 				if (result) {
@@ -466,6 +486,14 @@ portletDisplay.setURLBack(backURL);
 				}
 				else {
 					current.updateLocalesDropdownToDefaultLanguage();
+
+					if (publishButton) {
+						publishButton.disabled = false;
+					}
+
+					if (saveButton) {
+						saveButton.disabled = false;
+					}
 
 					loadingElement.remove();
 				}
