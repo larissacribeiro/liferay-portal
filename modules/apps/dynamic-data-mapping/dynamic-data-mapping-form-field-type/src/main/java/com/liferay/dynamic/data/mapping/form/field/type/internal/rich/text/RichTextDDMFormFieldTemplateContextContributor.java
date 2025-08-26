@@ -20,6 +20,8 @@ import com.liferay.portal.kernel.editor.configuration.EditorConfigurationFactory
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.upload.FileItem;
+import com.liferay.portal.kernel.upload.configuration.UploadServletRequestConfigurationProvider;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.MapUtil;
@@ -54,7 +56,12 @@ public class RichTextDDMFormFieldTemplateContextContributor
 			ddmFormField.getProperty("localizedObjectField"));
 
 		return HashMapBuilder.<String, Object>put(
+			"fileItemThresholdSize", FileItem.THRESHOLD_SIZE
+		).put(
 			"localizedObjectField", localizedObjectField
+		).put(
+			"overallMaximumUploadRequestSize",
+			_uploadServletRequestConfigurationProvider.getMaxSize()
 		).put(
 			"predefinedValue",
 			() -> {
@@ -155,5 +162,9 @@ public class RichTextDDMFormFieldTemplateContextContributor
 
 	@Reference
 	private AICreatorOpenAIManager _aiCreatorOpenAIManager;
+
+	@Reference
+	private UploadServletRequestConfigurationProvider
+		_uploadServletRequestConfigurationProvider;
 
 }
