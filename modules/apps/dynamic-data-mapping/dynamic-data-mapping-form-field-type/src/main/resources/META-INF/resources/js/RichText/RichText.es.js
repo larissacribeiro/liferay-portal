@@ -45,6 +45,26 @@ const ddmFormAdminPortlet =
 
 const fieldNeedsToFireOnChange = ['predefinedValue', 'text'];
 
+const getFileSizeInBytes = (base64String) => {
+	const base64 = base64String.split(',')[1] || base64String;
+
+	const padding = (base64.match(/(=*)$/) || [])[1]?.length || 0;
+
+	return (base64.length * 3) / 4 - padding;
+};
+
+const getImageSrcFromHtml = (html) => {
+	const document = new DOMParser().parseFromString(html, 'text/html');
+
+	const image = document.querySelector('img');
+
+	if (!image) {
+		return null;
+	}
+
+	return image.getAttribute('src');
+};
+
 const skipsChangeValidation = (fieldName) => {
 	return !fieldNeedsToFireOnChange.includes(fieldName);
 };
