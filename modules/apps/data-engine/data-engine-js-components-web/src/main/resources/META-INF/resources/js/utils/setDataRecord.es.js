@@ -36,10 +36,6 @@ export default function setDataRecord(
 		_value = JSON.stringify(value);
 	}
 
-	if (!visible) {
-		_value = localizable ? '' : _value;
-	}
-
 	if (localizable) {
 		const edited =
 			(!!Array.isArray(localizedValue?.[languageId]) &&
