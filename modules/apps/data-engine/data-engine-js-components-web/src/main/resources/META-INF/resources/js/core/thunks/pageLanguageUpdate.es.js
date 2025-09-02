@@ -41,6 +41,8 @@ const getDataRecordValues = ({
 		true
 	);
 
+	console.log(dataRecordValues, 'dataRecordValues');
+
 	return dataRecordValues;
 };
 

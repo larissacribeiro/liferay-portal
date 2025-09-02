@@ -37,7 +37,7 @@ export default function setDataRecord(
 	}
 
 	if (!visible) {
-		_value = '';
+		_value = localizable ? '' : _value;
 	}
 
 	if (localizable) {
@@ -90,5 +90,7 @@ export default function setDataRecord(
 	}
 	else {
 		dataRecordValues[dataRecordValueKey] = _value;
+
+		console.log(dataRecordValues[dataRecordValueKey] = _value, 'dataRecordValues[dataRecordValueKey]');
 	}
 }
