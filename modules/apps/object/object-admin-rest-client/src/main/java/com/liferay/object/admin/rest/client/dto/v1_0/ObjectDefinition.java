@@ -332,6 +332,31 @@ public class ObjectDefinition implements Cloneable, Serializable {
 
 	protected Boolean enableLocalization;
 
+	public Boolean getEnableObjectDefinitionMapping() {
+		return enableObjectDefinitionMapping;
+	}
+
+	public void setEnableObjectDefinitionMapping(
+		Boolean enableObjectDefinitionMapping) {
+
+		this.enableObjectDefinitionMapping = enableObjectDefinitionMapping;
+	}
+
+	public void setEnableObjectDefinitionMapping(
+		UnsafeSupplier<Boolean, Exception>
+			enableObjectDefinitionMappingUnsafeSupplier) {
+
+		try {
+			enableObjectDefinitionMapping =
+				enableObjectDefinitionMappingUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean enableObjectDefinitionMapping;
+
 	public Boolean getEnableObjectEntryDraft() {
 		return enableObjectEntryDraft;
 	}

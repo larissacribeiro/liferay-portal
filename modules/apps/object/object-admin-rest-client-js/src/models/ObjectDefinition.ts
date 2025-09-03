@@ -34,6 +34,7 @@
 			"enableFriendlyURLCustomization"?: boolean;
 			"enableIndexSearch"?: boolean;
 			"enableLocalization"?: boolean;
+			"enableObjectDefinitionMapping"?: boolean;
 			"enableObjectEntryDraft"?: boolean;
 			"enableObjectEntryHistory"?: boolean;
 			"enableObjectEntrySchedule"?: boolean;
@@ -142,6 +143,11 @@
 		{
 			baseName: "enableLocalization",
 			name: "enableLocalization",
+			type: "boolean",
+		},
+		{
+			baseName: "enableObjectDefinitionMapping",
+			name: "enableObjectDefinitionMapping",
 			type: "boolean",
 		},
 		{

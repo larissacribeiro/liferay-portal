@@ -642,6 +642,51 @@ public class ObjectDefinition implements Serializable {
 	private Supplier<Boolean> _enableLocalizationSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
+	public Boolean getEnableObjectDefinitionMapping() {
+		if (_enableObjectDefinitionMappingSupplier != null) {
+			enableObjectDefinitionMapping =
+				_enableObjectDefinitionMappingSupplier.get();
+
+			_enableObjectDefinitionMappingSupplier = null;
+		}
+
+		return enableObjectDefinitionMapping;
+	}
+
+	public void setEnableObjectDefinitionMapping(
+		Boolean enableObjectDefinitionMapping) {
+
+		this.enableObjectDefinitionMapping = enableObjectDefinitionMapping;
+
+		_enableObjectDefinitionMappingSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setEnableObjectDefinitionMapping(
+		UnsafeSupplier<Boolean, Exception>
+			enableObjectDefinitionMappingUnsafeSupplier) {
+
+		_enableObjectDefinitionMappingSupplier = () -> {
+			try {
+				return enableObjectDefinitionMappingUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Boolean enableObjectDefinitionMapping;
+
+	@JsonIgnore
+	private Supplier<Boolean> _enableObjectDefinitionMappingSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
 	public Boolean getEnableObjectEntryDraft() {
 		if (_enableObjectEntryDraftSupplier != null) {
 			enableObjectEntryDraft = _enableObjectEntryDraftSupplier.get();
@@ -2217,6 +2262,19 @@ public class ObjectDefinition implements Serializable {
 			sb.append("\"enableLocalization\": ");
 
 			sb.append(enableLocalization);
+		}
+
+		Boolean enableObjectDefinitionMapping =
+			getEnableObjectDefinitionMapping();
+
+		if (enableObjectDefinitionMapping != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"enableObjectDefinitionMapping\": ");
+
+			sb.append(enableObjectDefinitionMapping);
 		}
 
 		Boolean enableObjectEntryDraft = getEnableObjectEntryDraft();
