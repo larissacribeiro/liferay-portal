@@ -101,6 +101,7 @@
 		<column name="enableFriendlyURLCustomization" type="boolean" />
 		<column name="enableIndexSearch" type="boolean" />
 		<column name="enableLocalization" type="boolean" />
+		<column name="enableObjectDefinitionMapping" type="boolean" />
 		<column name="enableObjectEntryDraft" type="boolean" />
 		<column name="enableObjectEntryHistory" type="boolean" />
 		<column name="enableObjectEntrySchedule" type="boolean" />
@@ -1235,6 +1236,7 @@
 		<exception>ObjectDefinitionEnableComments</exception>
 		<exception>ObjectDefinitionEnableFriendlyURLCustomization</exception>
 		<exception>ObjectDefinitionEnableLocalization</exception>
+		<exception>ObjectDefinitionEnableMapping</exception>
 		<exception>ObjectDefinitionEnableObjectEntryHistory</exception>
 		<exception>ObjectDefinitionEnableObjectEntrySchedule</exception>
 		<exception>ObjectDefinitionEnableObjectEntrySubscription</exception>
