@@ -79,7 +79,7 @@ public class ObjectDefinitionTestUtil {
 
 		return ObjectDefinitionLocalServiceUtil.addCustomObjectDefinition(
 			userId, objectFolderId, null, false, false, true,
-			enableLocalization, false, false, false, false,
+			enableLocalization, true, false, false, false, false,
 			FriendlyURLResolverConstants.URL_SEPARATOR_Y_OBJECT_ENTRY,
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			name, null, null,
@@ -124,8 +124,8 @@ public class ObjectDefinitionTestUtil {
 
 		return ObjectDefinitionLocalServiceUtil.addSystemObjectDefinition(
 			null, userId, 0, null, dbTableName, false, false, true,
-			enableLocalization, false, false, false, false, null, labelMap,
-			true, name, null, null, pkObjectFieldDBColumnName,
+			enableLocalization, false, false, false, false, false, null,
+			labelMap, true, name, null, null, pkObjectFieldDBColumnName,
 			pkObjectFieldName, pluralLabelMap, false, scope,
 			titleObjectFieldName, version, WorkflowConstants.STATUS_DRAFT,
 			Collections.emptyList(), objectFields, Collections.emptyList());
@@ -142,8 +142,8 @@ public class ObjectDefinitionTestUtil {
 
 		return ObjectDefinitionLocalServiceUtil.addSystemObjectDefinition(
 			externalReferenceCode, userId, 0, className, dbTableName, false,
-			false, true, false, false, false, false, false, null, labelMap,
-			false, name, null, null, pkObjectFieldDBColumnName,
+			false, true, false, false, false, false, false, false, null,
+			labelMap, false, name, null, null, pkObjectFieldDBColumnName,
 			pkObjectFieldName, pluralLabelMap, false, scope,
 			titleObjectFieldName, version, WorkflowConstants.STATUS_APPROVED,
 			Collections.emptyList(), objectFields, Collections.emptyList());
@@ -169,7 +169,7 @@ public class ObjectDefinitionTestUtil {
 		ObjectDefinition objectDefinition =
 			ObjectDefinitionLocalServiceUtil.addCustomObjectDefinition(
 				userId, objectFolderId, null, false, false, true, localized,
-				false, false, enableObjectEntrySubscription,
+				true, false, false, enableObjectEntrySubscription,
 				enableObjectEntryVersioning, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				name, null, null,

@@ -282,6 +282,10 @@ public class ObjectDefinitionResourceImpl
 						FeatureFlagManagerUtil.isEnabled(
 							contextUser.getCompanyId(), "LPD-32050")),
 					GetterUtil.getBoolean(
+						objectDefinition.getEnableObjectDefinitionMapping(),
+						FeatureFlagManagerUtil.isEnabled(
+							contextUser.getCompanyId(), "LPD-17564")),
+					GetterUtil.getBoolean(
 						objectDefinition.getEnableObjectEntryDraft()),
 					GetterUtil.getBoolean(
 						objectDefinition.getEnableObjectEntrySchedule()),
@@ -326,8 +330,11 @@ public class ObjectDefinitionResourceImpl
 						objectDefinition.getEnableIndexSearch(), true),
 					GetterUtil.getBoolean(
 						objectDefinition.getEnableLocalization(),
+						FeatureFlagManagerUtil.isEnabled("LPD-32050")),
+					GetterUtil.getBoolean(
+						objectDefinition.getEnableObjectDefinitionMapping(),
 						FeatureFlagManagerUtil.isEnabled(
-							contextUser.getCompanyId(), "LPD-32050")),
+							contextUser.getCompanyId(), "LPD-17564")),
 					GetterUtil.getBoolean(
 						objectDefinition.getEnableObjectEntryDraft()),
 					GetterUtil.getBoolean(
@@ -582,7 +589,7 @@ public class ObjectDefinitionResourceImpl
 					_getObjectFolderId(
 						objectDefinition.
 							getObjectFolderExternalReferenceCode()),
-					0,
+					0, objectDefinition.getEnableObjectDefinitionMapping(),
 					ObjectDefinitionSettingUtil.toObjectDefinitionSettings(
 						contextUser.getCompanyId(), _groupLocalService,
 						objectDefinition.getObjectDefinitionSettings(),
@@ -621,6 +628,11 @@ public class ObjectDefinitionResourceImpl
 						FeatureFlagManagerUtil.isEnabled(
 							serviceBuilderObjectDefinition.getCompanyId(),
 							"LPD-32050")),
+					GetterUtil.getBoolean(
+						objectDefinition.getEnableObjectDefinitionMapping(),
+						FeatureFlagManagerUtil.isEnabled(
+							serviceBuilderObjectDefinition.getCompanyId(),
+							"LPD-17564")),
 					GetterUtil.getBoolean(
 						objectDefinition.getEnableObjectEntryDraft()),
 					GetterUtil.getBoolean(

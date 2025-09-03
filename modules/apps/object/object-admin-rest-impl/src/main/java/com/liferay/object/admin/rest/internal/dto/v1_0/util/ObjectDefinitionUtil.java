@@ -161,6 +161,18 @@ public class ObjectDefinitionUtil {
 					serviceBuilderObjectDefinition::isEnableIndexSearch);
 				setEnableLocalization(
 					serviceBuilderObjectDefinition::isEnableLocalization);
+				setEnableObjectDefinitionMapping(
+					() -> {
+						if (!FeatureFlagManagerUtil.isEnabled(
+								serviceBuilderObjectDefinition.getCompanyId(),
+								"LPD-17564")) {
+
+							return null;
+						}
+
+						return serviceBuilderObjectDefinition.
+							isEnableObjectDefinitionMapping();
+					});
 				setEnableObjectEntryDraft(
 					serviceBuilderObjectDefinition::isEnableObjectEntryDraft);
 				setEnableObjectEntryHistory(
