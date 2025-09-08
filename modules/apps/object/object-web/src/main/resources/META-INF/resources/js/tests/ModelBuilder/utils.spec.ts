@@ -68,6 +68,7 @@ function buildObjectDefinitionNodeMock({
 			enableFriendlyURLCustomization: false,
 			enableIndexSearch: false,
 			enableLocalization: false,
+			enableObjectDefinitionMapping: false,
 			enableObjectEntryDraft: false,
 			enableObjectEntryHistory: false,
 			enableObjectEntrySchedule: false,
