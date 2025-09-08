@@ -201,6 +201,7 @@ interface ObjectDefinition {
 	enableFriendlyURLCustomization: boolean;
 	enableIndexSearch: boolean;
 	enableLocalization: boolean;
+	enableObjectDefinitionMapping: boolean;
 	enableObjectEntryDraft: boolean;
 	enableObjectEntryHistory: boolean;
 	enableObjectEntrySchedule: boolean;
