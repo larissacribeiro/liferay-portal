@@ -45,6 +45,7 @@ create table ObjectDefinition (
 	enableFriendlyURLCustomization BOOLEAN,
 	enableIndexSearch BOOLEAN,
 	enableLocalization BOOLEAN,
+	enableObjectDefinitionMapping BOOLEAN,
 	enableObjectEntryDraft BOOLEAN,
 	enableObjectEntryHistory BOOLEAN,
 	enableObjectEntrySchedule BOOLEAN,

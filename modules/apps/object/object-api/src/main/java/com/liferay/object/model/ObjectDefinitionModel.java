@@ -453,6 +453,28 @@ public interface ObjectDefinitionModel
 	public void setEnableLocalization(boolean enableLocalization);
 
 	/**
+	 * Returns the enable object definition mapping of this object definition.
+	 *
+	 * @return the enable object definition mapping of this object definition
+	 */
+	public boolean getEnableObjectDefinitionMapping();
+
+	/**
+	 * Returns <code>true</code> if this object definition is enable object definition mapping.
+	 *
+	 * @return <code>true</code> if this object definition is enable object definition mapping; <code>false</code> otherwise
+	 */
+	public boolean isEnableObjectDefinitionMapping();
+
+	/**
+	 * Sets whether this object definition is enable object definition mapping.
+	 *
+	 * @param enableObjectDefinitionMapping the enable object definition mapping of this object definition
+	 */
+	public void setEnableObjectDefinitionMapping(
+		boolean enableObjectDefinitionMapping);
+
+	/**
 	 * Returns the enable object entry draft of this object definition.
 	 *
 	 * @return the enable object entry draft of this object definition

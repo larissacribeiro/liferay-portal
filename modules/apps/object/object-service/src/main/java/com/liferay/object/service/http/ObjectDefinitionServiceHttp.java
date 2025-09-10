@@ -47,6 +47,7 @@ public class ObjectDefinitionServiceHttp {
 				String className, boolean enableComments,
 				boolean enableFriendlyURLCustomization,
 				boolean enableIndexSearch, boolean enableLocalization,
+				boolean enableObjectDefinitionMapping,
 				boolean enableObjectEntryDraft,
 				boolean enableObjectEntrySchedule,
 				boolean enableObjectEntrySubscription,
@@ -73,11 +74,12 @@ public class ObjectDefinitionServiceHttp {
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, objectFolderId, className, enableComments,
 				enableFriendlyURLCustomization, enableIndexSearch,
-				enableLocalization, enableObjectEntryDraft,
-				enableObjectEntrySchedule, enableObjectEntrySubscription,
-				enableObjectEntryVersioning, friendlyURLSeparator, labelMap,
-				name, panelAppOrder, panelCategoryKey, pluralLabelMap, portlet,
-				scope, storageType, objectDefinitionSettings, objectFields,
+				enableLocalization, enableObjectDefinitionMapping,
+				enableObjectEntryDraft, enableObjectEntrySchedule,
+				enableObjectEntrySubscription, enableObjectEntryVersioning,
+				friendlyURLSeparator, labelMap, name, panelAppOrder,
+				panelCategoryKey, pluralLabelMap, portlet, scope, storageType,
+				objectDefinitionSettings, objectFields,
 				workflowDefinitionLinks);
 
 			Object returnObj = null;
@@ -157,6 +159,7 @@ public class ObjectDefinitionServiceHttp {
 				long userId, long objectFolderId, String className,
 				boolean enableComments, boolean enableFriendlyURLCustomization,
 				boolean enableIndexSearch, boolean enableLocalization,
+				boolean enableObjectDefinitionMapping,
 				boolean enableObjectEntryDraft,
 				boolean enableObjectEntrySchedule,
 				boolean enableObjectEntrySubscription,
@@ -183,7 +186,8 @@ public class ObjectDefinitionServiceHttp {
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, externalReferenceCode, userId, objectFolderId,
 				className, enableComments, enableFriendlyURLCustomization,
-				enableIndexSearch, enableLocalization, enableObjectEntryDraft,
+				enableIndexSearch, enableLocalization,
+				enableObjectDefinitionMapping, enableObjectEntryDraft,
 				enableObjectEntrySchedule, enableObjectEntrySubscription,
 				enableObjectEntryVersioning, friendlyURLSeparator, labelMap,
 				name, panelAppOrder, panelCategoryKey, pluralLabelMap, portlet,
@@ -659,6 +663,7 @@ public class ObjectDefinitionServiceHttp {
 				boolean active, String className, boolean enableCategorization,
 				boolean enableComments, boolean enableFriendlyURLCustomization,
 				boolean enableIndexSearch, boolean enableLocalization,
+				boolean enableObjectDefinitionMapping,
 				boolean enableObjectEntryDraft,
 				boolean enableObjectEntryHistory,
 				boolean enableObjectEntrySchedule,
@@ -688,12 +693,13 @@ public class ObjectDefinitionServiceHttp {
 				objectFolderId, titleObjectFieldId, accountEntryRestricted,
 				active, className, enableCategorization, enableComments,
 				enableFriendlyURLCustomization, enableIndexSearch,
-				enableLocalization, enableObjectEntryDraft,
-				enableObjectEntryHistory, enableObjectEntrySchedule,
-				enableObjectEntrySubscription, enableObjectEntryVersioning,
-				friendlyURLSeparator, labelMap, name, panelAppOrder,
-				panelCategoryKey, portlet, pluralLabelMap, scope, status,
-				objectDefinitionSettings, workflowDefinitionLinks);
+				enableLocalization, enableObjectDefinitionMapping,
+				enableObjectEntryDraft, enableObjectEntryHistory,
+				enableObjectEntrySchedule, enableObjectEntrySubscription,
+				enableObjectEntryVersioning, friendlyURLSeparator, labelMap,
+				name, panelAppOrder, panelCategoryKey, portlet, pluralLabelMap,
+				scope, status, objectDefinitionSettings,
+				workflowDefinitionLinks);
 
 			Object returnObj = null;
 
@@ -770,7 +776,7 @@ public class ObjectDefinitionServiceHttp {
 			updateSystemObjectDefinition(
 				HttpPrincipal httpPrincipal, String externalReferenceCode,
 				long objectDefinitionId, long objectFolderId,
-				long titleObjectFieldId,
+				long titleObjectFieldId, boolean enableObjectDefinitionMapping,
 				java.util.List<com.liferay.object.model.ObjectDefinitionSetting>
 					objectDefinitionSettings,
 				java.util.List
@@ -786,7 +792,8 @@ public class ObjectDefinitionServiceHttp {
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, externalReferenceCode, objectDefinitionId,
-				objectFolderId, titleObjectFieldId, objectDefinitionSettings,
+				objectFolderId, titleObjectFieldId,
+				enableObjectDefinitionMapping, objectDefinitionSettings,
 				workflowDefinitionLinks);
 
 			Object returnObj = null;
@@ -866,10 +873,10 @@ public class ObjectDefinitionServiceHttp {
 		new Class[] {
 			long.class, String.class, boolean.class, boolean.class,
 			boolean.class, boolean.class, boolean.class, boolean.class,
-			boolean.class, boolean.class, String.class, java.util.Map.class,
-			String.class, String.class, String.class, java.util.Map.class,
-			boolean.class, String.class, String.class, java.util.List.class,
-			java.util.List.class, java.util.List.class
+			boolean.class, boolean.class, boolean.class, String.class,
+			java.util.Map.class, String.class, String.class, String.class,
+			java.util.Map.class, boolean.class, String.class, String.class,
+			java.util.List.class, java.util.List.class, java.util.List.class
 		};
 	private static final Class<?>[] _addObjectDefinitionParameterTypes1 =
 		new Class[] {
@@ -879,9 +886,9 @@ public class ObjectDefinitionServiceHttp {
 		new Class[] {
 			String.class, long.class, long.class, String.class, boolean.class,
 			boolean.class, boolean.class, boolean.class, boolean.class,
-			boolean.class, boolean.class, boolean.class, String.class,
-			java.util.Map.class, String.class, String.class, String.class,
-			java.util.Map.class, boolean.class, String.class,
+			boolean.class, boolean.class, boolean.class, boolean.class,
+			String.class, java.util.Map.class, String.class, String.class,
+			String.class, java.util.Map.class, boolean.class, String.class,
 			java.util.List.class, java.util.List.class, java.util.List.class
 		};
 	private static final Class<?>[] _deleteObjectDefinitionParameterTypes3 =
@@ -918,10 +925,10 @@ public class ObjectDefinitionServiceHttp {
 			long.class, boolean.class, boolean.class, String.class,
 			boolean.class, boolean.class, boolean.class, boolean.class,
 			boolean.class, boolean.class, boolean.class, boolean.class,
-			boolean.class, boolean.class, String.class, java.util.Map.class,
-			String.class, String.class, String.class, boolean.class,
-			java.util.Map.class, String.class, int.class, java.util.List.class,
-			java.util.List.class
+			boolean.class, boolean.class, boolean.class, String.class,
+			java.util.Map.class, String.class, String.class, String.class,
+			boolean.class, java.util.Map.class, String.class, int.class,
+			java.util.List.class, java.util.List.class
 		};
 	private static final Class<?>[]
 		_updateExternalReferenceCodeParameterTypes15 = new Class[] {
@@ -929,7 +936,7 @@ public class ObjectDefinitionServiceHttp {
 		};
 	private static final Class<?>[]
 		_updateSystemObjectDefinitionParameterTypes16 = new Class[] {
-			String.class, long.class, long.class, long.class,
+			String.class, long.class, long.class, long.class, boolean.class,
 			java.util.List.class, java.util.List.class
 		};
 	private static final Class<?>[] _updateTitleObjectFieldIdParameterTypes17 =

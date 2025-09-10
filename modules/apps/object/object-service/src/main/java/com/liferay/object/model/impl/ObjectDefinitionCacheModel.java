@@ -69,7 +69,7 @@ public class ObjectDefinitionCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(85);
+		StringBundler sb = new StringBundler(87);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -115,6 +115,8 @@ public class ObjectDefinitionCacheModel
 		sb.append(enableIndexSearch);
 		sb.append(", enableLocalization=");
 		sb.append(enableLocalization);
+		sb.append(", enableObjectDefinitionMapping=");
+		sb.append(enableObjectDefinitionMapping);
 		sb.append(", enableObjectEntryDraft=");
 		sb.append(enableObjectEntryDraft);
 		sb.append(", enableObjectEntryHistory=");
@@ -235,6 +237,8 @@ public class ObjectDefinitionCacheModel
 			enableFriendlyURLCustomization);
 		objectDefinitionImpl.setEnableIndexSearch(enableIndexSearch);
 		objectDefinitionImpl.setEnableLocalization(enableLocalization);
+		objectDefinitionImpl.setEnableObjectDefinitionMapping(
+			enableObjectDefinitionMapping);
 		objectDefinitionImpl.setEnableObjectEntryDraft(enableObjectEntryDraft);
 		objectDefinitionImpl.setEnableObjectEntryHistory(
 			enableObjectEntryHistory);
@@ -368,6 +372,8 @@ public class ObjectDefinitionCacheModel
 
 		enableLocalization = objectInput.readBoolean();
 
+		enableObjectDefinitionMapping = objectInput.readBoolean();
+
 		enableObjectEntryDraft = objectInput.readBoolean();
 
 		enableObjectEntryHistory = objectInput.readBoolean();
@@ -468,6 +474,8 @@ public class ObjectDefinitionCacheModel
 		objectOutput.writeBoolean(enableIndexSearch);
 
 		objectOutput.writeBoolean(enableLocalization);
+
+		objectOutput.writeBoolean(enableObjectDefinitionMapping);
 
 		objectOutput.writeBoolean(enableObjectEntryDraft);
 
@@ -582,6 +590,7 @@ public class ObjectDefinitionCacheModel
 	public boolean enableFriendlyURLCustomization;
 	public boolean enableIndexSearch;
 	public boolean enableLocalization;
+	public boolean enableObjectDefinitionMapping;
 	public boolean enableObjectEntryDraft;
 	public boolean enableObjectEntryHistory;
 	public boolean enableObjectEntrySchedule;

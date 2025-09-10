@@ -61,6 +61,8 @@ public class ObjectDefinitionWrapper
 			isEnableFriendlyURLCustomization());
 		attributes.put("enableIndexSearch", isEnableIndexSearch());
 		attributes.put("enableLocalization", isEnableLocalization());
+		attributes.put(
+			"enableObjectDefinitionMapping", isEnableObjectDefinitionMapping());
 		attributes.put("enableObjectEntryDraft", isEnableObjectEntryDraft());
 		attributes.put(
 			"enableObjectEntryHistory", isEnableObjectEntryHistory());
@@ -231,6 +233,13 @@ public class ObjectDefinitionWrapper
 
 		if (enableLocalization != null) {
 			setEnableLocalization(enableLocalization);
+		}
+
+		Boolean enableObjectDefinitionMapping = (Boolean)attributes.get(
+			"enableObjectDefinitionMapping");
+
+		if (enableObjectDefinitionMapping != null) {
+			setEnableObjectDefinitionMapping(enableObjectDefinitionMapping);
 		}
 
 		Boolean enableObjectEntryDraft = (Boolean)attributes.get(
@@ -514,6 +523,16 @@ public class ObjectDefinitionWrapper
 	@Override
 	public boolean getEnableLocalization() {
 		return model.getEnableLocalization();
+	}
+
+	/**
+	 * Returns the enable object definition mapping of this object definition.
+	 *
+	 * @return the enable object definition mapping of this object definition
+	 */
+	@Override
+	public boolean getEnableObjectDefinitionMapping() {
+		return model.getEnableObjectDefinitionMapping();
 	}
 
 	/**
@@ -1106,6 +1125,16 @@ public class ObjectDefinitionWrapper
 	}
 
 	/**
+	 * Returns <code>true</code> if this object definition is enable object definition mapping.
+	 *
+	 * @return <code>true</code> if this object definition is enable object definition mapping; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isEnableObjectDefinitionMapping() {
+		return model.isEnableObjectDefinitionMapping();
+	}
+
+	/**
 	 * Returns <code>true</code> if this object definition is enable object entry draft.
 	 *
 	 * @return <code>true</code> if this object definition is enable object entry draft; <code>false</code> otherwise
@@ -1368,6 +1397,18 @@ public class ObjectDefinitionWrapper
 	@Override
 	public void setEnableLocalization(boolean enableLocalization) {
 		model.setEnableLocalization(enableLocalization);
+	}
+
+	/**
+	 * Sets whether this object definition is enable object definition mapping.
+	 *
+	 * @param enableObjectDefinitionMapping the enable object definition mapping of this object definition
+	 */
+	@Override
+	public void setEnableObjectDefinitionMapping(
+		boolean enableObjectDefinitionMapping) {
+
+		model.setEnableObjectDefinitionMapping(enableObjectDefinitionMapping);
 	}
 
 	/**

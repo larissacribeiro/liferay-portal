@@ -93,6 +93,10 @@ public class ObjectDefinitionTable extends BaseTable<ObjectDefinitionTable> {
 		createColumn(
 			"enableLocalization", Boolean.class, Types.BOOLEAN,
 			Column.FLAG_DEFAULT);
+	public final Column<ObjectDefinitionTable, Boolean>
+		enableObjectDefinitionMapping = createColumn(
+			"enableObjectDefinitionMapping", Boolean.class, Types.BOOLEAN,
+			Column.FLAG_DEFAULT);
 	public final Column<ObjectDefinitionTable, Boolean> enableObjectEntryDraft =
 		createColumn(
 			"enableObjectEntryDraft", Boolean.class, Types.BOOLEAN,
