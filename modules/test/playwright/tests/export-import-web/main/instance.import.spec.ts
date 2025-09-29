@@ -27,6 +27,7 @@ import performLogin, {
 	performLogout,
 	userData,
 } from '../../../utils/performLogin';
+import {pushToApiHelpersData} from '../../../utils/pushToApiHelpersData';
 import {waitForAlert} from '../../../utils/waitForAlert';
 import {readFileFromZip} from '../../../utils/zip';
 import {generateObjectEntryValues} from '../../object-web/main/utils/generateObjectEntry';
@@ -727,6 +728,163 @@ test(
 		expect(importedObjectEntry).toEqual(objectEntry);
 	}
 );
+
+test('can import many to many entries', async ({
+	apiHelpers,
+	companyExportImportPage,
+	objectLayoutsPage,
+	page,
+	viewObjectEntriesPage,
+}) => {
+	const objectDefinitionA =
+		await apiHelpers.objectAdmin.postRandomObjectDefinition({
+			status: {code: 0},
+		});
+
+	const objectDefinitionB =
+		await apiHelpers.objectAdmin.postRandomObjectDefinition({
+			status: {code: 0},
+		});
+
+	pushToApiHelpersData(
+		apiHelpers,
+		[objectDefinitionA.id, objectDefinitionB.id],
+		'objectDefinition'
+	);
+
+	const objectRelationshipAPIClient = await apiHelpers.buildRestClient(
+		ObjectRelationshipAPI
+	);
+
+	const {body: objectRelationship} =
+		await objectRelationshipAPIClient.postObjectDefinitionByExternalReferenceCodeObjectRelationship(
+			objectDefinitionA.externalReferenceCode,
+			{
+				label: {
+					en_US: 'objectRelationshipLabel' + getRandomInt(),
+				},
+				name: 'objectRelationshipName' + Math.floor(Math.random() * 99),
+				objectDefinitionExternalReferenceCode1:
+					objectDefinitionA.externalReferenceCode,
+				objectDefinitionExternalReferenceCode2:
+					objectDefinitionB.externalReferenceCode,
+				type: 'manyToMany',
+			}
+		);
+
+	apiHelpers.data.push({
+		id: objectRelationship.id,
+		type: 'objectRelationship',
+	});
+
+	await objectLayoutsPage.goto(objectDefinitionA.label['en_US']);
+
+	const objectLayoutName = 'ObjectLayout' + getRandomString();
+
+	await objectLayoutsPage.createObjectLayout(objectLayoutName);
+
+	await objectLayoutsPage.createObjectLayoutContent({
+		objectLayoutBlockName: getRandomString(),
+		objectLayoutName,
+		objectLayoutTabName: 'ObjectLayoutTab' + getRandomString(),
+	});
+
+	await objectLayoutsPage.addObjectLayoutObjectField('textField');
+
+	const objectLayoutRelationshipTabName =
+		'ObjectLayoutRelationshipTab' + getRandomString();
+
+	await objectLayoutsPage.createObjectRelationshipTab(
+		objectLayoutName,
+		objectLayoutRelationshipTabName,
+		objectRelationship.label['en_US']
+	);
+
+	await waitForAlert(
+		page,
+		'Success:The object layout was updated successfully'
+	);
+
+	const applicationNameA = 'c/' + objectDefinitionA.name.toLowerCase() + 's';
+	const applicationNameB = 'c/' + objectDefinitionB.name.toLowerCase() + 's';
+
+	const entryA1 = await apiHelpers.objectEntry.postObjectEntry(
+		{textField: 'entryA 1'},
+		applicationNameA
+	);
+
+	const entryA2 = await apiHelpers.objectEntry.postObjectEntry(
+		{textField: 'entryA 2'},
+		applicationNameA
+	);
+
+	const entryA3 = await apiHelpers.objectEntry.postObjectEntry(
+		{textField: 'entryA 3'},
+		applicationNameA
+	);
+
+	const entryB = await apiHelpers.objectEntry.postObjectEntry(
+		{textField: 'entryB'},
+		applicationNameB
+	);
+
+	await test.step('relate entryA 1 and 2 to entryB', async () => {
+		await apiHelpers.objectEntry.putCurrentObjectEntry(
+			applicationNameA,
+			entryA1.id,
+			objectRelationship.name,
+			entryB.id
+		);
+
+		await apiHelpers.objectEntry.putCurrentObjectEntry(
+			applicationNameA,
+			entryA2.id,
+			objectRelationship.name,
+			entryB.id
+		);
+	});
+
+	const exportFilePath = await companyExportImportPage.export(
+		`${objectDefinitionA.name} 3 Items`
+	);
+
+	await test.step('relate entryA 3 to entryB and assert it is visible', async () => {
+		await apiHelpers.objectEntry.putCurrentObjectEntry(
+			applicationNameA,
+			entryA3.id,
+			objectRelationship.name,
+			entryB.id
+		);
+
+		await viewObjectEntriesPage.goto(objectDefinitionA.className);
+
+		await page.getByRole('link', {name: entryA3.id.toString()}).click();
+
+		await page
+			.getByRole('link', {name: objectLayoutRelationshipTabName})
+			.click();
+
+		await expect(
+			page.getByRole('link', {name: entryB.id.toString()})
+		).toBeVisible();
+	});
+
+	await test.step('import entry where entryA 3 was still unrelated and assert that this persists', async () => {
+		await companyExportImportPage.import(exportFilePath);
+
+		await viewObjectEntriesPage.goto(objectDefinitionA.className);
+
+		await page.getByRole('link', {name: entryA3.id.toString()}).click();
+
+		await page
+			.getByRole('link', {name: objectLayoutRelationshipTabName})
+			.click();
+
+		await expect(
+			page.getByRole('link', {name: entryB.id.toString()})
+		).not.toBeVisible();
+	});
+});
 
 test('can only import custom object entries when their definitions are already in the system', async ({
 	apiHelpers,

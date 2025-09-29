@@ -92,6 +92,17 @@ export class ObjectEntryApiHelper {
 		);
 	}
 
+	async putCurrentObjectEntry(
+		applicationName: string,
+		currentObjectEntryId: number,
+		objectRelationshipName: string,
+		relatedObjectEntryId: number
+	): Promise<ObjectEntry> {
+		return this.apiHelpers.put(
+			`${this.apiHelpers.baseUrl}${applicationName}/${currentObjectEntryId}/${objectRelationshipName}/${relatedObjectEntryId}`
+		);
+	}
+
 	async putObjectEntry(
 		data: DataObject,
 		applicationName: string,
