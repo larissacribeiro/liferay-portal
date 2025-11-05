@@ -76,7 +76,9 @@ export class FormBuilderSidePanelPage {
 		);
 	}
 
-	async addFieldByDoubleClick(formFieldTypeTitle: FormFieldTypeTitle) {
+	async addFieldByDoubleClick(
+		formFieldTypeTitle: FormFieldTypeTitle,
+	) {
 		await this.page
 			.getByTitle(formFieldTypeTitle, {exact: true})
 			.dblclick();
@@ -100,6 +102,26 @@ export class FormBuilderSidePanelPage {
 		await this.backButton.click();
 	}
 
+	async dragAndDropField(
+		sourceFieldName: string,
+		targetFieldName: string
+	) {
+		const source = this.page
+			.locator(
+				`.ddm-field-container[data-field-name="${sourceFieldName}"]`
+			)
+			.locator('.ddm-drag');
+
+		const target = this.page.locator(
+			`.ddm-field-container[data-field-name="${targetFieldName}"].ddm-target`);
+
+			await source.dragTo(target);
+
+		// We need this pause to render forms group (if applicable)
+
+		await this.page.waitForTimeout(1000);
+	}
+
 	async fillParagraphField(apiHelpers: ApiHelpers, text: string) {
 		await this.paragraphFieldTextarea.fill(text);
 
@@ -119,5 +141,15 @@ export class FormBuilderSidePanelPage {
 
 	getSelectOptionLocator(optionLabel: string) {
 		return this.page.getByRole('option', {name: optionLabel});
+	}
+
+	async getFieldReference(){
+		await this.clickAdvancedTab();
+
+		const fieldReferenceValue = this.page
+			.getByLabel('Field Reference')
+			.inputValue();
+
+		return fieldReferenceValue;
 	}
 }

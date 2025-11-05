@@ -15,10 +15,14 @@ import {deleteItems} from './utils/deleteItems';
 
 export const test = mergeTests(dataApiHelpersTest, loginTest(), formsPagesTest);
 
-test.afterEach(async ({formsPage}) => {
-	await formsPage.goTo();
+// test.afterEach(async ({formsPage}) => {
+// 	await formsPage.goTo();
 
-	await deleteItems(formsPage);
+// 	await deleteItems(formsPage);
+// });
+
+test.beforeEach(({page}) => {
+	page.setViewportSize({height: 1080, width: 1920});
 });
 
 test.describe('Manage fields through Form Preview page', () => {
@@ -492,6 +496,70 @@ test.describe('Manage fields through Form Builder page', () => {
 			page.getByLabel('Fields Group', {exact: true})
 		).toHaveCount(2);
 	});
+
+	test(
+		'Deletes fields group when last field is dragged into another field',
+		{
+			tag: '@LPD-70472',
+		},
+		async ({formBuilderPage, formBuilderSidePanelPage, page}) => {
+			await formBuilderPage.goToNew();
+
+			await formBuilderSidePanelPage.addFieldByDoubleClick(
+				'Text',
+			);
+
+			await formBuilderPage.openFieldSettings('Text', 0);
+
+			const textFieldReference1 = await formBuilderSidePanelPage.getFieldReference();
+			
+			await formBuilderSidePanelPage.backButton.click();
+
+			await formBuilderSidePanelPage.addFieldByDoubleClick(
+				'Text',
+			);
+
+			await formBuilderPage.openFieldSettings('Text', 1);
+				
+			const textFieldReference2 = await formBuilderSidePanelPage.getFieldReference();
+
+			await formBuilderSidePanelPage.backButton.click();
+
+			await formBuilderSidePanelPage.addFieldByDoubleClick(
+				'Text',
+			);
+
+			await formBuilderPage.openFieldSettings('Text', 2);
+			
+		const textFieldReference3 = await formBuilderSidePanelPage.getFieldReference();
+
+			await formBuilderSidePanelPage.backButton.click();
+
+			await formBuilderSidePanelPage.dragAndDropField(
+				textFieldReference1,
+				textFieldReference2
+			);
+
+			await formBuilderSidePanelPage.dragAndDropField(
+				textFieldReference3,
+				textFieldReference1
+			);
+
+			await formBuilderSidePanelPage.dragAndDropField(
+				textFieldReference1,
+				textFieldReference2
+			);
+
+			await formBuilderSidePanelPage.dragAndDropField(
+				textFieldReference3,
+				textFieldReference2
+			);
+
+			const targets = await page.locator('.ddm-target').all();
+
+			expect(targets.length).toEqual(16);
+		}
+	);
 
 	test('Fields group can be translated and collapsed', async ({
 		formBuilderPage,

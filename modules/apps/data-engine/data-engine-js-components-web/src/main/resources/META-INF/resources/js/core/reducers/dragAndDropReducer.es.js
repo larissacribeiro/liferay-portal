@@ -122,6 +122,7 @@ export default function dragAndDropReducer(state, action, config) {
 					updatedPages,
 					sourceFieldPage
 				);
+				
 				updatedPages = deleteField({
 					clean: true,
 					defaultLanguageId,
