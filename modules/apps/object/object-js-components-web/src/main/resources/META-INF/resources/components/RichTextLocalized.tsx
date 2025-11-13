@@ -12,24 +12,15 @@ import classNames from 'classnames';
 
 // @ts-ignore
 
-import {CKEditor5ClassicEditor, ClassicEditor, IEditor, LiferayEditorConfig} from 'frontend-editor-ckeditor-web';
+import {CKEditor5ClassicEditor, IEditor, LiferayEditorConfig} from 'frontend-editor-ckeditor-web';
 import {FieldBase} from 'frontend-js-components-web';
 import React, {useEffect, useRef, useState} from 'react';
-
-import {sanitizeHTML} from '../utils/sanitizeHTML';
 
 import './RichTextLocalized.scss';
 
 interface LabelSymbolObject {
 	label: Liferay.Language.Locale;
 	symbol: string;
-}
-
-interface OnSetDataEvent {
-	data: {
-		dataValue: string;
-	};
-	editor: CKEDITOR.editor;
 }
 interface RichTextLocalizedProps
 	extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -80,25 +71,6 @@ export function RichTextLocalized({
 
 	const defaultLanguage = availableLocales[0];
 
-	useEffect(() => {
-		if (!Liferay.FeatureFlags['LPD-11235']) {
-		const editor = editorRef.current?.editor;
-
-		if (editor) {
-			editor.config.contentsLangDirection =
-				Liferay.Language.direction[selectedLocale];
-
-			editor.config.contentsLanguage = selectedLocale;
-
-			if (translations[selectedLocale]) {
-				editor.setData(translations[selectedLocale] as string);
-			}
-		}
-	}
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedLocale]);
-
 		useEffect(() => {
 			if (Liferay.FeatureFlags['LPD-11235']) {
 				const editor = editorRef.current;
@@ -116,7 +88,7 @@ export function RichTextLocalized({
 		const handleLocaleChange = (locale: LabelSymbolObject) => {
 			const editor = editorRef.current;
 	
-			if (Liferay.FeatureFlags['LPD-11235'] && editor) {
+			if (editor) {
 				const currentData = editor.getData();
 				const currentLocaleValue = translations[selectedLocale];
 				const targetLocaleValue = translations[locale.label];
@@ -149,7 +121,7 @@ export function RichTextLocalized({
 		>
 			<div className="lfr-objects__rich-text-localized">
 				<div className="lfr-objects__rich-text-localized-editor">
-					{Liferay.FeatureFlags['LPD-11235'] ? (
+					<>
 						<CKEditor5ClassicEditor
 							className="w-100"
 							config={editorConfig}
@@ -170,37 +142,7 @@ export function RichTextLocalized({
 								}
 							}}
 						/>
-					) : (
-					<ClassicEditor
-						contents={translations[selectedLocale] as string}
-						editorConfig={editorConfig}
-						name="richTextLocalizedEditor"
-						onChange={(content: string) => {
-							onTranslationsChange({
-								...translations,
-								[selectedLocale]: content,
-							});
-						}}
-						onSetData={(event: OnSetDataEvent) => {
-							const editor = event.editor;
-
-							if (editor.mode === 'source') {
-								const value = event.data.dataValue;
-
-								const sanitizedValue = sanitizeHTML(value);
-
-								onTranslationsChange({
-									...translations,
-									[selectedLocale]: sanitizedValue,
-								});
-
-								event.data.dataValue = sanitizedValue;
-							}
-						}}
-						readOnly={readOnly}
-						ref={editorRef}
-					/>
-					)}
+					</>
 				</div>
 
 				<ClayDropDown
