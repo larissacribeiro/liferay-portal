@@ -12,7 +12,7 @@ import classNames from 'classnames';
 
 // @ts-ignore
 
-import {ClassicEditor, IEditor} from 'frontend-editor-ckeditor-web';
+import {CKEditor5ClassicEditor, ClassicEditor, IEditor, LiferayEditorConfig} from 'frontend-editor-ckeditor-web';
 import {FieldBase} from 'frontend-js-components-web';
 import React, {useEffect, useRef, useState} from 'react';
 
@@ -39,7 +39,7 @@ interface RichTextLocalizedProps
 		translated: string;
 		untranslated: string;
 	};
-	editorConfig: CKEDITOR.config;
+	editorConfig: LiferayEditorConfig | undefined;
 	helpMessage?: string;
 	label: string;
 	onSelectedLocaleChange: (val: LabelSymbolObject) => void;
@@ -81,6 +81,7 @@ export function RichTextLocalized({
 	const defaultLanguage = availableLocales[0];
 
 	useEffect(() => {
+		if (!Liferay.FeatureFlags['LPD-11235']) {
 		const editor = editorRef.current?.editor;
 
 		if (editor) {
@@ -93,9 +94,49 @@ export function RichTextLocalized({
 				editor.setData(translations[selectedLocale] as string);
 			}
 		}
+	}
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedLocale]);
+
+		useEffect(() => {
+			if (Liferay.FeatureFlags['LPD-11235']) {
+				const editor = editorRef.current;
+
+				if (editor) {
+					const value = translations[selectedLocale] ?? '';
+		
+					if (editor.getData() !== value) {
+						editor.setData(value);
+					}
+				}
+			}
+		}, [selectedLocale, translations, translations[selectedLocale]]);
+	
+		const handleLocaleChange = (locale: LabelSymbolObject) => {
+			const editor = editorRef.current;
+	
+			if (Liferay.FeatureFlags['LPD-11235'] && editor) {
+				const currentData = editor.getData();
+				const currentLocaleValue = translations[selectedLocale];
+				const targetLocaleValue = translations[locale.label];
+	
+
+				const updatedTranslations = {
+					...translations,
+					[selectedLocale]: currentData,
+				};
+	
+				if (!targetLocaleValue && currentLocaleValue) {
+					updatedTranslations[locale.label] = currentLocaleValue;
+				}
+	
+				onTranslationsChange(updatedTranslations);
+			}
+	
+			onSelectedLocaleChange(locale);
+			setActive(false);
+		};
 
 	return (
 		<FieldBase
@@ -108,6 +149,28 @@ export function RichTextLocalized({
 		>
 			<div className="lfr-objects__rich-text-localized">
 				<div className="lfr-objects__rich-text-localized-editor">
+					{Liferay.FeatureFlags['LPD-11235'] ? (
+						<CKEditor5ClassicEditor
+							className="w-100"
+							config={editorConfig}
+							disabled={readOnly}
+							onChange={(_event: any, editor: any) => {
+								const data = editor?.getData?.() ?? '';
+
+								onTranslationsChange({
+									...translations,
+									[selectedLocale]: data,
+								});
+						}}
+							onReady={(editor: any) => {
+								editorRef.current = editor;
+
+								if (translations[selectedLocale]) {
+									editor.setData(translations[selectedLocale] as string);
+								}
+							}}
+						/>
+					) : (
 					<ClassicEditor
 						contents={translations[selectedLocale] as string}
 						editorConfig={editorConfig}
@@ -137,6 +200,7 @@ export function RichTextLocalized({
 						readOnly={readOnly}
 						ref={editorRef}
 					/>
+					)}
 				</div>
 
 				<ClayDropDown
@@ -174,10 +238,7 @@ export function RichTextLocalized({
 							return (
 								<ClayDropDown.Item
 									key={locale.label}
-									onClick={() => {
-										onSelectedLocaleChange(locale);
-										setActive(false);
-									}}
+									onClick={() => handleLocaleChange(locale)}
 								>
 									<ClayLayout.ContentRow containerElement="span">
 										<ClayLayout.ContentCol
