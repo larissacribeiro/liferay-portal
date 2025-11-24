@@ -13,6 +13,9 @@ export function getRightSidebarWidth(
 	const hasDefaultValues =
 		(Liferay.FeatureFlags['LPD-46451'] &&
 			selectedObjectField?.businessType === 'Boolean') ||
+		selectedObjectField?.businessType === 'LongText' ||
+		selectedObjectField?.businessType === 'RichText' ||
+		selectedObjectField?.businessType === 'Text' ||
 		selectedObjectField?.businessType === 'Picklist';
 
 	if (rightSidebarType === 'objectDefinitionDetails') {

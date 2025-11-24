@@ -52,6 +52,9 @@ export function AdvancedTab({
 	const hasDefaultValue =
 		(Liferay.FeatureFlags['LPD-46451'] &&
 			values.businessType === 'Boolean') ||
+		values.businessType === 'LongText' ||
+		values.businessType === 'RichText' ||
+		values.businessType === 'Text' ||
 		values.businessType === 'Picklist';
 
 	return (

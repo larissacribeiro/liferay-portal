@@ -76,6 +76,9 @@ export function EditObjectFieldContent({
 	const hasDefaultValues =
 		(Liferay.FeatureFlags['LPD-46451'] &&
 			values.businessType === 'Boolean') ||
+		values.businessType === 'LongText' ||
+		values.businessType === 'RichText' ||
+		values.businessType === 'Text' ||
 		values.businessType === 'Picklist';
 
 	if ((isDefaultStorageType || hasDefaultValues) && TABS.length < 2) {
