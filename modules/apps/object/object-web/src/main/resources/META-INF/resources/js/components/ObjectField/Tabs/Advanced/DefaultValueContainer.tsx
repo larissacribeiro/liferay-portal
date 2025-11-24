@@ -28,6 +28,7 @@ import {
 } from '../../../../utils/defaultValues';
 import {removeFieldSettings} from '../../../../utils/fieldSettings';
 import ListTypeDefaultValueSelect from '../../DefaultValueFields/ListTypeDefaultValueSelect';
+import TextDefaultValueInput from '../../DefaultValueFields/TextDefaultValueInput';
 import {ObjectFieldErrors} from '../../ObjectFieldFormBase';
 interface DefaultValueContainerProps {
 	creationLanguageId: Liferay.Language.Locale;
@@ -57,7 +58,9 @@ type InputAsValueFieldComponents = {
 };
 
 const InputAsValueFieldComponents: Partial<InputAsValueFieldComponents> = {
+	LongText: TextDefaultValueInput,
 	Picklist: ListTypeDefaultValueSelect,
+	Text: TextDefaultValueInput,
 };
 
 export function DefaultValueContainer({

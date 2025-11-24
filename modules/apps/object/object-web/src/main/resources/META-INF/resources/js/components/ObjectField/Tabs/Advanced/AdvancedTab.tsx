@@ -48,6 +48,9 @@ export function AdvancedTab({
 		values.required ||
 		values.system;
 
+	const hasDefaultValue =
+		values.businessType === 'Boolean' || values.businessType === 'LongText' || values.businessType === 'Text'  || values.businessType === 'Picklist';
+
 	return (
 		<>
 			{isDefaultStorageType && (
@@ -71,7 +74,7 @@ export function AdvancedTab({
 				</ContainerWrapper>
 			)}
 
-			{values.businessType === 'Picklist' && (
+			{hasDefaultValue && (
 				<ContainerWrapper
 					collapsable
 					defaultExpanded
