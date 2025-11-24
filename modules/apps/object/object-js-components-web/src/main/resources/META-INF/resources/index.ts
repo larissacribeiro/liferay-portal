@@ -4,6 +4,7 @@
  */
 
 export {ListTypeEntryBaseField} from './components/BaseEntryFields/ListTypeEntryBaseField';
+export {TextEntryBaseField} from './components/BaseEntryFields/TextEntryBaseField';
 export {
 	BuilderScreen,
 	TBuilderScreenItem,
