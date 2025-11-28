@@ -4,6 +4,7 @@
  */
 
 export {BooleanEntryBaseField} from './components/BaseEntryFields/BooleanEntryBaseField';
+export {DateEntryBaseField} from './components/BaseEntryFields/DateEntryBaseField';
 export {ListTypeEntryBaseField} from './components/BaseEntryFields/ListTypeEntryBaseField';
 export {RichTextEntryBaseField} from './components/BaseEntryFields/RichTextEntryBaseField';
 export {TextEntryBaseField} from './components/BaseEntryFields/TextEntryBaseField';
