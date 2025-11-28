@@ -28,6 +28,7 @@ import {
 } from '../../../../utils/defaultValues';
 import {removeFieldSettings} from '../../../../utils/fieldSettings';
 import BooleanDefaultValueSelect from '../../DefaultValueFields/BooleanDefaultValueSelect';
+import DateDefaultValueInput from '../../DefaultValueFields/DateDefaultValueInput';
 import ListTypeDefaultValueSelect from '../../DefaultValueFields/ListTypeDefaultValueSelect';
 import RichTextDefaultValue from '../../DefaultValueFields/RichTextDefaultValue';
 import TextDefaultValueInput from '../../DefaultValueFields/TextDefaultValueInput';
@@ -65,6 +66,8 @@ type InputAsValueFieldComponents = {
 const InputAsValueFieldComponents: Partial<InputAsValueFieldComponents> = {
 	...(Liferay.FeatureFlags['LPD-46451'] && {
 		Boolean: BooleanDefaultValueSelect,
+		Date: DateDefaultValueInput,
+		DateTime: DateDefaultValueInput,
 		LongText: TextDefaultValueInput,
 		RichText: RichTextDefaultValue,
 		Text: TextDefaultValueInput,

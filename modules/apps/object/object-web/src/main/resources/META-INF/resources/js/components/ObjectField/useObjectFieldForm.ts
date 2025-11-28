@@ -83,6 +83,8 @@ export function useObjectFieldForm({
 		const hasDefaultValue =
 			(Liferay.FeatureFlags['LPD-46451'] &&
 				(field.businessType === 'Boolean' ||
+					field.businessType === 'Date' ||
+					field.businessType === 'DateTime' ||
 					field.businessType === 'LongText' ||
 					field.businessType === 'RichText' ||
 					field.businessType === 'Text')) ||
