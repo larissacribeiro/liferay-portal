@@ -587,7 +587,7 @@ test.describe('Manage object entries through Friendly URL', () => {
 	}) => {
 		await page.getByText('en-us', {exact: true}).click();
 
-		await page.getByText('português (Brasil)').click();
+		await page.getByRole('menuitem', {name: 'português (Brasil)'}).click();
 
 		await expect(page.getByText('pt-br', {exact: true})).toBeVisible();
 		await expect(page.getByText('pt-BR', {exact: true})).toBeVisible();
