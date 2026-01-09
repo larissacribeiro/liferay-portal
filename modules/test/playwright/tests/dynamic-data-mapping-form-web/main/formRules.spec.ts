@@ -54,6 +54,116 @@ test.beforeEach(({page}) => {
 	page.setViewportSize({height: 1080, width: 1920});
 });
 
+test('Assert edition of a text field associated with rule', async ({
+	formBuilderFieldSettingsSidePanelPage,
+	formBuilderPage,
+	formBuilderSidePanelPage,
+	page,
+	rulesBuilderPage,
+}) => {
+	await test.step('create form with rule involving two text fields', async () => {
+		await formBuilderPage.goToNew();
+
+		await formBuilderSidePanelPage.addFieldByDoubleClick(
+			'Select from List'
+		);
+
+		await formBuilderFieldSettingsSidePanelPage.addOptions(
+			2,
+			'option '
+		);
+
+		await formBuilderSidePanelPage.clickBackButton();
+
+		await formBuilderSidePanelPage.addFieldByDoubleClick(
+			'Text'
+		);
+
+		await formBuilderSidePanelPage.label.fill('Text1');
+
+		await formBuilderSidePanelPage.clickBackButton();
+
+		await formBuilderSidePanelPage.addFieldByDoubleClick(
+			'Text'
+		);
+
+		await formBuilderSidePanelPage.label.fill('Text2');
+
+		await rulesBuilderPage.rulesTab.click();
+
+		await rulesBuilderPage.addElementsButton.click();
+
+		await rulesBuilderPage.selectConditionLeftFormField('Select from List');
+
+		await rulesBuilderPage.selectConditionOperator('Is Equal To');
+
+		await rulesBuilderPage.selectConditionOperatorValueSource('Value');
+
+		await rulesBuilderPage.selectConditionRightFormField('option 0');
+
+		await rulesBuilderPage.selectAction('Show');
+
+		await page.getByTitle('Choose an Option').click();
+
+		await page.getByRole('option', {name: 'Text1'}).click();
+
+		await rulesBuilderPage.saveButton.click();
+
+		await rulesBuilderPage.addElementsButton.click();
+
+		await rulesBuilderPage.selectConditionLeftFormField('Select from List');
+
+		await rulesBuilderPage.selectConditionOperator('Is Equal To');
+
+		await rulesBuilderPage.selectConditionOperatorValueSource('Value');
+
+		await rulesBuilderPage.selectConditionRightFormField('option 1');
+
+		await rulesBuilderPage.selectAction('Show');
+
+		await page.getByTitle('Choose an Option').click();
+
+		await page.getByRole('option', {name: 'Text1'}).click();
+
+		await rulesBuilderPage.addFormRuleActionButton.click();
+
+		await rulesBuilderPage.selectAction('Show');
+
+		await page.getByTitle('Choose an Option').click();
+
+		await page.getByRole('option', {name: 'Text2'}).click();
+
+		await rulesBuilderPage.saveButton.click();
+	});
+
+	await test.step('verify that association with show rule does not clear the field value', async () => {
+		await formBuilderPage.formTab.click();
+
+		const formPreviewPagePromise = page.waitForEvent('popup');
+
+		await formBuilderPage.previewButton.click();
+
+		const formPreviewPage = await formPreviewPagePromise;
+
+		await formPreviewPage.getByTitle('Choose an Option').click();
+
+		await formPreviewPage.getByRole('option', {name: 'option 1'}).click();
+
+		const textField1 = formPreviewPage.getByLabel('Text1');
+
+		await textField1.fill('text1 value');
+
+		// Wait a little bit before doing the assertion since useSyncValue hook takes a few miliseconds to set the value on the text field
+		// Otherwise the test would always pass, even with the bug still present
+
+		await formPreviewPage.waitForTimeout(1000);
+
+		await expect(textField1).toHaveValue('text1 value');
+
+		await formPreviewPage.close();
+	});
+});
+
 test('Assert multiple selection field associated with rules', async ({
 	formBuilderFieldSettingsSidePanelPage,
 	formBuilderPage,

@@ -25,7 +25,7 @@ export class RulesBuilderPage {
 		this.actionSelect = page
 			.locator('li')
 			.filter({hasText: 'Do'})
-			.getByRole('combobox');
+			.getByTitle('Choose an Option');
 		this.addElementsButton = page.getByTitle('Add Elements');
 		this.addFormRuleActionButton = page
 			.locator('.rounded-circle')
