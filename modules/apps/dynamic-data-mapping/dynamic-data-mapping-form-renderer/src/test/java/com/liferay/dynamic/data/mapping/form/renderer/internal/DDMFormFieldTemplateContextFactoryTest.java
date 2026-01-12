@@ -70,6 +70,62 @@ public class DDMFormFieldTemplateContextFactoryTest {
 	}
 
 	@Test
+	public void testEvaluatorEmptyStringDoesNotOverwriteExistingValue() {
+
+		// Dynamic data mapping form
+
+		DDMForm ddmForm = DDMFormTestUtil.createDDMForm();
+
+		DDMFormField ddmFormField = DDMFormTestUtil.createTextDDMFormField(
+			"Field1", false, false, false);
+
+		ddmForm.addDDMFormField(ddmFormField);
+
+		// Dynamic data mapping form field evaluation
+
+		String instanceId = StringUtil.randomString();
+
+		Map<DDMFormEvaluatorFieldContextKey, Map<String, Object>>
+			ddmFormFieldsPropertyChanges =
+				HashMapBuilder.
+					<DDMFormEvaluatorFieldContextKey, Map<String, Object>>put(
+						new DDMFormEvaluatorFieldContextKey(
+							"Field1", instanceId),
+						HashMapBuilder.<String, Object>put(
+							"value", ""
+						).put(
+							"visible", true
+						).build()
+					).build();
+
+		// Dynamic data mapping form values
+
+		List<DDMFormFieldValue> ddmFormFieldValues = new ArrayList<>();
+
+		DDMFormFieldValue ddmFormFieldValue =
+			DDMFormValuesTestUtil.createDDMFormFieldValue(
+				instanceId, "Field1", new UnlocalizedValue("Value 1"));
+
+		ddmFormFieldValues.add(ddmFormFieldValue);
+
+		DDMFormFieldTemplateContextFactory ddmFormFieldTemplateContextFactory =
+			_createDDMFormFieldTemplateContextFactory(
+				ddmForm, ddmFormField.getName(), ddmFormFieldsPropertyChanges,
+				ddmFormFieldValues, false, _getTextDDMFormFieldRenderer(),
+				_getTextDDMFormFieldTemplateContextContributor());
+
+		List<Object> fields = ddmFormFieldTemplateContextFactory.create();
+
+		Assert.assertEquals(fields.toString(), 1, fields.size());
+
+		Map<String, Object> fieldTemplateContext =
+			(Map<String, Object>)fields.get(0);
+
+		Assert.assertEquals(
+			"Value 1", MapUtil.getString(fieldTemplateContext, "value"));
+	}
+
+	@Test
 	public void testNotReadOnlyTextFieldAndReadOnlyForm() {
 
 		// Dynamic data mapping form
