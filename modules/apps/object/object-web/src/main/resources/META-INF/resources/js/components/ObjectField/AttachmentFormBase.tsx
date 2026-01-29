@@ -24,6 +24,13 @@ interface IAttachmentFormBaseProps {
 const attachmentSources = [
 	{
 		description: Liferay.Language.get(
+			'users-can-upload-or-select-existing-files-from-cms-files'
+		),
+		label: 'Upload or select from cms files',
+		value: 'cmsFiles',
+	},
+	{
+		description: Liferay.Language.get(
 			'files-can-be-stored-in-an-object-entry-or-in-a-specific-folder-in-documents-and-media'
 		),
 		label: Liferay.Language.get('upload-directly-from-users-computer'),
