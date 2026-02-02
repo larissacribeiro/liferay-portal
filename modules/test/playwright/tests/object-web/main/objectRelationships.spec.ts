@@ -1243,4 +1243,23 @@ test.describe('Manage object relationships through Objects Admin UI', () => {
 			page.frameLocator('iframe').getByLabel('ParameterMandatory')
 		).toHaveText(objectRelationship1.label['en_US']);
 	});
+
+	test('object relationship modal request of object definitions only brings 500 items', async ({
+		objectRelationshipsPage,
+		page,
+	}) => {
+		await objectRelationshipsPage.goto('Account');
+
+		const requestPromise = page.waitForRequest((request) => {
+			const url = new URL(request.url());
+
+			return url.pathname === '/o/object-admin/v1.0/object-definitions';
+		});
+
+		await objectRelationshipsPage.addObjectRelationshipButton.click();
+
+		const request = await requestPromise;
+
+		expect(new URL(request.url()).searchParams.get('pageSize')).toBe('500');
+	});
 });
