@@ -5,7 +5,8 @@
 
 import ClayForm from '@clayui/form';
 import {SingleSelect, Toggle} from '@liferay/object-js-components-web';
-import React from 'react';
+import {fetch} from 'frontend-js-web';
+import React, {useEffect, useState} from 'react';
 
 import {normalizeFieldSettings} from '../../utils/fieldSettings';
 
@@ -14,6 +15,7 @@ import './ObjectFieldFormBase.scss';
 interface IAttachmentFormBaseProps {
 	disabled?: boolean;
 	error?: string;
+	hasDepotEntry?: boolean;
 	objectDefinitionName: string;
 	objectFieldSettings: ObjectFieldSetting[];
 	onSubmit?: (values?: Partial<ObjectField>) => void;
@@ -21,35 +23,70 @@ interface IAttachmentFormBaseProps {
 	values: Partial<ObjectField>;
 }
 
-const attachmentSources = [
-	{
-		description: Liferay.Language.get(
-			'files-can-be-stored-in-an-object-entry-or-in-a-specific-folder-in-documents-and-media'
-		),
-		label: Liferay.Language.get('upload-directly-from-users-computer'),
-		value: 'userComputer',
-	},
-	{
-		description: Liferay.Language.get(
-			'users-can-upload-or-select-existing-files-from-documents-and-media'
-		),
-		label: Liferay.Language.get(
-			'upload-or-select-from-documents-and-media-item-selector'
-		),
-		value: 'documentsAndMedia',
-	},
-];
-
 export function AttachmentFormBase({
 	disabled,
 	error,
+	hasDepotEntry,
 	objectDefinitionName,
 	objectFieldSettings,
 	onSubmit,
 	setValues,
 	values,
 }: IAttachmentFormBaseProps) {
+	const [spaces, setSpaces] = useState<Space[]>([]);
+
+	const attachmentSources = [
+		{
+			description: Liferay.Language.get(
+				'files-can-be-stored-in-an-object-entry-or-in-a-specific-folder-in-documents-and-media'
+			),
+			label: Liferay.FeatureFlags['LPD-74813']
+				? Liferay.Language.get('upload-directly-from-users-computer') +
+					` (${Liferay.Language.get('documents-and-media')})`
+				: Liferay.Language.get('upload-directly-from-users-computer'),
+			value: Liferay.FeatureFlags['LPD-74813']
+				? 'userComputerToDocumentsAndMedia'
+				: 'userComputer',
+		},
+		...(Liferay.FeatureFlags['LPD-74813'] && hasDepotEntry
+			? [
+					{
+						label:
+							Liferay.Language.get(
+								'upload-directly-from-users-computer'
+							) + ` (${Liferay.Language.get('cms-files')})`,
+						value: 'userComputerToDepot',
+					},
+					{
+						label: Liferay.Language.get(
+							'upload-or-select-from-cms-files'
+						),
+						value: 'depotFile',
+					},
+				]
+			: []),
+		{
+			description: Liferay.Language.get(
+				'users-can-upload-or-select-existing-files-from-documents-and-media'
+			),
+			label: Liferay.Language.get(
+				'upload-or-select-from-documents-and-media-item-selector'
+			),
+			value: 'documentsAndMedia',
+		},
+	];
+
 	const settings = normalizeFieldSettings(objectFieldSettings);
+
+	const isUserComputerDMUpload =
+		settings.fileSource === 'userComputerToDocumentsAndMedia';
+
+	const isUserComputerDepotUpload =
+		settings.fileSource === 'userComputerToDepot';
+
+	const allowsLibraryStorage =
+		Liferay.FeatureFlags['LPD-74813'] &&
+		(isUserComputerDMUpload || isUserComputerDepotUpload);
 
 	const attachmentSource = attachmentSources.find(
 		({value}) => value === settings.fileSource
@@ -62,7 +99,9 @@ export function AttachmentFormBase({
 			(setting) =>
 				setting.name !== 'fileSource' &&
 				setting.name !== 'showFilesInDocumentsAndMedia' &&
-				setting.name !== 'storageDLFolderPath'
+				setting.name !== 'showFilesInLibrary' &&
+				setting.name !== 'storageDLFolderPath' &&
+				setting.name !== 'storageDepotFolderPath'
 		);
 
 		updatedSettings.push(fileSource);
@@ -106,6 +145,53 @@ export function AttachmentFormBase({
 		setValues({objectFieldSettings: updatedSettings});
 	};
 
+	const toggleShowFilesInLibrary = (value: boolean) => {
+		const updatedSettings = objectFieldSettings.filter(
+			(setting) =>
+				setting.name !== 'showFilesInLibrary' &&
+				setting.name !== 'storageDLFolderPath' &&
+				setting.name !== 'storageDepotFolderPath'
+		);
+
+		updatedSettings.push({
+			name: 'showFilesInLibrary',
+			value,
+		});
+
+		if (value) {
+			if (settings.fileSource === 'userComputerToDocumentsAndMedia') {
+				updatedSettings.push({
+					name: 'storageDLFolderPath',
+					value: `/${objectDefinitionName}`,
+				});
+			}
+			else if (settings.fileSource === 'userComputerToDepot') {
+				updatedSettings.push(
+					{
+						name: 'storageDepotFolderPath',
+						value: '/CMSFolder',
+					},
+					{
+						name: 'storageDepot',
+						value: String(spaces[0].id),
+					}
+				);
+			}
+		}
+
+		setValues({objectFieldSettings: updatedSettings});
+	};
+
+	useEffect(() => {
+		if (Liferay.FeatureFlags['LPD-74813'] && hasDepotEntry) {
+			fetch(
+				`/o/headless-asset-library/v1.0/asset-libraries?filter=type eq 'Space'`
+			)
+				.then((response) => response.json())
+				.then((data) => setSpaces(data?.items ?? []));
+		}
+	}, [hasDepotEntry]);
+
 	return (
 		<>
 			<SingleSelect
@@ -120,7 +206,7 @@ export function AttachmentFormBase({
 				selectedKey={attachmentSource?.value}
 			/>
 
-			{settings.fileSource === 'userComputer' && (
+			{settings.fileSource === 'userComputer' ? (
 				<ClayForm.Group className="lfr-objects__object-field-form-base-container">
 					<Toggle
 						disabled={disabled}
@@ -143,6 +229,27 @@ export function AttachmentFormBase({
 						tooltipAlign="top"
 					/>
 				</ClayForm.Group>
+			) : (
+				allowsLibraryStorage && (
+					<ClayForm.Group className="lfr-objects__object-field-form-base-container">
+						<Toggle
+							disabled={disabled}
+							label={Liferay.Language.get(
+								'show-uploaded-files-in-library'
+							)}
+							name="showFilesInLibrary"
+							onBlur={(event) => {
+								event.stopPropagation();
+
+								if (onSubmit) {
+									onSubmit();
+								}
+							}}
+							onToggle={toggleShowFilesInLibrary}
+							toggled={!!settings.showFilesInLibrary}
+						/>
+					</ClayForm.Group>
+				)
 			)}
 		</>
 	);
