@@ -185,7 +185,11 @@ export function useObjectFieldForm({
 				);
 			}
 
-			if (settings.showFilesInDocumentsAndMedia) {
+			if (
+				settings.showFilesInDocumentsAndMedia ||
+				(settings.showFilesInLibrary &&
+					settings.fileSource === 'userComputerToDocumentsAndMedia')
+			) {
 				if (
 					invalidateRequired(
 						settings.storageDLFolderPath as string | undefined
@@ -200,6 +204,34 @@ export function useObjectFieldForm({
 
 					if (sourceFolderError !== null) {
 						errors.storageDLFolderPath = sourceFolderError;
+					}
+				}
+			}
+			else if (
+				settings.showFilesInLibrary &&
+				settings.fileSource === 'userComputerToDepot'
+			) {
+				if (
+					invalidateRequired(
+						settings.storageDepotFolderPath as string | undefined
+					)
+				) {
+					errors.storageDepotFolderPath = constantsUtils.REQUIRED_MSG;
+				}
+				else if (
+					invalidateRequired(
+						settings.storageDepot as string | undefined
+					)
+				) {
+					errors.storageDepot = constantsUtils.REQUIRED_MSG;
+				}
+				else {
+					const sourceFolderError = getSourceFolderError(
+						settings.storageDepotFolderPath as string
+					);
+
+					if (sourceFolderError !== null) {
+						errors.storageDepotFolderPath = sourceFolderError;
 					}
 				}
 			}
