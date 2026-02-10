@@ -32,9 +32,23 @@ export function AttachmentProperties({
 }: IAttachmentPropertiesProps) {
 	const settings = normalizeFieldSettings(objectFieldSettings);
 
+	const isLibraryPathEnabled = Liferay.FeatureFlags['LPD-74813'];
+
+	const storagePathError = isLibraryPathEnabled
+		? errors.storageLibraryPath
+		: errors.storageDLFolderPath;
+
+	const storagePathName = isLibraryPathEnabled
+		? 'storageLibraryPath'
+		: 'storageDLFolderPath';
+
+	const storagePathValue = isLibraryPathEnabled
+		? (settings.storageLibraryPath as string)
+		: (settings.storageDLFolderPath as string);
+
 	const usesDepotStorage =
 		settings.showFilesInLibrary &&
-		settings.fileSource === 'userComputerToDepot';
+		settings.fileSource === 'userComputerToDepotFiles';
 
 	const usesDocumentsAndMediaStorage =
 		settings.showFilesInDocumentsAndMedia ||
@@ -69,7 +83,7 @@ export function AttachmentProperties({
 			<ClayForm.Group>
 				{usesDocumentsAndMediaStorage ? (
 					<Input
-						error={errors.storageDLFolderPath}
+						error={storagePathError}
 						feedbackMessage={sub(
 							Liferay.Language.get(
 								'input-the-path-of-the-chosen-folder-in-documents-and-media-an-example-of-a-valid-path-is-x'
@@ -87,12 +101,12 @@ export function AttachmentProperties({
 						}}
 						onChange={({target: {value}}) =>
 							onSettingsChange({
-								name: 'storageDLFolderPath',
+								name: storagePathName,
 								value,
 							})
 						}
 						required
-						value={settings.storageDLFolderPath as string}
+						value={storagePathValue}
 					/>
 				) : (
 					usesDepotStorage && (
@@ -119,7 +133,7 @@ export function AttachmentProperties({
 								})}
 							>
 								<Input
-									error={errors.storageDepotFolderPath}
+									error={errors.storageLibraryPath}
 									feedbackMessage={sub(
 										Liferay.Language.get(
 											'input-the-path-of-the-chosen-folder-in-cms-files-an-example-of-a-valid-path-is-x'
@@ -140,13 +154,13 @@ export function AttachmentProperties({
 									}}
 									onChange={({target: {value}}) =>
 										onSettingsChange({
-											name: 'storageDepotFolderPath',
+											name: 'storageLibraryPath',
 											value,
 										})
 									}
 									required
 									value={
-										settings.storageDepotFolderPath as string
+										settings.storageLibraryPath as string
 									}
 								/>
 							</div>
