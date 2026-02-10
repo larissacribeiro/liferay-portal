@@ -23,6 +23,14 @@ interface IAttachmentFormBaseProps {
 	values: Partial<ObjectField>;
 }
 
+const depotTooltip = Liferay.Language.get(
+	'when-activated-users-can-define-a-folder-within-cms-files-to-display-the-files-leave-it-unchecked-for-files-to-be-stored-individually-per-entry'
+);
+
+const dmTooltip = Liferay.Language.get(
+	'when-activated-users-can-define-a-folder-within-documents-and-media-to-display-the-files-leave-it-unchecked-for-files-to-be-stored-individually-per-entry'
+);
+
 export function AttachmentFormBase({
 	disabled,
 	error,
@@ -82,8 +90,7 @@ export function AttachmentFormBase({
 		settings.fileSource === 'userComputerToDepotFiles';
 
 	const allowsLibraryStorage =
-		Liferay.FeatureFlags['LPD-74813'] &&
-		(isUserComputerDMUpload || isUserComputerDepotUpload);
+		isUserComputerDMUpload || isUserComputerDepotUpload;
 
 	const attachmentSource = attachmentSources.find(
 		({value}) => value === settings.fileSource
@@ -116,28 +123,6 @@ export function AttachmentFormBase({
 				objectFieldSettings: updatedSettings,
 			});
 		}
-	};
-
-	const toggleShowFiles = (value: boolean) => {
-		const updatedSettings = objectFieldSettings.filter(
-			(setting) =>
-				setting.name !== 'showFilesInLibrary' &&
-				setting.name !== 'storageLibraryPath'
-		);
-
-		updatedSettings.push({
-			name: 'showFilesInLibrary',
-			value,
-		});
-
-		if (value) {
-			updatedSettings.push({
-				name: 'storageLibraryPath',
-				value: `/${objectDefinitionName}`,
-			});
-		}
-
-		setValues({objectFieldSettings: updatedSettings});
 	};
 
 	const toggleShowFilesInLibrary = (value: boolean) => {
@@ -200,31 +185,7 @@ export function AttachmentFormBase({
 				selectedKey={attachmentSource?.value}
 			/>
 
-			{settings.fileSource === 'userComputerToDocumentsAndMedia' ? (
-				<ClayForm.Group className="lfr-objects__object-field-form-base-container">
-					<Toggle
-						disabled={disabled}
-						label={Liferay.Language.get(
-							'show-files-in-documents-and-media'
-						)}
-						name="showFilesInLibrary"
-						onBlur={(event) => {
-							event.stopPropagation();
-
-							if (onSubmit) {
-								onSubmit();
-							}
-						}}
-						onToggle={toggleShowFiles}
-						toggled={!!settings.showFilesInLibrary}
-						tooltip={Liferay.Language.get(
-							'when-activated-users-can-define-a-folder-within-documents-and-media-to-display-the-files-leave-it-unchecked-for-files-to-be-stored-individually-per-entry'
-						)}
-						tooltipAlign="top"
-					/>
-				</ClayForm.Group>
-			) : (
-				allowsLibraryStorage && (
+			{allowsLibraryStorage && (
 					<ClayForm.Group className="lfr-objects__object-field-form-base-container">
 						<Toggle
 							disabled={disabled}
@@ -241,10 +202,16 @@ export function AttachmentFormBase({
 							}}
 							onToggle={toggleShowFilesInLibrary}
 							toggled={!!settings.showFilesInLibrary}
+							tooltip={
+								isUserComputerDMUpload
+									? dmTooltip
+									: depotTooltip
+							}
+							tooltipAlign="top"
 						/>
 					</ClayForm.Group>
 				)
-			)}
+			}
 		</>
 	);
 }
