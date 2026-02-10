@@ -52,13 +52,13 @@ export function AttachmentFormBase({
 							Liferay.Language.get(
 								'upload-directly-from-users-computer'
 							) + ` (${Liferay.Language.get('cms-files')})`,
-						value: 'userComputerToDepot',
+						value: 'userComputerToDepotFiles',
 					},
 					{
 						label: Liferay.Language.get(
 							'upload-or-select-from-cms-files'
 						),
-						value: 'depotFile',
+						value: 'depotFiles',
 					},
 				]
 			: []),
@@ -79,7 +79,7 @@ export function AttachmentFormBase({
 		settings.fileSource === 'userComputerToDocumentsAndMedia';
 
 	const isUserComputerDepotUpload =
-		settings.fileSource === 'userComputerToDepot';
+		settings.fileSource === 'userComputerToDepotFiles';
 
 	const allowsLibraryStorage =
 		Liferay.FeatureFlags['LPD-74813'] &&
@@ -159,7 +159,7 @@ export function AttachmentFormBase({
 					value: `/${objectDefinitionName}`,
 				});
 			}
-			else if (settings.fileSource === 'userComputerToDepot') {
+			else if (settings.fileSource === 'userComputerToDepotFiles') {
 				updatedSettings.push(
 					{
 						name: 'storageLibraryPath',
@@ -167,7 +167,7 @@ export function AttachmentFormBase({
 					},
 					{
 						name: 'storageDepot',
-						value: String(spaces[0].id),
+						value: String(spaces[0].externalReferenceCode),
 					}
 				);
 			}
