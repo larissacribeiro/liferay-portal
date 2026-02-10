@@ -185,11 +185,7 @@ export function useObjectFieldForm({
 				);
 			}
 
-			if (
-				settings.showFilesInDocumentsAndMedia ||
-				(settings.showFilesInLibrary &&
-					settings.fileSource === 'userComputerToDocumentsAndMedia')
-			) {
+			if (settings.showFilesInDocumentsAndMedia) {
 				if (
 					invalidateRequired(
 						settings.storageDLFolderPath as string | undefined
@@ -209,30 +205,33 @@ export function useObjectFieldForm({
 			}
 			else if (
 				settings.showFilesInLibrary &&
-				settings.fileSource === 'userComputerToDepot'
+				(settings.fileSource === 'userComputerToDepot' ||
+					settings.fileSource === 'userComputerToDocumentsAndMedia')
 			) {
 				if (
 					invalidateRequired(
-						settings.storageDepotFolderPath as string | undefined
+						settings.storageLibraryPath as string | undefined
 					)
 				) {
-					errors.storageDepotFolderPath = constantsUtils.REQUIRED_MSG;
+					errors.storageLibraryPath = constantsUtils.REQUIRED_MSG;
 				}
-				else if (
+				else {
+					const sourceFolderError = getSourceFolderError(
+						settings.storageLibraryPath as string
+					);
+
+					if (sourceFolderError !== null) {
+						errors.storageLibraryPath = sourceFolderError;
+					}
+				}
+
+				if (
+					settings.fileSource === 'userComputerToDepot' &&
 					invalidateRequired(
 						settings.storageDepot as string | undefined
 					)
 				) {
 					errors.storageDepot = constantsUtils.REQUIRED_MSG;
-				}
-				else {
-					const sourceFolderError = getSourceFolderError(
-						settings.storageDepotFolderPath as string
-					);
-
-					if (sourceFolderError !== null) {
-						errors.storageDepotFolderPath = sourceFolderError;
-					}
 				}
 			}
 		}

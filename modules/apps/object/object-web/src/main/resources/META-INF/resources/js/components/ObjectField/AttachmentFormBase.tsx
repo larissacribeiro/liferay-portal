@@ -55,13 +55,13 @@ export function AttachmentFormBase({
 							Liferay.Language.get(
 								'upload-directly-from-users-computer'
 							) + ` (${Liferay.Language.get('cms-files')})`,
-						value: 'userComputerToDepot',
+						value: 'userComputerToDepotFiles',
 					},
 					{
 						label: Liferay.Language.get(
 							'upload-or-select-from-cms-files'
 						),
-						value: 'depotFile',
+						value: 'depotFiles',
 					},
 				]
 			: []),
@@ -82,7 +82,7 @@ export function AttachmentFormBase({
 		settings.fileSource === 'userComputerToDocumentsAndMedia';
 
 	const isUserComputerDepotUpload =
-		settings.fileSource === 'userComputerToDepot';
+		settings.fileSource === 'userComputerToDepotFiles';
 
 	const allowsLibraryStorage =
 		Liferay.FeatureFlags['LPD-74813'] &&
@@ -101,7 +101,7 @@ export function AttachmentFormBase({
 				setting.name !== 'showFilesInDocumentsAndMedia' &&
 				setting.name !== 'showFilesInLibrary' &&
 				setting.name !== 'storageDLFolderPath' &&
-				setting.name !== 'storageDepotFolderPath'
+				setting.name !== 'storageLibraryPath'
 		);
 
 		updatedSettings.push(fileSource);
@@ -150,7 +150,7 @@ export function AttachmentFormBase({
 			(setting) =>
 				setting.name !== 'showFilesInLibrary' &&
 				setting.name !== 'storageDLFolderPath' &&
-				setting.name !== 'storageDepotFolderPath'
+				setting.name !== 'storageLibraryPath'
 		);
 
 		updatedSettings.push({
@@ -161,19 +161,19 @@ export function AttachmentFormBase({
 		if (value) {
 			if (settings.fileSource === 'userComputerToDocumentsAndMedia') {
 				updatedSettings.push({
-					name: 'storageDLFolderPath',
+					name: 'storageLibraryPath',
 					value: `/${objectDefinitionName}`,
 				});
 			}
-			else if (settings.fileSource === 'userComputerToDepot') {
+			else if (settings.fileSource === 'userComputerToDepotFiles') {
 				updatedSettings.push(
 					{
-						name: 'storageDepotFolderPath',
+						name: 'storageLibraryPath',
 						value: '/CMSFolder',
 					},
 					{
 						name: 'storageDepot',
-						value: String(spaces[0].id),
+						value: String(spaces[0].externalReferenceCode),
 					}
 				);
 			}
