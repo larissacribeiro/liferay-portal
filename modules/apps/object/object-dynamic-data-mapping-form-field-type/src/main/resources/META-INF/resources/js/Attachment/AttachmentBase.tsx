@@ -4,6 +4,7 @@
  */
 
 import ClayButton from '@clayui/button';
+import {useModal} from '@clayui/modal';
 import {
 	convertToFormData,
 	makeFetch,
@@ -13,6 +14,9 @@ import {openSelectionModal} from 'frontend-js-components-web';
 import React, {ChangeEventHandler, useRef, useState} from 'react';
 
 import FileContainer from './FileContainer';
+import CMSFilesItemSelectorModal, {
+	CMSFile,
+} from './util/CMSFilesItemSelectorModal';
 import {validateFileExtension, validateFileSize} from './util/attachment';
 
 import './Attachment.scss';
@@ -22,13 +26,27 @@ import type {LocalizedValue} from 'dynamic-data-mapping-form-field-type';
 export type AttachmentFile = {
 	contentURL: string;
 	fileEntryId: string;
+	source?: 'dm' | 'cms';
+	storageDepot?: string;
 	title: string;
 };
 
-type File = {
+type DMUploadedFile = {
 	contentURL: string;
 	fileEntryId: string;
 	readOnly: boolean;
+	title: string;
+};
+
+type CMSUploadResponse = {
+	contentURL: string;
+	file: {
+		id: number;
+		link: {
+			href: string;
+		};
+	};
+	id: number;
 	title: string;
 };
 
@@ -43,10 +61,39 @@ export interface AttachmentBaseProps<TValue> {
 	overallMaximumUploadRequestSize: number;
 	readOnly: boolean;
 	setError: React.Dispatch<React.SetStateAction<{}>>;
+	storageDepot?: string;
+	storageLibraryPath?: string;
 	tip: string;
 	url: string;
 	value: TValue;
 }
+
+const getBase64 = (file: File): Promise<string> =>
+	new Promise((resolve, reject) => {
+		const reader = new FileReader();
+
+		reader.onload = () => {
+			if (typeof reader.result === 'string') {
+				resolve(reader.result.split(',')[1]);
+			}
+			else {
+				reject(new Error('Invalid FileReader result'));
+			}
+		};
+
+		reader.onerror = reject;
+		reader.readAsDataURL(file);
+	});
+
+const toAttachmentFile = (file: {
+	contentURL: string;
+	fileEntryId: string;
+	title: string;
+}): AttachmentFile => ({
+	contentURL: file.contentURL,
+	fileEntryId: file.fileEntryId,
+	title: file.title,
+});
 
 export default function AttachmentBase({
 	acceptedFileExtensions,
@@ -58,6 +105,8 @@ export default function AttachmentBase({
 	overallMaximumUploadRequestSize,
 	readOnly,
 	setError,
+	storageDepot,
+	storageLibraryPath,
 	url,
 }: AttachmentBaseProps<string | LocalizedValue<string>>) {
 	const {portletNamespace} = useConfig();
@@ -65,6 +114,45 @@ export default function AttachmentBase({
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const [isLoading, setLoading] = useState(false);
+
+	const [cmsFiles, setCMSFiles] = useState<CMSFile[]>([]);
+
+	const {
+		observer: spaceItemSelectorObserver,
+		onOpenChange: spaceItemSelectorOpenChange,
+		open: spaceItemSelectorOpen,
+	} = useModal();
+
+	const isDepotFiles = Liferay.FeatureFlags['LPD-74813'] && fileSource === 'depotFiles';
+
+	const isDocumentsAndMedia = fileSource === 'documentsAndMedia';
+
+	const isUserComputerDepotUpload = Liferay.FeatureFlags['LPD-74813'] && fileSource === 'userComputerToDepotFiles';
+
+	const isUserComputerDMUpload =
+		fileSource === 'userComputerToDocumentsAndMedia';
+
+	const hasLibraryStorage =
+		isUserComputerDepotUpload || isUserComputerDMUpload;
+
+	const handleCMSItemsChange = (items: CMSFile[]) => {
+		setCMSFiles(items);
+
+		if (!items.length) {
+			return;
+		}
+
+		const selectedItem = items[0];
+
+		onAttachmentChange(
+			{
+				contentURL: selectedItem.embedded.file.fileURL,
+				fileEntryId: String(selectedItem.embedded.id),
+				title: selectedItem.title,
+			},
+			String(selectedItem.embedded.id)
+		);
+	};
 
 	const handleSelectedItem = (selectedItem: any) => {
 		if (!selectedItem) {
@@ -89,64 +177,142 @@ export default function AttachmentBase({
 		}
 		else {
 			onAttachmentChange(
-				{
+				toAttachmentFile({
 					contentURL: selectedItemValue.url,
 					fileEntryId: selectedItemValue.fileEntryId,
 					title: selectedItemValue.title,
-				},
+				}),
 				selectedItemValue.fileEntryId
 			);
 		}
+	};
+
+	const uploadToCMS = async (
+		file: File,
+		storageLibraryPath: string | undefined,
+		storageDepot: string | undefined
+	): Promise<AttachmentFile & {id: string}> => {
+		const fileBase64 = await getBase64(file);
+
+		const response = (await makeFetch({
+			body: JSON.stringify({
+				file: {
+					fileBase64,
+					name: file.name,
+				},
+				objectEntryFolderExternalReferenceCode:
+					storageLibraryPath || 'L_FILES',
+				title: file.name,
+			}),
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json',
+			} as {Accept: string} & Record<string, string>,
+			method: 'POST',
+			url: `/o/cms/basic-documents/scopes/${storageDepot}`,
+		})) as any;
+
+		if (response.status && response.status !== 'OK') {
+			throw new Error(response.title);
+		}
+
+		const validResponse = response as CMSUploadResponse;
+
+		const contentURL = `${window.location.origin}${validResponse.file.link.href}`;
+		const previewURL = new URL(contentURL);
+
+		previewURL.searchParams.delete('download');
+
+		return {
+			contentURL: String(previewURL),
+			fileEntryId: String(validResponse.file.id),
+			id: String(validResponse.id),
+			source: 'cms',
+			title: validResponse.title,
+		};
+	};
+
+	const uploadToDM = async (
+		file: File,
+		url: string,
+		portletNamespace: string
+	): Promise<AttachmentFile & {id: string}> => {
+		const {error, file: uploadedFile} = (await makeFetch({
+			body: convertToFormData({
+				[`${portletNamespace}file`]: file,
+			}),
+			method: 'POST',
+			url,
+		})) as {
+			error?: {message: string};
+			file: DMUploadedFile;
+		};
+
+		if (error) {
+			throw new Error(error.message);
+		}
+
+		const attachmentFile = toAttachmentFile(uploadedFile);
+
+		return {
+			...attachmentFile,
+			id: uploadedFile.fileEntryId,
+		};
 	};
 
 	const handleUpload: ChangeEventHandler<HTMLInputElement> = async ({
 		target: {files},
 	}) => {
 		const selectedFile = files?.[0];
-		if (selectedFile) {
-			const fileSizeError = validateFileSize(
-				Number(selectedFile.size),
-				Number(maximumFileSize),
-				Number(overallMaximumUploadRequestSize)
-			);
 
-			if (fileSizeError) {
-				setError(fileSizeError);
+		if (!selectedFile) {
+			return;
+		}
 
-				return;
-			}
-			setError({});
-			setLoading(true);
-			try {
-				const {error, file} = (await makeFetch({
-					body: convertToFormData({
-						[`${portletNamespace}file`]: files[0],
-					}),
-					method: 'POST',
-					url,
-				})) as {error: {message: string}; file: File; success: boolean};
+		const fileSizeError = validateFileSize(
+			Number(selectedFile.size),
+			Number(maximumFileSize),
+			Number(overallMaximumUploadRequestSize)
+		);
 
-				if (error) {
-					setError({
-						displayErrors: true,
-						errorMessage: error.message,
-						valid: false,
-					});
-				}
-				else {
-					onAttachmentChange(
-						{
-							contentURL: file.contentURL,
-							fileEntryId: file.fileEntryId,
-							title: file.title,
-						},
-						file.fileEntryId
-					);
-				}
+		if (fileSizeError) {
+			setError(fileSizeError);
+
+			return;
+		}
+
+		setError({});
+		setLoading(true);
+
+		try {
+			let result: AttachmentFile & {id: string};
+
+			if (isUserComputerDepotUpload) {
+				result = await uploadToCMS(
+					selectedFile,
+					storageLibraryPath,
+					storageDepot
+				);
 			}
-			finally {
-				setLoading(false);
+			else {
+				result = await uploadToDM(selectedFile, url, portletNamespace);
 			}
+
+			const {id, ...attachmentData} = result;
+
+			onAttachmentChange(attachmentData, id);
+		}
+		catch (error: any) {
+			setError({
+				displayErrors: true,
+				errorMessage:
+					error?.message ||
+					Liferay.Language.get('unable-to-upload-the-selected-file'),
+				valid: false,
+			});
+		}
+		finally {
+			setLoading(false);
 		}
 	};
 
@@ -160,7 +326,7 @@ export default function AttachmentBase({
 						onClick={() => {
 							setError({});
 
-							if (fileSource === 'documentsAndMedia') {
+							if (isDocumentsAndMedia) {
 								openSelectionModal({
 									onSelect: handleSelectedItem,
 									selectEventName: `${portletNamespace}selectAttachmentEntry`,
@@ -168,14 +334,16 @@ export default function AttachmentBase({
 									url,
 								});
 							}
-							else if (
-								fileSource === 'userComputerToDocumentsAndMedia'
-							) {
+							else if (hasLibraryStorage) {
 								const filePicker = inputRef.current;
+
 								if (filePicker) {
 									filePicker.value = '';
 									filePicker.click();
 								}
+							}
+							else if (isDepotFiles) {
+								spaceItemSelectorOpenChange(true);
 							}
 						}}
 					>
@@ -190,6 +358,16 @@ export default function AttachmentBase({
 					readOnly={readOnly}
 				/>
 			</div>
+
+			{isDepotFiles && (
+				<CMSFilesItemSelectorModal
+					items={cmsFiles}
+					observer={spaceItemSelectorObserver}
+					onItemsChange={handleCMSItemsChange}
+					onOpenChange={spaceItemSelectorOpenChange}
+					open={spaceItemSelectorOpen}
+				/>
+			)}
 
 			<input
 				accept={acceptedFileExtensions
