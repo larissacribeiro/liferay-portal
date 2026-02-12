@@ -11,6 +11,7 @@ import {
 	useConfig,
 } from 'data-engine-js-components-web';
 import {openSelectionModal} from 'frontend-js-components-web';
+import {fetch} from 'frontend-js-web';
 import React, {ChangeEventHandler, useRef, useState} from 'react';
 
 import FileContainer from './FileContainer';
@@ -123,11 +124,14 @@ export default function AttachmentBase({
 		open: spaceItemSelectorOpen,
 	} = useModal();
 
-	const isDepotFiles = Liferay.FeatureFlags['LPD-74813'] && fileSource === 'depotFiles';
+	const isDepotFiles =
+		Liferay.FeatureFlags['LPD-74813'] && fileSource === 'depotFiles';
 
 	const isDocumentsAndMedia = fileSource === 'documentsAndMedia';
 
-	const isUserComputerDepotUpload = Liferay.FeatureFlags['LPD-74813'] && fileSource === 'userComputerToDepotFiles';
+	const isUserComputerDepotUpload =
+		Liferay.FeatureFlags['LPD-74813'] &&
+		fileSource === 'userComputerToDepotFiles';
 
 	const isUserComputerDMUpload =
 		fileSource === 'userComputerToDocumentsAndMedia';
