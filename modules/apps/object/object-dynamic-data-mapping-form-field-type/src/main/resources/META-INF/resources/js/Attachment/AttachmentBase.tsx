@@ -187,48 +187,130 @@ export default function AttachmentBase({
 		}
 	};
 
+	const DEFAULT_FOLDER_ERC = 'L_FILES';
+
+	const resolveFolderId = async (
+		spaceERC: string,
+		folderName?: string
+	): Promise<{
+		objectEntryFolderExternalReferenceCode?: string;
+		objectEntryFolderId?: number;
+	}> => {
+		if (!folderName) {
+			return {objectEntryFolderExternalReferenceCode: DEFAULT_FOLDER_ERC};
+		}
+
+		try {
+			const searchParams = new URLSearchParams({
+				nestedFields: 'embedded,scope',
+				pageSize: '30',
+				search: folderName,
+			});
+
+			const searchResponse = await fetch(
+				`/o/search/v1.0/search?${searchParams}`
+			);
+
+			if (searchResponse.ok) {
+				const {items = []} = await searchResponse.json();
+
+				const match = items.find((item: any) => {
+					const data = item.embedded ?? item;
+
+					return (
+						data.title === folderName &&
+						data.scope?.externalReferenceCode === spaceERC
+					);
+				});
+
+				const id = match?.embedded?.id ?? match?.id;
+
+				if (id) {
+					return {objectEntryFolderId: id};
+				}
+			}
+
+			const createResponse = await fetch(
+				`/o/headless-object/v1.0/scopes/${spaceERC}/object-entry-folders`,
+				{
+					body: JSON.stringify({
+						parentObjectEntryFolderExternalReferenceCode:
+							DEFAULT_FOLDER_ERC,
+						title: folderName,
+					}),
+					headers: {
+						'Content-Type': 'application/json',
+						'x-csrf-token': Liferay.authToken,
+					},
+					method: 'POST',
+				}
+			);
+
+			if (createResponse.ok) {
+				const {id} = await createResponse.json();
+
+				if (id) {
+					return {objectEntryFolderId: id};
+				}
+			}
+		}
+		catch (error) {
+			console.warn('Folder resolution failed', error);
+		}
+
+		return {objectEntryFolderExternalReferenceCode: DEFAULT_FOLDER_ERC};
+	};
+
 	const uploadToCMS = async (
 		file: File,
 		storageLibraryPath: string | undefined,
 		storageDepot: string | undefined
 	): Promise<AttachmentFile & {id: string}> => {
+		if (!storageDepot) {
+			throw new Error('Storage depot ID is missing');
+		}
+
 		const fileBase64 = await getBase64(file);
 
+		const cleanPath = storageLibraryPath?.replace(/^\//, '');
+
+		const folder = await resolveFolderId(storageDepot, cleanPath);
+
+		const body = {
+			...folder,
+			file: {
+				fileBase64,
+				name: file.name,
+			},
+			title: file.name,
+		};
+
 		const response = (await makeFetch({
-			body: JSON.stringify({
-				file: {
-					fileBase64,
-					name: file.name,
-				},
-				objectEntryFolderExternalReferenceCode:
-					storageLibraryPath || 'L_FILES',
-				title: file.name,
-			}),
+			body: JSON.stringify(body),
 			headers: {
 				'Accept': 'application/json',
 				'Content-Type': 'application/json',
 			} as {Accept: string} & Record<string, string>,
 			method: 'POST',
 			url: `/o/cms/basic-documents/scopes/${storageDepot}`,
-		})) as any;
+		})) as CMSUploadResponse & {status?: string; title?: string};
 
-		if (response.status && response.status !== 'OK') {
-			throw new Error(response.title);
-		}
+		const rawUrl =
+			response.contentURL ??
+			response.file?.link?.href ??
+			(response.id
+				? `/o/cms/basic-documents/${response.id}/content`
+				: null);
 
-		const validResponse = response as CMSUploadResponse;
-
-		const contentURL = `${window.location.origin}${validResponse.file.link.href}`;
-		const previewURL = new URL(contentURL);
-
-		previewURL.searchParams.delete('download');
+		const absoluteUrl = new URL(rawUrl, window.location.origin);
+		absoluteUrl.searchParams.delete('download');
 
 		return {
-			contentURL: String(previewURL),
-			fileEntryId: String(validResponse.file.id),
-			id: String(validResponse.id),
+			contentURL: absoluteUrl.toString(),
+			fileEntryId: String(response.id),
+			id: String(response.file?.id),
 			source: 'cms',
-			title: validResponse.title,
+			title: response.title,
 		};
 	};
 
