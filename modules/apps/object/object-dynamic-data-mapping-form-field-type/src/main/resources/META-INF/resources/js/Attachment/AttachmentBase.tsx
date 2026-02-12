@@ -150,7 +150,7 @@ export default function AttachmentBase({
 				fileEntryId: String(selectedItem.embedded.id),
 				title: selectedItem.title,
 			},
-			String(selectedItem.embedded.id)
+			String(selectedItem.embedded.file.id)
 		);
 	};
 
