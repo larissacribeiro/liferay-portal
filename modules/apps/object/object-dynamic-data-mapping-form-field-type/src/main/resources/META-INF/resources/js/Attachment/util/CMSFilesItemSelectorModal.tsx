@@ -42,6 +42,7 @@ export type CMSFile = {
 		description?: string;
 		file: {
 			fileURL: string;
+			id: number;
 			mimeType: string;
 			name?: string;
 			thumbnailURL?: string;
