@@ -50,8 +50,8 @@ public class ObjectDefinitionsFieldsDisplayContext
 	extends BaseObjectDefinitionsDisplayContext {
 
 	public ObjectDefinitionsFieldsDisplayContext(
-		HttpServletRequest httpServletRequest,
 		DepotEntryLocalService depotEntryLocalService,
+		HttpServletRequest httpServletRequest,
 		ListTypeDefinitionService listTypeDefinitionService,
 		ModelResourcePermission<ObjectDefinition>
 			objectDefinitionModelResourcePermission,

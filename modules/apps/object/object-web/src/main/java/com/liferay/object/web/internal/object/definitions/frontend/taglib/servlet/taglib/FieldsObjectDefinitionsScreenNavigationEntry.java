@@ -60,7 +60,7 @@ public class FieldsObjectDefinitionsScreenNavigationEntry
 		httpServletRequest.setAttribute(
 			WebKeys.PORTLET_DISPLAY_CONTEXT,
 			new ObjectDefinitionsFieldsDisplayContext(
-				httpServletRequest, _depotEntryLocalService,
+				_depotEntryLocalService, httpServletRequest,
 				_listTypeDefinitionService,
 				_objectDefinitionModelResourcePermission,
 				_objectFieldBusinessTypeRegistry, _objectFolderLocalService));

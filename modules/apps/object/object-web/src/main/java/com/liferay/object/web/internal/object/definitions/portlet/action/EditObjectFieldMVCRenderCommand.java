@@ -62,8 +62,9 @@ public class EditObjectFieldMVCRenderCommand implements MVCRenderCommand {
 			renderRequest.setAttribute(
 				WebKeys.PORTLET_DISPLAY_CONTEXT,
 				new ObjectDefinitionsFieldsDisplayContext(
+					_depotEntryLocalService,
 					_portal.getHttpServletRequest(renderRequest),
-					_depotEntryLocalService, _listTypeDefinitionService,
+					_listTypeDefinitionService,
 					_objectDefinitionModelResourcePermission,
 					_objectFieldBusinessTypeRegistry,
 					_objectFolderLocalService));

@@ -83,6 +83,9 @@ public class AttachmentDDMFormFieldTemplateContextContributor
 		HttpServletRequest httpServletRequest =
 			ddmFormFieldRenderingContext.getHttpServletRequest();
 
+		ObjectField objectField = _objectFieldLocalService.fetchObjectField(
+			GetterUtil.getLong(ddmFormField.getProperty("objectFieldId")));
+
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
@@ -96,7 +99,7 @@ public class AttachmentDDMFormFieldTemplateContextContributor
 
 		DDMForm ddmForm = ddmFormField.getDDMForm();
 
-		Map<String, Object> parameters = HashMapBuilder.<String, Object>put(
+		return HashMapBuilder.<String, Object>put(
 			ObjectFieldSettingConstants.NAME_ACCEPTED_FILE_EXTENSIONS,
 			ddmFormField.getProperty(
 				ObjectFieldSettingConstants.NAME_ACCEPTED_FILE_EXTENSIONS)
@@ -142,6 +145,13 @@ public class AttachmentDDMFormFieldTemplateContextContributor
 			"overallMaximumUploadRequestSize",
 			_uploadServletRequestConfigurationProvider.getMaxSize()
 		).put(
+			"storageDepot", _getGroupExternalReferenceCode(objectField)
+		).put(
+			"storageLibraryPath",
+			ObjectFieldSettingUtil.getValue(
+				ObjectFieldSettingConstants.NAME_STORAGE_LIBRARY_PATH,
+				objectField)
+		).put(
 			"tip",
 			_language.format(
 				themeDisplay.getLocale(), "upload-a-x-no-larger-than-x",
@@ -164,23 +174,6 @@ public class AttachmentDDMFormFieldTemplateContextContributor
 				getLocalizationParameters(
 					ddmFormField, ddmForm.getDefaultLocale())
 		).build();
-
-		ObjectField objectField = _objectFieldLocalService.fetchObjectField(
-			GetterUtil.getLong(ddmFormField.getProperty("objectFieldId")));
-
-		if (FeatureFlagManagerUtil.isEnabled(
-				objectField.getCompanyId(), "LPD-74813")) {
-
-			parameters.put(
-				"storageDepot", _getGroupExternalReferenceCode(objectField));
-			parameters.put(
-				"storageLibraryPath",
-				ObjectFieldSettingUtil.getValue(
-					ObjectFieldSettingConstants.NAME_STORAGE_LIBRARY_PATH,
-					objectField));
-		}
-
-		return parameters;
 	}
 
 	@Activate

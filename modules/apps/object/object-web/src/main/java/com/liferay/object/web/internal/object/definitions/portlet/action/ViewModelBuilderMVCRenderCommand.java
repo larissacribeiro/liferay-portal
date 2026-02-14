@@ -60,8 +60,9 @@ public class ViewModelBuilderMVCRenderCommand implements MVCRenderCommand {
 		renderRequest.setAttribute(
 			ObjectWebKeys.OBJECT_DEFINITIONS_FIELD_DISPLAY_CONTEXT,
 			new ObjectDefinitionsFieldsDisplayContext(
+				_depotEntryLocalService,
 				_portal.getHttpServletRequest(renderRequest),
-				_depotEntryLocalService, _listTypeDefinitionService,
+				_listTypeDefinitionService,
 				_objectDefinitionModelResourcePermission,
 				_objectFieldBusinessTypeRegistry, _objectFolderLocalService));
 		renderRequest.setAttribute(
