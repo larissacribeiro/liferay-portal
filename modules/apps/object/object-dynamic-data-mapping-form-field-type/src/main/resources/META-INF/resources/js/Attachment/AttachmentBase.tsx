@@ -62,6 +62,7 @@ export interface AttachmentBaseProps<TValue> {
 	fileSource: string;
 	handleDelete: () => void;
 	maximumFileSize: number;
+	objectEntryFolderExternalReferenceCode?: string;
 	onAttachmentChange: (attachment: AttachmentFile, id: string) => void;
 	overallMaximumUploadRequestSize: number;
 	readOnly: boolean;
@@ -96,11 +97,11 @@ export default function AttachmentBase({
 	fileSource,
 	handleDelete,
 	maximumFileSize,
+	objectEntryFolderExternalReferenceCode,
 	onAttachmentChange,
 	overallMaximumUploadRequestSize,
 	readOnly,
 	setError,
-	storageDLFolderPath,
 	storageDepotGroup,
 	url,
 }: AttachmentBaseProps<string | LocalizedValue<string>>) {
@@ -195,86 +196,8 @@ export default function AttachmentBase({
 			});
 	}, []);
 
-	const resolveFolderId = async (
-		isVisible: boolean,
-		spaceERC: string,
-		folderName?: string
-	): Promise<{
-		objectEntryFolderExternalReferenceCode?: string;
-		objectEntryFolderId?: number;
-	}> => {
-		if (!folderName) {
-			return {objectEntryFolderExternalReferenceCode: DEFAULT_FOLDER_ERC};
-		}
-
-		try {
-			const searchParams = new URLSearchParams({
-				nestedFields: 'embedded,scope',
-				pageSize: '30',
-				search: folderName,
-			});
-
-			const searchResponse = await fetch(
-				`/o/search/v1.0/search?${searchParams}`
-			);
-
-			if (searchResponse.ok) {
-				const {items = []} = await searchResponse.json();
-
-				const match = items.find((item: any) => {
-					const data = item.embedded ?? item;
-
-					return (
-						data.title === folderName &&
-						data.scope?.externalReferenceCode === spaceERC
-					);
-				});
-
-				const id = match?.embedded?.id ?? match?.id;
-
-				if (id) {
-					return {objectEntryFolderId: id};
-				}
-			}
-
-			const createBody: any = {
-				title: folderName,
-			};
-
-			if (isVisible) {
-				createBody.parentObjectEntryFolderExternalReferenceCode =
-					'L_FILES';
-			}
-
-			const createResponse = await fetch(
-				`/o/headless-object/v1.0/scopes/${spaceERC}/object-entry-folders`,
-				{
-					body: JSON.stringify(createBody),
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					method: 'POST',
-				}
-			);
-
-			if (createResponse.ok) {
-				const {id} = await createResponse.json();
-
-				if (id) {
-					return {objectEntryFolderId: id};
-				}
-			}
-		}
-		catch (error) {
-			console.warn('Folder resolution failed', error);
-		}
-
-		return {objectEntryFolderExternalReferenceCode: DEFAULT_FOLDER_ERC};
-	};
-
 	const uploadToCMS = async (
 		file: File,
-		storageDLFolderPath: string | undefined,
 		storageDepotGroup: string | undefined
 	): Promise<AttachmentFile & {id: string}> => {
 		const spaceERC =
@@ -282,24 +205,14 @@ export default function AttachmentBase({
 
 		const fileBase64 = await getBase64(file);
 
-		const isVisible = !!storageDepotGroup;
-
-		const folderName = storageDLFolderPath
-			? storageDLFolderPath.replace(/^\//, '')
-			: 'HIDDEN_FILES';
-
-		const folder = await resolveFolderId(
-			isVisible,
-			String(spaceERC),
-			folderName
-		);
+		const folderERC = objectEntryFolderExternalReferenceCode ?? DEFAULT_FOLDER_ERC;
 
 		const body = {
-			...folder,
 			file: {
 				fileBase64,
 				name: file.name,
 			},
+			objectEntryFolderExternalReferenceCode: folderERC,
 			title: file.name,
 		};
 
@@ -384,7 +297,6 @@ export default function AttachmentBase({
 			if (isUserComputerToCMSBasicDocument) {
 				result = await uploadToCMS(
 					selectedFile,
-					storageDLFolderPath,
 					storageDepotGroup
 				);
 			}
