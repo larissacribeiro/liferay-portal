@@ -199,6 +199,35 @@ function ItemSelectorModal<T extends Record<string, any>>({
 		});
 	};
 
+	const defaultCreationMenu =
+		FilesUploaderComponent || createItemURL
+			? {
+					primaryItems: [
+						...(FilesUploaderComponent
+							? [
+									{
+										label: Liferay.Language.get(
+											'upload-files'
+										),
+										onClick: () => setViewType('upload'),
+									},
+								]
+							: []),
+						...(createItemURL
+							? [
+									{
+										href: createItemURL,
+										label: Liferay.Language.get(
+											'add-new-item'
+										),
+										target: ACTION_ITEM_TARGETS.BLANK,
+									},
+								]
+							: []),
+					],
+				}
+			: undefined;
+
 	const hasSelectedItems = !!selectedItems.length;
 
 	const fileDropSettings = useMemo<IFileDropSettings>(() => {
@@ -264,36 +293,7 @@ function ItemSelectorModal<T extends Record<string, any>>({
 						{...fdsProps}
 						apiURL={apiURL}
 						creationMenu={
-							FilesUploaderComponent || createItemURL
-								? {
-										primaryItems: [
-											...(FilesUploaderComponent
-												? [
-														{
-															label: Liferay.Language.get(
-																'upload-files'
-															),
-															onClick: () =>
-																setViewType(
-																	'upload'
-																),
-														},
-													]
-												: []),
-											...(createItemURL
-												? [
-														{
-															href: createItemURL,
-															label: Liferay.Language.get(
-																'add-new-item'
-															),
-															target: ACTION_ITEM_TARGETS.BLANK,
-														},
-													]
-												: []),
-										],
-									}
-								: undefined
+							fdsProps.creationMenu ?? defaultCreationMenu
 						}
 						emptyState={
 							fdsProps.emptyState ||
