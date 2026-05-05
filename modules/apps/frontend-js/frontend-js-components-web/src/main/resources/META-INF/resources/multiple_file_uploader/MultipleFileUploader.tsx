@@ -11,7 +11,7 @@ import ClayModal from '@clayui/modal';
 import ClaySticker from '@clayui/sticker';
 import classNames from 'classnames';
 import {formatStorage, sub} from 'frontend-js-web';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {ReactNode, useEffect, useId, useMemo, useState} from 'react';
 import {Accept, ErrorCode, useDropzone} from 'react-dropzone';
 
 import DragZoneBackground from './DragZoneBackground';
@@ -41,10 +41,24 @@ const DEFAULT_MESSAGES: UploadMessages = {
 interface MultipleFileUploaderProps {
 	buttonLabel?: string;
 	description?: string;
+
+	/**
+	 * When true, the uploader does not render its own ClayModal.Body and
+	 * ClayModal.Footer wrappers. The host is responsible for placing the
+	 * action buttons returned through `onActionsChange`.
+	 */
+	embedded?: boolean;
 	filesToUpload?: FileData[];
 	formValidation?: () => Promise<boolean>;
 	maxFileSize?: number;
 	messages?: Partial<UploadMessages>;
+
+	/**
+	 * Called when the uploader's action buttons change. Only invoked when
+	 * `embedded` is true. Hosts typically store the value and render it in
+	 * their own modal footer.
+	 */
+	onActionsChange?: (actions: ReactNode) => void;
 	onModalClose: () => void;
 	onUploadComplete: ({
 		failedFiles,
@@ -90,10 +104,12 @@ function getUploadBatches(files: FileData[]): FileData[][] {
 export default function MultipleFileUploader({
 	buttonLabel,
 	description,
+	embedded = false,
 	filesToUpload: initialFilesToUpload,
 	formValidation,
 	maxFileSize,
 	messages,
+	onActionsChange,
 	onModalClose,
 	onUploadComplete,
 	scopeSelectorElement,
@@ -104,6 +120,8 @@ export default function MultipleFileUploader({
 	const [failedFiles, setFailedFiles] = useState<FailedFile[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [dropErrorMessage, setDropErrorMessage] = useState('');
+
+	const formId = useId();
 
 	const FILE_ERRORS = useMemo(
 		() => ({
@@ -284,184 +302,209 @@ export default function MultipleFileUploader({
 		}
 	};
 
-	return (
-		<form className="multiple-file-uploader" onSubmit={handleSubmit}>
-			<ClayModal.Body scrollable>
-				{failedFiles.length ? (
-					<FailedFilesMessages
-						errorMessage={mergedMessages.xFilesNotUploaded}
-						failedFiles={failedFiles}
-					/>
-				) : (
-					<>
-						{isLoading && (
-							<LoadingMessage
-								description={
-									mergedMessages.loadingMessageDescription
-								}
-								title={mergedMessages.loadingMessageTitle}
-							/>
-						)}
+	const actions = useMemo<JSX.Element | null>(() => {
+		if (failedFiles.length) {
+			return (
+				<ClayButton.Group spaced>
+					<ClayButton
+						displayType="secondary"
+						onClick={() => setFailedFiles([])}
+					>
+						{mergedMessages.anotherFileButton}
+					</ClayButton>
 
-						{description && (
-							<div className="mb-1">
-								<p className="text-secondary">{description}</p>
+					<ClayButton onClick={onModalClose}>
+						{Liferay.Language.get('done')}
+					</ClayButton>
+				</ClayButton.Group>
+			);
+		}
 
-								<span className="font-weight-semi-bold text-3">
-									{Liferay.Language.get('file')}
-								</span>
-							</div>
-						)}
+		if (filesToUpload.length) {
+			return (
+				<ClayButton.Group spaced>
+					<ClayButton displayType="secondary" onClick={onModalClose}>
+						{Liferay.Language.get('cancel')}
+					</ClayButton>
 
-						<div
-							{...getRootProps({
-								className: classNames('dropzone', {
-									'dropzone-drag-active': isDragActive,
-								}),
-							})}
-						>
-							<input aria-hidden="true" {...getInputProps()} />
+					<ClayButton
+						disabled={isLoading}
+						form={formId}
+						type="submit"
+					>
+						{buttonLabel ||
+							sub(
+								Liferay.Language.get('upload-x'),
+								`(${filesToUpload.length})`
+							)}
+					</ClayButton>
+				</ClayButton.Group>
+			);
+		}
 
-							<DragZoneBackground />
-						</div>
+		return null;
+	}, [
+		buttonLabel,
+		failedFiles.length,
+		filesToUpload.length,
+		formId,
+		isLoading,
+		mergedMessages.anotherFileButton,
+		onModalClose,
+	]);
 
-						{dropErrorMessage && (
-							<ClayForm.FeedbackGroup className="has-error">
-								<ClayForm.FeedbackItem>
-									<ClayForm.FeedbackIndicator symbol="exclamation-full" />
+	useEffect(() => {
+		if (!embedded || !onActionsChange) {
+			return;
+		}
 
-									{dropErrorMessage}
-								</ClayForm.FeedbackItem>
-							</ClayForm.FeedbackGroup>
-						)}
+		onActionsChange(actions);
 
-						{scopeSelectorElement}
+		return () => onActionsChange(null);
+	}, [actions, embedded, onActionsChange]);
 
-						{!!filesToUpload.length && (
-							<div
-								className={classNames('mt-4', {
-									invisible: isLoading,
-								})}
-							>
-								<h2 className="font-weight-semi-bold mb-3 text-3 text-secondary text-uppercase">
-									{mergedMessages.filesToUpload}
-								</h2>
+	const bodyContent = failedFiles.length ? (
+		<FailedFilesMessages
+			errorMessage={mergedMessages.xFilesNotUploaded}
+			failedFiles={failedFiles}
+		/>
+	) : (
+		<>
+			{isLoading && (
+				<LoadingMessage
+					description={mergedMessages.loadingMessageDescription}
+					title={mergedMessages.loadingMessageTitle}
+				/>
+			)}
 
-								{filesToUpload.map((fileData, index) => (
-									<div key={fileData.name}>
-										<ClayLayout.ContentRow
-											className={classNames(
-												'align-items-center',
-												{
-													'border-bottom':
-														index <
-														filesToUpload.length -
-															1,
-												}
-											)}
-											padded
-										>
-											<ClayLayout.ContentCol>
-												<ClaySticker
-													className="sticker-border-secondary"
-													displayType="secondary"
-													size="lg"
-												>
-													<ClayIcon symbol="document" />
-												</ClaySticker>
-											</ClayLayout.ContentCol>
+			{description && (
+				<div className="mb-1">
+					<p className="text-secondary">{description}</p>
 
-											<ClayLayout.ContentCol
-												className="text-3"
-												expand
-											>
-												<span className="text-weight-semi-bold">
-													{fileData.name}
-												</span>
+					<span className="font-weight-semi-bold text-3">
+						{Liferay.Language.get('file')}
+					</span>
+				</div>
+			)}
 
-												<span className="text-secondary">
-													{Liferay.Util.formatStorage(
-														fileData.size,
-														{
-															addSpaceBeforeSuffix:
-																true,
-														}
-													)}
-												</span>
-											</ClayLayout.ContentCol>
+			<div
+				{...getRootProps({
+					className: classNames('dropzone', {
+						'dropzone-drag-active': isDragActive,
+					}),
+				})}
+			>
+				<input aria-hidden="true" {...getInputProps()} />
 
-											<ClayLayout.ContentCol>
-												<ClayButtonWithIcon
-													aria-label={Liferay.Language.get(
-														'remove-file'
-													)}
-													borderless
-													displayType="secondary"
-													onClick={() =>
-														handleRemoveFile(
-															fileData.name
-														)
-													}
-													size="sm"
-													symbol="times-circle"
-												/>
-											</ClayLayout.ContentCol>
-										</ClayLayout.ContentRow>
+				<DragZoneBackground />
+			</div>
 
-										{fileData.errorMessage && (
-											<span className="mt-2 text-danger">
-												{fileData.errorMessage}
-											</span>
-										)}
-									</div>
-								))}
-							</div>
-						)}
-					</>
-				)}
-			</ClayModal.Body>
+			{dropErrorMessage && (
+				<ClayForm.FeedbackGroup className="has-error">
+					<ClayForm.FeedbackItem>
+						<ClayForm.FeedbackIndicator symbol="exclamation-full" />
+
+						{dropErrorMessage}
+					</ClayForm.FeedbackItem>
+				</ClayForm.FeedbackGroup>
+			)}
+
+			{scopeSelectorElement}
 
 			{!!filesToUpload.length && (
-				<ClayModal.Footer
-					last={
-						<ClayButton.Group spaced>
-							<ClayButton
-								displayType="secondary"
-								onClick={onModalClose}
+				<div
+					className={classNames('mt-4', {
+						invisible: isLoading,
+					})}
+				>
+					<h2 className="font-weight-semi-bold mb-3 text-3 text-secondary text-uppercase">
+						{mergedMessages.filesToUpload}
+					</h2>
+
+					{filesToUpload.map((fileData, index) => (
+						<div key={fileData.name}>
+							<ClayLayout.ContentRow
+								className={classNames('align-items-center', {
+									'border-bottom':
+										index < filesToUpload.length - 1,
+								})}
+								padded
 							>
-								{Liferay.Language.get('cancel')}
-							</ClayButton>
+								<ClayLayout.ContentCol>
+									<ClaySticker
+										className="sticker-border-secondary"
+										displayType="secondary"
+										size="lg"
+									>
+										<ClayIcon symbol="document" />
+									</ClaySticker>
+								</ClayLayout.ContentCol>
 
-							<ClayButton disabled={isLoading} type="submit">
-								{buttonLabel ||
-									sub(
-										Liferay.Language.get('upload-x'),
-										`(${filesToUpload.length})`
-									)}
-							</ClayButton>
-						</ClayButton.Group>
-					}
-				></ClayModal.Footer>
+								<ClayLayout.ContentCol
+									className="text-3"
+									expand
+								>
+									<span className="text-weight-semi-bold">
+										{fileData.name}
+									</span>
+
+									<span className="text-secondary">
+										{Liferay.Util.formatStorage(
+											fileData.size,
+											{addSpaceBeforeSuffix: true}
+										)}
+									</span>
+								</ClayLayout.ContentCol>
+
+								<ClayLayout.ContentCol>
+									<ClayButtonWithIcon
+										aria-label={Liferay.Language.get(
+											'remove-file'
+										)}
+										borderless
+										displayType="secondary"
+										onClick={() =>
+											handleRemoveFile(fileData.name)
+										}
+										size="sm"
+										symbol="times-circle"
+									/>
+								</ClayLayout.ContentCol>
+							</ClayLayout.ContentRow>
+
+							{fileData.errorMessage && (
+								<span className="mt-2 text-danger">
+									{fileData.errorMessage}
+								</span>
+							)}
+						</div>
+					))}
+				</div>
 			)}
+		</>
+	);
 
-			{!!failedFiles.length && (
-				<ClayModal.Footer
-					last={
-						<ClayButton.Group spaced>
-							<ClayButton
-								displayType="secondary"
-								onClick={() => setFailedFiles([])}
-							>
-								{mergedMessages.anotherFileButton}
-							</ClayButton>
+	if (embedded) {
+		return (
+			<form
+				className="multiple-file-uploader"
+				id={formId}
+				onSubmit={handleSubmit}
+			>
+				{bodyContent}
+			</form>
+		);
+	}
 
-							<ClayButton onClick={onModalClose}>
-								{Liferay.Language.get('done')}
-							</ClayButton>
-						</ClayButton.Group>
-					}
-				></ClayModal.Footer>
-			)}
+	return (
+		<form
+			className="multiple-file-uploader"
+			id={formId}
+			onSubmit={handleSubmit}
+		>
+			<ClayModal.Body scrollable>{bodyContent}</ClayModal.Body>
+
+			{actions && <ClayModal.Footer last={actions} />}
 		</form>
 	);
 }

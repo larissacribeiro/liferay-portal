@@ -66,9 +66,11 @@ const ASSET_LIBRARIES_API_URL = `${location.origin}/o/headless-asset-library/v1.
 
 const CMSFileUploaderComponent: FilesUploaderComponent = function ({
 	allowedExtensions,
+	embedded,
 	files,
 	groupId: externalGroupId,
 	maxFileSize,
+	onActionsChange,
 	onCloseUploadView,
 }) {
 	const [assetLibrary, setAssetLibrary] = useState<
@@ -197,9 +199,11 @@ const CMSFileUploaderComponent: FilesUploaderComponent = function ({
 
 	return (
 		<MultipleFileUploader
+			embedded={embedded}
 			filesToUpload={files}
 			formValidation={formValidation}
 			maxFileSize={maxFileSize}
+			onActionsChange={onActionsChange}
 			onModalClose={onCloseUploadView}
 			onUploadComplete={onUploadComplete}
 			scopeSelectorElement={spaceSelectorElement}

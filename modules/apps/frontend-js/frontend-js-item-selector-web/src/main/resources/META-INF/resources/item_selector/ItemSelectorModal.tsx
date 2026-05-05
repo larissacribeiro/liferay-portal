@@ -34,6 +34,13 @@ export type FilesUploaderComponent = React.ComponentType<{
 	allowedExtensions?: string;
 
 	/**
+	 * When true, the uploader does not render its own modal body and footer
+	 * wrappers; the host renders the action buttons received through
+	 * `onActionsChange` in its own modal footer.
+	 */
+	embedded?: boolean;
+
+	/**
 	 * List of files that will represent the initial state of files to upload.
 	 */
 	files: FileData[];
@@ -44,6 +51,12 @@ export type FilesUploaderComponent = React.ComponentType<{
 	groupId?: number;
 
 	maxFileSize?: number;
+
+	/**
+	 * Called when the uploader's action buttons change. Only fires when
+	 * `embedded` is true.
+	 */
+	onActionsChange?: (actions: React.ReactNode) => void;
 
 	/**
 	 * Callback for when upload is done in both cases: by success, or user cancelation.
@@ -185,6 +198,8 @@ function ItemSelectorModal<T extends Record<string, any>>({
 	const [view, setViewType] = useState<'fds' | 'upload'>('fds');
 	const [filesToUpload, setFilesToUpload] = useState<FileData[]>([]);
 	const [fdsRefreshKey, setFdsRefreshKey] = useState(0);
+	const [uploaderActions, setUploaderActions] =
+		useState<React.ReactNode>(null);
 
 	useEffect(() => {
 		if (!open) {
@@ -313,9 +328,11 @@ function ItemSelectorModal<T extends Record<string, any>>({
 				{view === 'upload' && FilesUploaderComponent && (
 					<FilesUploaderComponent
 						allowedExtensions={allowedExtensions}
+						embedded
 						files={filesToUpload}
 						groupId={groupId}
 						maxFileSize={maxFileSize}
+						onActionsChange={setUploaderActions}
 						onCloseUploadView={() => {
 							setViewType('fds');
 							setFilesToUpload([]);
@@ -324,6 +341,12 @@ function ItemSelectorModal<T extends Record<string, any>>({
 					/>
 				)}
 			</ClayModal.Body>
+
+			{view === 'upload' && uploaderActions && (
+				<ClayModal.Footer
+					last={uploaderActions as JSX.Element}
+				/>
+			)}
 
 			{view === 'fds' && (
 				<ClayModal.Footer
