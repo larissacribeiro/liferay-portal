@@ -9,6 +9,8 @@ import React, {ElementType} from 'react';
 
 import {DEFAULT_VALUE_SUPPORTED_BUSINESS_TYPES} from '../../../../utils/constants';
 import {ObjectFieldErrors} from '../../ObjectFieldFormBase';
+import {AutocompleteContainer} from './AutocompleteContainer';
+import {BlockedDomainsContainer} from './BlockedDomainsContainer';
 import {DefaultValueContainer} from './DefaultValueContainer';
 import {ReadOnlyContainer} from './ReadOnlyContainer';
 
@@ -53,11 +55,8 @@ export function AdvancedTab({
 		values.required ||
 		values.system;
 	const hasDefaultValue =
-		(values.businessType &&
-			DEFAULT_VALUE_SUPPORTED_BUSINESS_TYPES.includes(
-				values.businessType
-			)) ||
-		values.businessType === 'Picklist';
+		values.businessType &&
+		DEFAULT_VALUE_SUPPORTED_BUSINESS_TYPES.includes(values.businessType);
 
 	return (
 		<>
@@ -106,6 +105,32 @@ export function AdvancedTab({
 						values={values}
 					/>
 				</ContainerWrapper>
+			)}
+
+			{values.businessType === 'Email' && (
+				<>
+					<ContainerWrapper
+						displayTitle={Liferay.Language.get('blocked-domains')}
+						title={Liferay.Language.get('blocked-domains')}
+					>
+						<BlockedDomainsContainer
+							onSubmit={onSubmit}
+							setValues={setValues}
+							values={values}
+						/>
+					</ContainerWrapper>
+
+					<ContainerWrapper
+						displayTitle={Liferay.Language.get('autocomplete')}
+						title={Liferay.Language.get('autocomplete')}
+					>
+						<AutocompleteContainer
+							onSubmit={onSubmit}
+							setValues={setValues}
+							values={values}
+						/>
+					</ContainerWrapper>
+				</>
 			)}
 		</>
 	);
