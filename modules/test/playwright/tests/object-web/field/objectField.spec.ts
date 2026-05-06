@@ -30,6 +30,7 @@ const test = mergeTests(
 	apiHelpersTest,
 	dataApiHelpersTest,
 	featureFlagsTest({
+		'LPD-70673': {enabled: true}, // Email field
 		'LPD-83570': {enabled: true}, // Phone Number field
 	}),
 	loginTest(),
@@ -966,6 +967,61 @@ test.describe('Manage object fields through Model Builder', () => {
 });
 
 test.describe('Manage objectFields through Objects Admin UI', () => {
+	test(
+		'can add blocked domains on Email field',
+		{tag: ['@LPD-70673']},
+		async ({apiHelpers, objectFieldsPage}) => {
+			const objectFieldLabel = `emailField${getRandomInt()}`;
+			const blockedDomain = '@gmail.com';
+
+			const objectDefinition =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					status: {code: 0},
+				});
+
+			apiHelpers.data.push({
+				id: objectDefinition.id,
+				type: 'objectDefinition',
+			});
+
+			await test.step('Navigate and add an Email field', async () => {
+				await objectFieldsPage.goto(objectDefinition.label.en_US);
+
+				await objectFieldsPage.addObjectField({
+					objectFieldBusinessType: 'Email',
+					objectFieldLabel,
+				});
+			});
+
+			await test.step('Configure blocked domains in the Advanced tab', async () => {
+				await objectFieldsPage.openObjectField(objectFieldLabel);
+
+				await objectFieldsPage.advancedTab.click();
+
+				const input =
+					objectFieldsPage.iframeLocator.getByPlaceholder(
+						'Add Domain'
+					);
+
+				await input.fill(blockedDomain);
+
+				await input.press('Enter');
+
+				await objectFieldsPage.saveObjectField();
+			});
+
+			await test.step('Verify the blocked domain is saved', async () => {
+				await objectFieldsPage.openObjectField(objectFieldLabel);
+
+				await objectFieldsPage.advancedTab.click();
+
+				await expect(
+					objectFieldsPage.iframeLocator.getByText(blockedDomain)
+				).toBeVisible();
+			});
+		}
+	);
+
 	test('can create and edit a formula field on a custom object', async ({
 		apiHelpers,
 		objectFieldsPage,
@@ -1198,6 +1254,10 @@ test.describe('Manage objectFields through Objects Admin UI', () => {
 			{
 				objectFieldBusinessType: 'Decimal',
 				objectFieldLabel: `decimal${getRandomInt()}`,
+			},
+			{
+				objectFieldBusinessType: 'Email',
+				objectFieldLabel: `email${getRandomInt()}`,
 			},
 			{
 				objectFieldBusinessType: 'Encrypted',
@@ -1648,6 +1708,70 @@ test.describe('Manage objectFields through Objects Admin UI', () => {
 				await expect(objectFieldsPage.prefixDropdown).toHaveText(
 					selectedPrefix
 				);
+			});
+		}
+	);
+
+	test(
+		'can enable autocomplete and add domains on an Email field',
+		{tag: ['@LPD-70673']},
+		async ({apiHelpers, objectFieldsPage}) => {
+			const objectFieldLabel = `emailField${getRandomInt()}`;
+			const autocompleteDomain = '@liferay.com';
+
+			const objectDefinition =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					status: {code: 0},
+				});
+
+			apiHelpers.data.push({
+				id: objectDefinition.id,
+				type: 'objectDefinition',
+			});
+
+			await test.step('Navigate and add an Email field', async () => {
+				await objectFieldsPage.goto(objectDefinition.label.en_US);
+
+				await objectFieldsPage.addObjectField({
+					objectFieldBusinessType: 'Email',
+					objectFieldLabel,
+				});
+			});
+
+			await test.step('Enable autocomplete and add a domain in the Advanced tab', async () => {
+				await objectFieldsPage.openObjectField(objectFieldLabel);
+
+				await objectFieldsPage.advancedTab.click();
+
+				await objectFieldsPage.iframeLocator
+					.getByRole('switch', {name: 'Enable Autocomplete'})
+					.check();
+
+				const input = objectFieldsPage.iframeLocator
+					.getByPlaceholder('Add Domain')
+					.last();
+
+				await input.fill(autocompleteDomain);
+
+				await input.press('Enter');
+
+				await objectFieldsPage.saveObjectField();
+			});
+
+			await test.step('Verify autocomplete is enabled and the domain is saved', async () => {
+				await objectFieldsPage.openObjectField(objectFieldLabel);
+
+				await objectFieldsPage.advancedTab.click();
+
+				await expect(
+					objectFieldsPage.iframeLocator.getByRole('switch', {
+						name: 'Enable Autocomplete',
+					})
+				).toBeChecked();
+
+				await expect(
+					objectFieldsPage.iframeLocator.getByText(autocompleteDomain)
+				).toBeVisible();
 			});
 		}
 	);
@@ -3343,6 +3467,110 @@ test.describe('Manage object fields default value properties', () => {
 			await modelBuilderRightSidebarPage.useDefaultValueToggle.uncheck();
 
 			await expect(rightSidebar).toHaveCSS('width', '320px');
+		}
+	);
+
+	test(
+		'normalizes email default value to lowercase',
+		{tag: ['@LPD-70673']},
+		async ({apiHelpers, objectFieldsPage}) => {
+			const objectFieldLabel = `emailField${getRandomInt()}`;
+
+			const objectDefinition =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					status: {code: 0},
+				});
+
+			apiHelpers.data.push({
+				id: objectDefinition.id,
+				type: 'objectDefinition',
+			});
+
+			await test.step('Add an Email field and set a mixed-case default value', async () => {
+				await objectFieldsPage.goto(objectDefinition.label.en_US);
+
+				await objectFieldsPage.addObjectField({
+					objectFieldBusinessType: 'Email',
+					objectFieldLabel,
+				});
+
+				await objectFieldsPage.openObjectField(objectFieldLabel);
+
+				await objectFieldsPage.advancedTab.click();
+
+				await objectFieldsPage.useDefaultValueToggle.check();
+
+				await objectFieldsPage.iframeLocator
+					.getByPlaceholder('Enter a default value.')
+					.fill('User@Example.com');
+
+				await objectFieldsPage.saveObjectField();
+			});
+
+			await test.step('Verify the stored default value is lowercase', async () => {
+				await objectFieldsPage.openObjectField(objectFieldLabel);
+
+				await objectFieldsPage.advancedTab.click();
+
+				await expect(
+					objectFieldsPage.iframeLocator.getByPlaceholder(
+						'Enter a default value.'
+					)
+				).toHaveValue('user@example.com');
+			});
+		}
+	);
+
+	test(
+		'shows error for email default value when value it is not valid',
+		{tag: ['@LPD-70673']},
+		async ({apiHelpers, objectFieldsPage, page}) => {
+			const objectFieldLabel = `emailField${getRandomInt()}`;
+
+			const objectDefinition =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					status: {code: 0},
+				});
+
+			apiHelpers.data.push({
+				id: objectDefinition.id,
+				type: 'objectDefinition',
+			});
+
+			const invalidEmail = 'notanemail';
+
+			await test.step('Add an Email field and enter an invalid default value', async () => {
+				await objectFieldsPage.goto(objectDefinition.label.en_US);
+
+				await objectFieldsPage.addObjectField({
+					objectFieldBusinessType: 'Email',
+					objectFieldLabel,
+				});
+
+				await objectFieldsPage.openObjectField(objectFieldLabel);
+
+				await objectFieldsPage.advancedTab.click();
+
+				await objectFieldsPage.useDefaultValueToggle.check();
+
+				await objectFieldsPage.iframeLocator
+					.getByPlaceholder('Enter a default value.')
+					.fill(invalidEmail);
+
+				await objectFieldsPage.editFieldSaveButton.click();
+			});
+
+			await test.step('Verify the save is rejected and the panel stays open', async () => {
+				await waitForAlert(
+					page,
+					`The value ${invalidEmail} of setting "defaultValue" is invalid for object field "${objectFieldLabel}"`,
+					{type: 'danger'}
+				);
+
+				await expect(
+					objectFieldsPage.editFieldSaveButton
+				).toBeVisible();
+			});
 		}
 	);
 });
