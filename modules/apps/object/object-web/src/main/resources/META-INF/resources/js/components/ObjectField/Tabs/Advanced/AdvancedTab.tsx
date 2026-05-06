@@ -9,9 +9,9 @@ import React, {ElementType} from 'react';
 
 import {DEFAULT_VALUE_SUPPORTED_BUSINESS_TYPES} from '../../../../utils/constants';
 import {ObjectFieldErrors} from '../../ObjectFieldFormBase';
+import {AutocompleteContainer} from './AutocompleteContainer';
 import {DefaultValueContainer} from './DefaultValueContainer';
 import {ReadOnlyContainer} from './ReadOnlyContainer';
-
 interface AdvancedTabProps {
 	ckEditor5Config?: object;
 	containerWrapper: ElementType;
@@ -53,11 +53,10 @@ export function AdvancedTab({
 		values.required ||
 		values.system;
 	const hasDefaultValue =
-		(values.businessType &&
+		values.businessType &&
 			DEFAULT_VALUE_SUPPORTED_BUSINESS_TYPES.includes(
 				values.businessType
-			)) ||
-		values.businessType === 'Picklist';
+			);
 
 	return (
 		<>
@@ -106,6 +105,38 @@ export function AdvancedTab({
 						values={values}
 					/>
 				</ContainerWrapper>
+			)}
+
+			{values.businessType === 'Email' && (
+				<>
+				<ContainerWrapper
+					collapsable
+					defaultExpanded
+					disabled={false}
+					displayTitle={Liferay.Language.get('blocked-domains')}
+					displayType="unstyled"
+					title={Liferay.Language.get('blocked-domains')}
+				>
+
+				</ContainerWrapper>
+
+				<ContainerWrapper
+					collapsable
+					defaultExpanded
+					disabled={false}
+					displayTitle={Liferay.Language.get('autocomplete')}
+					displayType="unstyled"
+					title={Liferay.Language.get('autocomplete')}
+				>
+					<AutocompleteContainer 
+						errors={errors}
+						onSubmit={onSubmit}
+						setValues={setValues} 
+						values={values}					
+					/>
+				</ContainerWrapper>
+
+</>
 			)}
 		</>
 	);
