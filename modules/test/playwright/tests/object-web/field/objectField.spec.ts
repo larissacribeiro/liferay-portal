@@ -1050,111 +1050,6 @@ test.describe('Manage objectFields through Objects Admin UI', () => {
 		).toHaveValue('idfield_name1 + field_name2');
 	});
 
-	test('can edit an aggregation field', async ({
-		apiHelpers,
-		objectFieldsPage,
-		page,
-	}) => {
-		const objectDefinition =
-			await apiHelpers.objectAdmin.postRandomObjectDefinition({
-				status: {code: 0},
-			});
-
-		const objectDefinition2 =
-			await apiHelpers.objectAdmin.postRandomObjectDefinition({
-				status: {code: 0},
-			});
-
-		apiHelpers.data.push({
-			id: objectDefinition.id,
-			type: 'objectDefinition',
-		});
-
-		const objectRelationshipAPIClient = await apiHelpers.buildRestClient(
-			ObjectRelationshipAPI
-		);
-
-		const objectRelationship1 =
-			'objectRelationship' + Math.floor(Math.random() * 99);
-
-		await objectRelationshipAPIClient.postObjectDefinitionByExternalReferenceCodeObjectRelationship(
-			objectDefinition.externalReferenceCode!,
-			{
-				label: {en_US: objectRelationship1},
-				name: objectRelationship1,
-				objectDefinitionExternalReferenceCode2:
-					objectDefinition.externalReferenceCode,
-				objectDefinitionId2: objectDefinition.id,
-				objectDefinitionName2: objectDefinition.name,
-				type: 'oneToMany',
-			}
-		);
-
-		const objectRelationship2 =
-			'objectRelationship' + Math.floor(Math.random() * 99);
-
-		await objectRelationshipAPIClient.postObjectDefinitionByExternalReferenceCodeObjectRelationship(
-			objectDefinition.externalReferenceCode!,
-			{
-				label: {en_US: objectRelationship2},
-				name: objectRelationship2,
-				objectDefinitionExternalReferenceCode2:
-					objectDefinition2.externalReferenceCode,
-				objectDefinitionId2: objectDefinition2.id,
-				objectDefinitionName2: objectDefinition2.name,
-				type: 'oneToMany',
-			}
-		);
-
-		await objectFieldsPage.goto(objectDefinition.label['en_US']);
-
-		const objectFieldLabel = 'Custom Aggregation';
-
-		await objectFieldsPage.addObjectField({
-			aggregationField: 'ID',
-			aggregationFieldFunction: 'Max',
-			aggregationFieldRelationship: objectRelationship1,
-			objectFieldBusinessType: 'Aggregation',
-			objectFieldLabel,
-		});
-
-		await page.getByRole('link', {name: objectFieldLabel}).click();
-
-		await objectFieldsPage.iframeLocator
-			.getByLabel('LabelMandatory')
-			.fill(`${objectFieldLabel} Updated`);
-
-		await objectFieldsPage.iframeLocator
-			.getByLabel('RelationshipMandatory')
-			.click();
-
-		await objectFieldsPage.iframeLocator
-			.getByRole('option', {name: objectRelationship2})
-			.click();
-
-		await objectFieldsPage.iframeLocator
-			.getByLabel('FunctionMandatory')
-			.click();
-
-		await objectFieldsPage.iframeLocator
-			.getByRole('option', {name: 'Min'})
-			.click();
-
-		await objectFieldsPage.iframeLocator
-			.getByLabel('FieldMandatory')
-			.click();
-
-		await objectFieldsPage.iframeLocator
-			.getByRole('option', {name: 'ID'})
-			.click();
-
-		await objectFieldsPage.editFieldSaveButton.click();
-
-		await expect(
-			page.getByRole('link', {name: `${objectFieldLabel} Updated`})
-		).toBeVisible();
-	});
-
 	test('can create a formula field on a custom object', async ({
 		apiHelpers,
 		objectFieldsPage,
@@ -1567,6 +1462,193 @@ test.describe('Manage objectFields through Objects Admin UI', () => {
 			await expect(
 				page.getByRole('row').filter({hasText: fieldName})
 			).toHaveCount(0);
+		}
+	);
+
+	test('can edit an aggregation field', async ({
+		apiHelpers,
+		objectFieldsPage,
+		page,
+	}) => {
+		const objectDefinition =
+			await apiHelpers.objectAdmin.postRandomObjectDefinition({
+				status: {code: 0},
+			});
+
+		const objectDefinition2 =
+			await apiHelpers.objectAdmin.postRandomObjectDefinition({
+				status: {code: 0},
+			});
+
+		apiHelpers.data.push({
+			id: objectDefinition.id,
+			type: 'objectDefinition',
+		});
+
+		const objectRelationshipAPIClient = await apiHelpers.buildRestClient(
+			ObjectRelationshipAPI
+		);
+
+		const objectRelationship1 =
+			'objectRelationship' + Math.floor(Math.random() * 99);
+
+		await objectRelationshipAPIClient.postObjectDefinitionByExternalReferenceCodeObjectRelationship(
+			objectDefinition.externalReferenceCode!,
+			{
+				label: {en_US: objectRelationship1},
+				name: objectRelationship1,
+				objectDefinitionExternalReferenceCode2:
+					objectDefinition.externalReferenceCode,
+				objectDefinitionId2: objectDefinition.id,
+				objectDefinitionName2: objectDefinition.name,
+				type: 'oneToMany',
+			}
+		);
+
+		const objectRelationship2 =
+			'objectRelationship' + Math.floor(Math.random() * 99);
+
+		await objectRelationshipAPIClient.postObjectDefinitionByExternalReferenceCodeObjectRelationship(
+			objectDefinition.externalReferenceCode!,
+			{
+				label: {en_US: objectRelationship2},
+				name: objectRelationship2,
+				objectDefinitionExternalReferenceCode2:
+					objectDefinition2.externalReferenceCode,
+				objectDefinitionId2: objectDefinition2.id,
+				objectDefinitionName2: objectDefinition2.name,
+				type: 'oneToMany',
+			}
+		);
+
+		await objectFieldsPage.goto(objectDefinition.label['en_US']);
+
+		const objectFieldLabel = 'Custom Aggregation';
+
+		await objectFieldsPage.addObjectField({
+			aggregationField: 'ID',
+			aggregationFieldFunction: 'Max',
+			aggregationFieldRelationship: objectRelationship1,
+			objectFieldBusinessType: 'Aggregation',
+			objectFieldLabel,
+		});
+
+		await page.getByRole('link', {name: objectFieldLabel}).click();
+
+		await objectFieldsPage.iframeLocator
+			.getByLabel('LabelMandatory')
+			.fill(`${objectFieldLabel} Updated`);
+
+		await objectFieldsPage.iframeLocator
+			.getByLabel('RelationshipMandatory')
+			.click();
+
+		await objectFieldsPage.iframeLocator
+			.getByRole('option', {name: objectRelationship2})
+			.click();
+
+		await objectFieldsPage.iframeLocator
+			.getByLabel('FunctionMandatory')
+			.click();
+
+		await objectFieldsPage.iframeLocator
+			.getByRole('option', {name: 'Min'})
+			.click();
+
+		await objectFieldsPage.iframeLocator
+			.getByLabel('FieldMandatory')
+			.click();
+
+		await objectFieldsPage.iframeLocator
+			.getByRole('option', {name: 'ID'})
+			.click();
+
+		await objectFieldsPage.editFieldSaveButton.click();
+
+		await expect(
+			page.getByRole('link', {name: `${objectFieldLabel} Updated`})
+		).toBeVisible();
+	});
+
+	test(
+		'can edit the prefix type and prefix for a phone number field',
+		{tag: ['@LPD-83570']},
+		async ({apiHelpers, objectFieldsPage}) => {
+			let objectDefinition: ObjectDefinition;
+			let selectedPrefixType: string;
+			let selectedPrefix: string;
+
+			const objectFieldLabel = `phoneNumber${getRandomInt()}`;
+
+			await test.step('Create required definitions', async () => {
+				const listTypeDefinition =
+					await apiHelpers.listTypeAdmin.postRandomListTypeDefinition();
+
+				apiHelpers.data.push({
+					id: listTypeDefinition.id,
+					type: 'listTypeDefinition',
+				});
+
+				objectDefinition =
+					await apiHelpers.objectAdmin.postRandomObjectDefinition({
+						status: {code: 0},
+					});
+
+				apiHelpers.data.push({
+					id: objectDefinition.id,
+					type: 'objectDefinition',
+				});
+			});
+
+			await test.step('Navigate to the object definition and add a phone number field', async () => {
+				await objectFieldsPage.goto(objectDefinition.label!['en_US']);
+
+				await objectFieldsPage.addObjectField({
+					objectFieldBusinessType: 'Phone Number',
+					objectFieldLabel,
+				});
+			});
+
+			await test.step('Edit the prefix type and prefix for the phone number field', async () => {
+				await objectFieldsPage.openObjectField(objectFieldLabel);
+
+				await objectFieldsPage.prefixTypeDropdown.click();
+
+				const prefixTypeOption =
+					objectFieldsPage.iframeLocator.getByRole('option', {
+						exact: true,
+						name: 'Fixed',
+					});
+
+				selectedPrefixType = await prefixTypeOption.innerText();
+
+				await prefixTypeOption.click();
+
+				await objectFieldsPage.prefixDropdown.click();
+
+				const prefixOption = objectFieldsPage.iframeLocator
+					.getByRole('option')
+					.nth(1);
+
+				await prefixOption.click();
+
+				selectedPrefix =
+					await objectFieldsPage.prefixDropdown.innerText();
+
+				await objectFieldsPage.saveObjectField();
+			});
+
+			await test.step('Verify the updated prefix type and prefix are saved', async () => {
+				await objectFieldsPage.openObjectField(objectFieldLabel);
+
+				await expect(objectFieldsPage.prefixTypeDropdown).toHaveText(
+					selectedPrefixType
+				);
+
+				await expect(objectFieldsPage.prefixDropdown).toHaveText(
+					selectedPrefix
+				);
+			});
 		}
 	);
 
@@ -2434,88 +2516,6 @@ test.describe('Manage objectFields through Objects Admin UI', () => {
 			});
 		});
 	});
-
-	test(
-		'can edit the prefix type and prefix for a phone number field',
-		{tag: ['@LPD-83570']},
-		async ({apiHelpers, objectFieldsPage}) => {
-			let objectDefinition: ObjectDefinition;
-			let selectedPrefixType: string;
-			let selectedPrefix: string;
-
-			const objectFieldLabel = `phoneNumber${getRandomInt()}`;
-
-			await test.step('Create required definitions', async () => {
-				const listTypeDefinition =
-					await apiHelpers.listTypeAdmin.postRandomListTypeDefinition();
-
-				apiHelpers.data.push({
-					id: listTypeDefinition.id,
-					type: 'listTypeDefinition',
-				});
-
-				objectDefinition =
-					await apiHelpers.objectAdmin.postRandomObjectDefinition({
-						status: {code: 0},
-					});
-
-				apiHelpers.data.push({
-					id: objectDefinition.id,
-					type: 'objectDefinition',
-				});
-			});
-
-			await test.step('Navigate to the object definition and add a phone number field', async () => {
-				await objectFieldsPage.goto(objectDefinition.label!['en_US']);
-
-				await objectFieldsPage.addObjectField({
-					objectFieldBusinessType: 'Phone Number',
-					objectFieldLabel,
-				});
-			});
-
-			await test.step('Edit the prefix type and prefix for the phone number field', async () => {
-				await objectFieldsPage.openObjectField(objectFieldLabel);
-
-				await objectFieldsPage.prefixTypeDropdown.click();
-
-				const prefixTypeOption =
-					objectFieldsPage.iframeLocator.getByRole('option', {
-						exact: true,
-						name: 'Fixed',
-					});
-
-				selectedPrefixType = await prefixTypeOption.innerText();
-
-				await prefixTypeOption.click();
-
-				await objectFieldsPage.prefixDropdown.click();
-
-				const prefixOption = objectFieldsPage.iframeLocator
-					.getByRole('option')
-					.nth(1);
-
-				await prefixOption.click();
-
-				selectedPrefix =
-					await objectFieldsPage.prefixDropdown.innerText();
-
-				await objectFieldsPage.saveObjectField();
-			});
-
-			await test.step('Verify the updated prefix type and prefix are saved', async () => {
-				await objectFieldsPage.openObjectField(objectFieldLabel);
-
-				await expect(objectFieldsPage.prefixTypeDropdown).toHaveText(
-					selectedPrefixType
-				);
-
-				await expect(objectFieldsPage.prefixDropdown).toHaveText(
-					selectedPrefix
-				);
-			});
-		}
-	);
 });
 
 test.describe('Manage object fields default value properties', () => {
