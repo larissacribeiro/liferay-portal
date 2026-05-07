@@ -110,7 +110,11 @@ export function AdvancedTab({
 			{values.businessType === 'Email' && (
 				<>
 					<ContainerWrapper
+						collapsable
+						defaultExpanded
+						disabled={false}
 						displayTitle={Liferay.Language.get('blocked-domains')}
+						displayType="unstyled"
 						title={Liferay.Language.get('blocked-domains')}
 					>
 						<BlockedDomainsContainer
@@ -121,7 +125,11 @@ export function AdvancedTab({
 					</ContainerWrapper>
 
 					<ContainerWrapper
+						collapsable
+						defaultExpanded
+						disabled={false}
 						displayTitle={Liferay.Language.get('autocomplete')}
+						displayType="unstyled"
 						title={Liferay.Language.get('autocomplete')}
 					>
 						<AutocompleteContainer
