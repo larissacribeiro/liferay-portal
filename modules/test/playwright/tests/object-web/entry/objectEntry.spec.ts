@@ -63,6 +63,7 @@ const test = mergeTests(
 	isolatedSiteTest,
 	editObjectDefinitionPagesTest,
 	featureFlagsTest({
+		'LPD-70673': {enabled: true}, // Email field
 		'LPD-83570': {enabled: true}, // Phone Number field
 		'LPS-178052': {enabled: true},
 	}),
@@ -5638,6 +5639,315 @@ test.describe('Manage object entries through View Object Entries', () => {
 				await expect(
 					fieldContainer.locator('input[type="tel"]')
 				).toHaveValue(localNumber);
+			});
+		}
+	);
+
+	test(
+		'can add an entry with an Email field',
+		{tag: ['@LPD-70673']},
+		async ({apiHelpers, page, viewObjectEntriesPage}) => {
+			const email = 'user@example.com';
+			const objectFieldLabel = `emailField${getRandomInt()}`;
+
+			const fieldContainer = page.locator(
+				`[data-field-name="${objectFieldLabel}"]`
+			);
+
+			let objectDefinition: ObjectDefinition;
+
+			await test.step('Create an object definition with an Email field', async () => {
+				const objectDefinitionAPIClient =
+					await apiHelpers.buildRestClient(ObjectDefinitionAPI);
+
+				const response =
+					await objectDefinitionAPIClient.postObjectDefinition({
+						active: true,
+						externalReferenceCode: getRandomString(),
+						label: {
+							en_US: getRandomString(),
+						},
+						name: 'ObjectDefinitionName' + getRandomInt(),
+						objectFields: [
+							{
+								DBType: 'String' as const,
+								businessType: 'Email' as const,
+								indexedAsKeyword: false,
+								indexedLanguageId: '',
+								label: {en_US: objectFieldLabel},
+								localized: false,
+								name: objectFieldLabel,
+								objectFieldSettings: [],
+								readOnly: 'false',
+								readOnlyConditionExpression: '',
+								required: false,
+								state: false,
+								system: false,
+								type: 'String' as const,
+								unique: false,
+							},
+						],
+						panelCategoryKey: 'control_panel.object',
+						pluralLabel: {
+							en_US: 'NewObject',
+						},
+						portlet: true,
+						scope: 'company',
+						status: {
+							code: 0,
+						},
+					});
+
+				objectDefinition = response.body;
+
+				apiHelpers.data.push({
+					id: objectDefinition.id,
+					type: 'objectDefinition',
+				});
+			});
+
+			await test.step('Navigate to the object definition and add an entry', async () => {
+				await viewObjectEntriesPage.goto(objectDefinition.className);
+
+				await viewObjectEntriesPage.clickAddObjectEntry(
+					objectDefinition.label['en_US']
+				);
+			});
+
+			await test.step('Fill the email field and save the entry', async () => {
+				await fieldContainer
+					.locator('input[type="text"]')
+					.fill(email);
+
+				await viewObjectEntriesPage.saveObjectEntryButton.click();
+
+				await expect(
+					viewObjectEntriesPage.successMessage
+				).toBeVisible();
+			});
+
+			await test.step('Verify the email field value is saved', async () => {
+				await viewObjectEntriesPage.backButton.click();
+
+				await viewObjectEntriesPage.frontendDatasetItems
+					.first()
+					.click();
+
+				await expect(
+					fieldContainer.locator('input[type="text"]')
+				).toHaveValue(email);
+			});
+		}
+	);
+
+	test(
+		'can add an entry with an Email field with autocomplete enabled and select a domain suggestion',
+		{tag: ['@LPD-70673']},
+		async ({apiHelpers, page, viewObjectEntriesPage}) => {
+			const autocompleteDomain = '@liferay.com';
+			const objectFieldLabel = `emailField${getRandomInt()}`;
+
+			const fieldContainer = page.locator(
+				`[data-field-name="${objectFieldLabel}"]`
+			);
+
+			let objectDefinition: ObjectDefinition;
+
+			await test.step('Create an object definition with autocomplete enabled', async () => {
+				const objectDefinitionAPIClient =
+					await apiHelpers.buildRestClient(ObjectDefinitionAPI);
+
+				const response =
+					await objectDefinitionAPIClient.postObjectDefinition({
+						active: true,
+						externalReferenceCode: getRandomString(),
+						label: {
+							en_US: getRandomString(),
+						},
+						name: 'ObjectDefinitionName' + getRandomInt(),
+						objectFields: [
+							{
+								DBType: 'String' as const,
+								businessType: 'Email' as const,
+								indexedAsKeyword: false,
+								indexedLanguageId: '',
+								label: {en_US: objectFieldLabel},
+								localized: false,
+								name: objectFieldLabel,
+								objectFieldSettings: [
+									{
+										name: 'autocompleteEnabled',
+										value: 'true',
+									},
+									{
+										name: 'autocompleteDomains',
+										value: 'liferay.com,gmail.com',
+									},
+								] as any,
+								readOnly: 'false',
+								readOnlyConditionExpression: '',
+								required: false,
+								state: false,
+								system: false,
+								type: 'String' as const,
+								unique: false,
+							},
+						],
+						panelCategoryKey: 'control_panel.object',
+						pluralLabel: {
+							en_US: 'NewObject',
+						},
+						portlet: true,
+						scope: 'company',
+						status: {
+							code: 0,
+						},
+					});
+
+				objectDefinition = response.body;
+
+				apiHelpers.data.push({
+					id: objectDefinition.id,
+					type: 'objectDefinition',
+				});
+			});
+
+			await test.step('Navigate to the object definition and add an entry', async () => {
+				await viewObjectEntriesPage.goto(objectDefinition.className);
+
+				await viewObjectEntriesPage.clickAddObjectEntry(
+					objectDefinition.label['en_US']
+				);
+			});
+
+			await test.step('Type a partial email and select a domain suggestion', async () => {
+				await fieldContainer
+					.locator('input[type="text"]')
+					.fill('user@li');
+
+				await expect(
+					page.getByText(autocompleteDomain)
+				).toBeVisible();
+
+				await expect(
+					page.getByText('@gmail.com')
+				).not.toBeVisible();
+
+				await page.getByText(autocompleteDomain).click();
+
+				await expect(
+					fieldContainer.locator('input[type="text"]')
+				).toHaveValue('user@liferay.com');
+			});
+
+			await test.step('Save the entry and verify the stored value', async () => {
+				await viewObjectEntriesPage.saveObjectEntryButton.click();
+
+				await expect(
+					viewObjectEntriesPage.successMessage
+				).toBeVisible();
+
+				await viewObjectEntriesPage.backButton.click();
+
+				await viewObjectEntriesPage.frontendDatasetItems
+					.first()
+					.click();
+
+				await expect(
+					fieldContainer.locator('input[type="text"]')
+				).toHaveValue('user@liferay.com');
+			});
+		}
+	);
+
+	test(
+		'shows an error when entering an email with a blocked domain',
+		{tag: ['@LPD-70673']},
+		async ({apiHelpers, page, viewObjectEntriesPage}) => {
+			const blockedDomain = 'gmail.com';
+			const objectFieldLabel = `emailField${getRandomInt()}`;
+
+			const fieldContainer = page.locator(
+				`[data-field-name="${objectFieldLabel}"]`
+			);
+
+			let objectDefinition: ObjectDefinition;
+
+			await test.step('Create an object definition with a blocked domain', async () => {
+				const objectDefinitionAPIClient =
+					await apiHelpers.buildRestClient(ObjectDefinitionAPI);
+
+				const response =
+					await objectDefinitionAPIClient.postObjectDefinition({
+						active: true,
+						externalReferenceCode: getRandomString(),
+						label: {
+							en_US: getRandomString(),
+						},
+						name: 'ObjectDefinitionName' + getRandomInt(),
+						objectFields: [
+							{
+								DBType: 'String' as const,
+								businessType: 'Email' as const,
+								indexedAsKeyword: false,
+								indexedLanguageId: '',
+								label: {en_US: objectFieldLabel},
+								localized: false,
+								name: objectFieldLabel,
+								objectFieldSettings: [
+									{
+										name: 'blockedDomains',
+										value: blockedDomain,
+									},
+								] as any,
+								readOnly: 'false',
+								readOnlyConditionExpression: '',
+								required: false,
+								state: false,
+								system: false,
+								type: 'String' as const,
+								unique: false,
+							},
+						],
+						panelCategoryKey: 'control_panel.object',
+						pluralLabel: {
+							en_US: 'NewObject',
+						},
+						portlet: true,
+						scope: 'company',
+						status: {
+							code: 0,
+						},
+					});
+
+				objectDefinition = response.body;
+
+				apiHelpers.data.push({
+					id: objectDefinition.id,
+					type: 'objectDefinition',
+				});
+			});
+
+			await test.step('Navigate and attempt to save an entry with the blocked domain', async () => {
+				await viewObjectEntriesPage.goto(objectDefinition.className);
+
+				await viewObjectEntriesPage.clickAddObjectEntry(
+					objectDefinition.label['en_US']
+				);
+
+				await fieldContainer
+					.locator('input[type="text"]')
+					.fill(`user@${blockedDomain}`);
+
+				await viewObjectEntriesPage.saveObjectEntryButton.click();
+			});
+
+			await test.step('Verify the blocked domain error is shown', async () => {
+				await waitForAlert(
+					page,
+					`The email domain "${blockedDomain}" is blocked for object field "${objectFieldLabel}".`,
+					{type: 'danger'}
+				);
 			});
 		}
 	);
