@@ -84,6 +84,24 @@
 			"DBType": "Clob",
 			"businessType": "LongText",
 			"defaultValue": "null",
+			"externalReferenceCode": "DISCLAIMER_MESSAGE",
+			"indexed": true,
+			"indexedLanguageId": "en_US",
+			"label": {
+				"en_US": "Disclaimer Message"
+			},
+			"localized": true,
+			"name": "disclaimerMessage",
+			"readOnly": false,
+			"readOnlyConditionExpression": "",
+			"required": true,
+			"system": true,
+			"type": "Clob"
+		},
+		{
+			"DBType": "Clob",
+			"businessType": "LongText",
+			"defaultValue": "null",
 			"externalReferenceCode": "INTRO_MESSAGE",
 			"indexed": true,
 			"indexedLanguageId": "en_US",
@@ -128,6 +146,24 @@
 			"name": "placeholderMessage",
 			"readOnly": false,
 			"readOnlyConditionExpression": "",
+			"system": true,
+			"type": "String"
+		},
+		{
+			"DBType": "String",
+			"businessType": "Text",
+			"defaultValue": "null",
+			"externalReferenceCode": "PRIVACY_POLICY_URL",
+			"indexed": true,
+			"indexedLanguageId": "en_US",
+			"label": {
+				"en_US": "Privacy Policy URL"
+			},
+			"localized": true,
+			"name": "privacyPolicyURL",
+			"readOnly": false,
+			"readOnlyConditionExpression": "",
+			"required": true,
 			"system": true,
 			"type": "String"
 		},
