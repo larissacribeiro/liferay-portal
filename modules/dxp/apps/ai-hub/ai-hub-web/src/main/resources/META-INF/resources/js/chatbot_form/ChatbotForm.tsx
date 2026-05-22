@@ -14,11 +14,12 @@ import {Provider} from '@clayui/provider';
 import {openToast} from '@liferay/object-js-components-web';
 import {InputLocalized} from 'frontend-js-components-web';
 import {sub} from 'frontend-js-web';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 import './ChatbotForm.scss';
 import {getAgentDefinitions} from '../agent_definition_form/services/AgentDefinitionService';
 import Toolbar from '../components/ToolBar';
+import LocalizedTextarea from '../components/localized_text_area';
 import {
 	deleteChatbotAgentDefinitionRelationship,
 	getChatbot,
@@ -135,6 +136,32 @@ export default function ChatbotForm({
 	const [companyLogoChanged, setCompanyLogoChanged] = useState(false);
 	const [companyLogoLoading, setCompanyLogoLoading] = useState(false);
 	const companyLogoInputRef = useRef<HTMLInputElement>(null);
+
+	const availableLocales = useMemo(
+		() =>
+			Object.entries(Liferay.Language.available).map(
+				([localeId, displayName]) => ({
+					displayName,
+					icon: localeId.replace(/_/g, '-').toLowerCase(),
+					localeId: localeId as Liferay.Language.Locale,
+				})
+			),
+		[]
+	);
+
+	const [
+		disclaimerMessageSelectedLocale,
+		setDisclaimerMessageSelectedLocale,
+	] = useState<Liferay.Language.Locale>(() => {
+		const defaultLang = Liferay.ThemeDisplay.getDefaultLanguageId();
+
+		return (
+			availableLocales.find((l) => l.localeId === defaultLang)
+				?.localeId ||
+			availableLocales[0]?.localeId ||
+			'en_US'
+		);
+	});
 
 	useEffect(() => {
 		getAgentDefinitions()
@@ -348,10 +375,12 @@ export default function ChatbotForm({
 					active: false,
 					companyLogo: undefined,
 					description: '',
+					disclaimerMessage_i18n: {},
 					externalReferenceCode: '',
 					introMessage_i18n: {},
 					notificationMessage_i18n: {},
 					placeholderMessage_i18n: {},
+					privacyPolicyURL_i18n: {},
 					r_accountToAIHubChatbots_accountEntryERC:
 						accountEntryExternalReferenceCode,
 					showCompanyLogo: true,
@@ -381,10 +410,13 @@ export default function ChatbotForm({
 						: chatbot.companyLogo,
 					companyLogoFileName: companyLogoAttachment?.name,
 					description: chatbot.description,
+					disclaimerMessage_i18n:
+						chatbot.disclaimerMessage_i18n ?? {},
 					externalReferenceCode: chatbot.externalReferenceCode,
 					introMessage_i18n: chatbot.introMessage_i18n,
 					notificationMessage_i18n: chatbot.notificationMessage_i18n,
 					placeholderMessage_i18n: chatbot.placeholderMessage_i18n,
+					privacyPolicyURL_i18n: chatbot.privacyPolicyURL_i18n ?? {},
 					r_accountToAIHubChatbots_accountEntryERC:
 						chatbot.r_accountToAIHubChatbots_accountEntryERC,
 					showCompanyLogo: chatbot.showCompanyLogo,
@@ -665,6 +697,88 @@ export default function ChatbotForm({
 												availableAgentDefinitions
 											}
 											spritemap={Liferay.Icons.spritemap}
+										/>
+									</ClayForm.Group>
+
+									<ClayForm.Group>
+										<label htmlFor="disclaimerMessage">
+											{Liferay.Language.get(
+												'disclaimer-message'
+											)}
+
+											<span className="ml-1 reference-mark text-warning">
+												<ClayIcon symbol="asterisk" />
+											</span>
+
+											<Provider
+												spritemap={
+													Liferay.Icons.spritemap
+												}
+											>
+												<ClayIcon
+													className="chatbot-help-icon ml-1"
+													symbol="question-circle"
+												/>
+											</Provider>
+										</label>
+
+										<LocalizedTextarea
+											availableLocales={availableLocales}
+											error=""
+											fieldName="disclaimerMessage_i18n"
+											id="disclaimerMessage"
+											onSelectedLocaleChange={
+												setDisclaimerMessageSelectedLocale
+											}
+											onTranslationsChange={(
+												translations
+											) =>
+												setFormData((prev) => ({
+													...prev,
+													disclaimerMessage_i18n:
+														translations,
+												}))
+											}
+											placeholder={Liferay.Language.get(
+												'disclaimer-message'
+											)}
+											selectedLocale={
+												disclaimerMessageSelectedLocale
+											}
+											translations={
+												(formData.disclaimerMessage_i18n as Liferay.Language.LocalizedValue<string>) ||
+												{}
+											}
+											value={
+												(formData.disclaimerMessage_i18n as Liferay.Language.LocalizedValue<string>) ||
+												{}
+											}
+										/>
+									</ClayForm.Group>
+
+									<ClayForm.Group>
+										<InputLocalized
+											id="privacyPolicyURL"
+											label={Liferay.Language.get(
+												'privacy-policy-url'
+											)}
+											name="privacyPolicyURL_i18n"
+											onChange={(value) =>
+												setFormData((prev) => ({
+													...prev,
+													privacyPolicyURL_i18n:
+														value,
+												}))
+											}
+											onSelectedLocaleChange={() => {}}
+											placeholder={Liferay.Language.get(
+												'privacy-policy-url'
+											)}
+											required={true}
+											translations={
+												(formData.privacyPolicyURL_i18n as LocalizedValue<string>) ||
+												{}
+											}
 										/>
 									</ClayForm.Group>
 

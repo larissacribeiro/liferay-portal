@@ -22,7 +22,7 @@ import './ContentRetriever.scss';
 
 import Icon from '@clayui/icon';
 
-import LocalizedTextarea from './components/localized_text_area';
+import LocalizedTextarea from '../components/localized_text_area';
 
 export default function ContentRetrieverForm({
 	backURL,
