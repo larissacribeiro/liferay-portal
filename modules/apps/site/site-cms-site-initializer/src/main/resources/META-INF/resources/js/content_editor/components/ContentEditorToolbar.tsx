@@ -62,6 +62,11 @@ export default function ContentEditorToolbar({
 	title: string;
 	type: string;
 }) {
+	const [aiMetadata, setAiMetadata] = useState<{
+		aiAssisted: boolean;
+		aiGeneratedAt: string;
+		aiReviewedBy: number;
+	} | null>(null);
 	const [displayDate, setDisplayDate] = useState<string>('');
 	const [formId, setFormId] = useState<string | undefined>();
 	const [redirect, setRedirect] = useState<string>(backURL);
@@ -126,7 +131,10 @@ export default function ContentEditorToolbar({
 	);
 
 	const handleSaveAsDraftClick = useCallback(() => {
-		flushSync(() => setRedirect(window.location.href));
+		flushSync(() => {
+			setRedirect(window.location.href);
+			setAiMetadata(readAndClearAIMetadata());
+		});
 
 		setSuccessMessage(
 			Liferay.Language.get('the-draft-was-saved-successfully')
@@ -134,7 +142,10 @@ export default function ContentEditorToolbar({
 	}, [setSuccessMessage]);
 
 	const handlePublishClick = useCallback(() => {
-		flushSync(() => setRedirect(backURL));
+		flushSync(() => {
+			setRedirect(backURL);
+			setAiMetadata(readAndClearAIMetadata());
+		});
 
 		clearSessionStates();
 
@@ -376,6 +387,31 @@ export default function ContentEditorToolbar({
 						value={displayDate}
 					/>
 				)}
+
+				{aiMetadata && (
+					<>
+						<ClayInput
+							form={formId}
+							name="aiAssisted"
+							type="hidden"
+							value={String(aiMetadata.aiAssisted)}
+						/>
+
+						<ClayInput
+							form={formId}
+							name="aiGeneratedAt"
+							type="hidden"
+							value={aiMetadata.aiGeneratedAt}
+						/>
+
+						<ClayInput
+							form={formId}
+							name="aiReviewedBy"
+							type="hidden"
+							value={String(aiMetadata.aiReviewedBy)}
+						/>
+					</>
+				)}
 			</Toolbar.Item>
 
 			{showModal ? (
@@ -420,6 +456,22 @@ function getSubmitTitle(title: string) {
 		</kbd>`
 		.replaceAll('\n', '')
 		.replaceAll('\t', '');
+}
+
+function readAndClearAIMetadata() {
+	const stored = window.sessionStorage.getItem('aiPendingMetadata');
+
+	if (!stored) {
+		return null;
+	}
+
+	window.sessionStorage.removeItem('aiPendingMetadata');
+
+	return JSON.parse(stored) as {
+		aiAssisted: boolean;
+		aiGeneratedAt: string;
+		aiReviewedBy: number;
+	};
 }
 
 function clearSessionStates() {
