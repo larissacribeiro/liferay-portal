@@ -390,6 +390,23 @@ if (ParamUtil.getBoolean(request, "showHeader", true)) {
 								});
 							}
 
+							const pendingAIMetadataRaw =
+								sessionStorage.getItem('aiPendingMetadata');
+
+							if (pendingAIMetadataRaw) {
+								const pendingAIMetadata =
+									JSON.parse(pendingAIMetadataRaw);
+
+								values = Object.assign(values, {
+									aiAssisted: pendingAIMetadata.aiAssisted,
+									aiGeneratedAt:
+										pendingAIMetadata.aiGeneratedAt,
+									aiReviewedBy: pendingAIMetadata.aiReviewedBy,
+								});
+
+								sessionStorage.removeItem('aiPendingMetadata');
+							}
+
 							Liferay.Util.fetch(
 								'<%= objectEntryDisplayContext.getAPIURL() %>',
 								{

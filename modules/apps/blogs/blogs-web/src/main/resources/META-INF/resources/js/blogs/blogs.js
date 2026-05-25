@@ -429,6 +429,22 @@ export default class Blogs {
 
 				this._updateStatus(strings.saveDraftMessage);
 
+				const pendingAIMetadata = sessionStorage.getItem(
+					'aiPendingMetadata'
+				);
+
+				if (pendingAIMetadata) {
+					const aiMetadata = JSON.parse(pendingAIMetadata);
+
+					bodyData[`${namespace}aiAssisted`] = aiMetadata.aiAssisted;
+					bodyData[`${namespace}aiGeneratedAt`] =
+						aiMetadata.aiGeneratedAt;
+					bodyData[`${namespace}aiReviewedBy`] =
+						aiMetadata.aiReviewedBy;
+
+					sessionStorage.removeItem('aiPendingMetadata');
+				}
+
 				const body = new URLSearchParams(bodyData);
 
 				const groupPermissions = document.querySelectorAll(
@@ -519,6 +535,28 @@ export default class Blogs {
 			this._getElementById('workflowAction').value = draft
 				? constants.ACTION_SAVE_DRAFT
 				: constants.ACTION_PUBLISH;
+
+			const pendingAIMetadataForm = sessionStorage.getItem(
+				'aiPendingMetadata'
+			);
+
+			if (pendingAIMetadataForm) {
+				const aiMetadata = JSON.parse(pendingAIMetadataForm);
+
+				['aiAssisted', 'aiGeneratedAt', 'aiReviewedBy'].forEach(
+					(key) => {
+						const input = document.createElement('input');
+
+						input.name = `${namespace}${key}`;
+						input.type = 'hidden';
+						input.value = String(aiMetadata[key]);
+
+						this._rootNode.appendChild(input);
+					}
+				);
+
+				sessionStorage.removeItem('aiPendingMetadata');
+			}
 
 			submitForm(this._rootNode);
 		}
