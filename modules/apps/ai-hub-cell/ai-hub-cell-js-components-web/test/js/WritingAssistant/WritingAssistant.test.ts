@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {fireContentAcceptedEvent} from '../../../src/main/resources/META-INF/resources/js/WritingAssistant/utils/disclaimerUtils';
-
-Object.assign(global.Liferay, {fire: jest.fn()});
+import {
+	AI_PENDING_METADATA_KEY,
+	fireContentAcceptedEvent,
+} from '../../../src/main/resources/META-INF/resources/js/WritingAssistant/utils/disclaimerUtils';
 
 Object.assign(global.Liferay.ThemeDisplay, {
 	getUserId: jest.fn(() => 20123),
@@ -14,22 +15,21 @@ Object.assign(global.Liferay.ThemeDisplay, {
 describe('disclaimerUtils', () => {
 	describe('fireContentAcceptedEvent', () => {
 		beforeEach(() => {
-			(global.Liferay.fire as jest.Mock).mockClear();
+			sessionStorage.clear();
 		});
 
-		it('fires "writingAssistantContentAccepted" via Liferay.fire with the correct shape', () => {
+		it('writes pending AI metadata to sessionStorage with the correct shape', () => {
 			const before = Date.now();
 
 			fireContentAcceptedEvent();
 
 			const after = Date.now();
 
-			expect(global.Liferay.fire).toHaveBeenCalledTimes(1);
+			const stored = sessionStorage.getItem(AI_PENDING_METADATA_KEY);
 
-			const [eventName, payload] = (global.Liferay.fire as jest.Mock).mock
-				.calls[0];
+			expect(stored).not.toBeNull();
 
-			expect(eventName).toBe('writingAssistantContentAccepted');
+			const payload = JSON.parse(stored!);
 
 			expect(payload.aiAssisted).toBe(true);
 

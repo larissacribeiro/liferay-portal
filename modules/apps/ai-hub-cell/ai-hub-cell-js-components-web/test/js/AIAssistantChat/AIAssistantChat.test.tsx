@@ -54,7 +54,9 @@ describe('AIAssistantChat', () => {
 		});
 
 		expect(
-			screen.getByText('ai-disclaimer-default-message')
+			screen.getByText(
+				'ai-generated-responses-may-be-inaccurate-please-review-carefully'
+			)
 		).toBeInTheDocument();
 	});
 });
