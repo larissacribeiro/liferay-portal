@@ -47,6 +47,12 @@ export class HeadlessAdminWorkflowApiHelper {
 		);
 	}
 
+	async deleteWorkflowDefinitionUndeploy(name: string, version: string) {
+		return this.apiHelpers.delete(
+			`${this.apiHelpers.baseUrl}${this.basePath}/workflow-definitions/undeploy?name=${encodeURIComponent(name)}&version=${version}`
+		);
+	}
+
 	async postWorkflowDefinitionSave(
 		name: string,
 		workflowDefinition: Partial<WorkflowDefinition>
