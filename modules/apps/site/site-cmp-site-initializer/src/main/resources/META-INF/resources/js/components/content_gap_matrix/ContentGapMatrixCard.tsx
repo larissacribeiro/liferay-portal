@@ -18,7 +18,8 @@ import {MatrixData} from './types';
 
 import './ContentGapMatrix.scss';
 
-interface Props {
+interface ContentGapMatrixCardProps {
+	assetFDSId: string;
 	editProjectURL?: string;
 	hasPersonasOrFunnelStages: boolean;
 	projectId: string;
@@ -27,10 +28,11 @@ interface Props {
 const contentCoverageService = ContentCoverageServiceImpl;
 
 export default function ContentGapMatrixCard({
+	assetFDSId,
 	editProjectURL,
 	hasPersonasOrFunnelStages,
 	projectId,
-}: Props) {
+}: ContentGapMatrixCardProps) {
 	const [data, setData] = useState<MatrixData | null>(null);
 	const [error, setError] = useState(false);
 	const [loading, setLoading] = useState(true);
@@ -137,7 +139,7 @@ export default function ContentGapMatrixCard({
 			<ContentGapMatrixHeader data={data} />
 
 			<div className="lfr-cmp__content-gap-matrix-container">
-				<ContentGapMatrix data={data} />
+				<ContentGapMatrix assetFDSId={assetFDSId} data={data} />
 			</div>
 		</div>
 	);

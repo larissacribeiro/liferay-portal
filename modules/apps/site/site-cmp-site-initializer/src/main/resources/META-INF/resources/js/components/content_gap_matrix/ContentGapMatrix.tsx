@@ -10,7 +10,13 @@ import {MatrixData} from './types';
 
 import './ContentGapMatrix.scss';
 
-export default function ContentGapMatrix({data}: {data: MatrixData}) {
+export default function ContentGapMatrix({
+	assetFDSId,
+	data,
+}: {
+	assetFDSId: string;
+	data: MatrixData;
+}) {
 	return (
 		<div className="lfr-cmp__content-gap-matrix">
 			<div className="lfr-cmp__content-gap-matrix-intro">
@@ -27,7 +33,7 @@ export default function ContentGapMatrix({data}: {data: MatrixData}) {
 				</p>
 			</div>
 
-			<ContentGapMatrixGrid data={data} />
+			<ContentGapMatrixGrid assetFDSId={assetFDSId} data={data} />
 		</div>
 	);
 }
