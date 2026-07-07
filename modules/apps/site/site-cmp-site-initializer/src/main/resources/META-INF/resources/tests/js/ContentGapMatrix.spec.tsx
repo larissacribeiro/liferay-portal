@@ -13,7 +13,10 @@ import {PARTIAL_COVERAGE_MATRIX} from '../../js/components/content_gap_matrix/se
 describe('ContentGapMatrix', () => {
 	it('renders the section heading and the report description above the grid', () => {
 		const {getByText} = render(
-			<ContentGapMatrix data={PARTIAL_COVERAGE_MATRIX} />
+			<ContentGapMatrix
+				assetFDSId="test-fds"
+				data={PARTIAL_COVERAGE_MATRIX}
+			/>
 		);
 
 		expect(
