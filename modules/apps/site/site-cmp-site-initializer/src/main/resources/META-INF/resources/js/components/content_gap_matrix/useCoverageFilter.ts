@@ -27,12 +27,19 @@ interface CoverageFilter {
 	 * category.
 	 */
 	applyFilter: (persona: TaxonomyTerm, funnelStage: TaxonomyTerm) => void;
+
+	/**
+	 * Category ids currently selected in the data set's category filter, used to
+	 * highlight the matching cell. Empty when the filter is inactive or set to
+	 * exclude.
+	 */
+	selectedCategoryIds: Set<string>;
 }
 
 /**
  * Bridges the matrix to the project's asset data set: it writes to the data
- * set's own state atom, resolved by its id, to filter it by the clicked cell's
- * persona and funnel-stage categories.
+ * set's own state atom, resolved by its id and reads back which categories
+ * are filtered so the matrix can highlight the selected cell.
  */
 export function useCoverageFilter(assetFDSId: string): CoverageFilter {
 	const assetFDSAtom = useMemo(
@@ -74,5 +81,29 @@ export function useCoverageFilter(assetFDSId: string): CoverageFilter {
 		[assetFDSState, setAssetFDSState]
 	);
 
-	return {applyFilter};
+	const selectedCategoryIds = useMemo(() => {
+		const categoryFilter = (assetFDSState?.filters ?? []).find(
+			(filter: IBaseFilterState) => filter.id === ASSET_CATEGORY_FILTER_ID
+		);
+
+		const selectedData = categoryFilter?.selectedData as
+			| {exclude?: boolean; selectedItems?: Array<{value: string}>}
+			| undefined;
+
+		if (
+			!categoryFilter ||
+			!categoryFilter.active ||
+			selectedData?.exclude
+		) {
+			return new Set<string>();
+		}
+
+		return new Set<string>(
+			(selectedData?.selectedItems ?? []).map((item) =>
+				String(item.value)
+			)
+		);
+	}, [assetFDSState]);
+
+	return {applyFilter, selectedCategoryIds};
 }
