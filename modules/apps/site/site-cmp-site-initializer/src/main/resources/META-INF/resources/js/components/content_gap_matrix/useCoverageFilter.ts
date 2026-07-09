@@ -14,11 +14,23 @@ import {useCallback, useMemo} from 'react';
 import {TaxonomyTerm} from './types';
 
 /**
- * Id of the asset data set's category filter
- *  which spans the persona and funnel-stage
- * vocabularies.
+ * Vocabulary-scoped category filters on the related-assets data set. Personas
+ * and funnel stages are kept as SEPARATE FDS filters so their clauses are AND'd
+ * (values within a single filter are OR'd, which is why a single combined filter
+ * cannot express "persona AND funnel stage"). Both resolve to the
+ * assetCategoryIds index field on the backend, so these ids must match the two
+ * FDS filters the backend defines for this data set:
+ *
+ * - Unbind the related-assets data set from the shared AssetCategorySelectionFDSFilter.
+ * - Add a personas-scoped filter (id "taxonomyCategoryIds") and a
+ *   funnel-stage-scoped filter (id "funnelStageTaxonomyCategoryIds"), both
+ *   COLLECTION_INTEGER, bound only to this data set.
+ * - Add a "funnelStageTaxonomyCategoryIds" alias in SearchResultEntityModel
+ *   mapping to the assetCategoryIds index field.
  */
-const ASSET_CATEGORY_FILTER_ID = 'taxonomyCategoryIds';
+const PERSONA_FILTER_ID = 'taxonomyCategoryIds';
+
+const FUNNEL_STAGE_FILTER_ID = 'funnelStageTaxonomyCategoryIds';
 
 interface CoverageFilter {
 
@@ -29,9 +41,9 @@ interface CoverageFilter {
 	applyFilter: (persona: TaxonomyTerm, funnelStage: TaxonomyTerm) => void;
 
 	/**
-	 * Category ids currently selected in the data set's category filter, used to
-	 * highlight the matching cell. Empty when the filter is inactive or set to
-	 * exclude.
+	 * Category ids currently selected across the data set's category filters,
+	 * used to highlight the matching cell. Empty when the filters are inactive or
+	 * set to exclude.
 	 */
 	selectedCategoryIds: Set<string>;
 }
@@ -56,24 +68,39 @@ export function useCoverageFilter(assetFDSId: string): CoverageFilter {
 				...assetFDSState,
 				filters: (assetFDSState?.filters ?? []).map(
 					(filter: IBaseFilterState) => {
-						if (filter.id !== ASSET_CATEGORY_FILTER_ID) {
-							return filter;
+						if (filter.id === PERSONA_FILTER_ID) {
+							return {
+								...filter,
+								active: true,
+								selectedData: {
+									exclude: false,
+									selectedItems: [
+										{
+											label: persona.name,
+											value: persona.id,
+										},
+									],
+								},
+							};
 						}
 
-						return {
-							...filter,
-							active: true,
-							selectedData: {
-								exclude: false,
-								selectedItems: [
-									{label: persona.name, value: persona.id},
-									{
-										label: funnelStage.name,
-										value: funnelStage.id,
-									},
-								],
-							},
-						};
+						if (filter.id === FUNNEL_STAGE_FILTER_ID) {
+							return {
+								...filter,
+								active: true,
+								selectedData: {
+									exclude: false,
+									selectedItems: [
+										{
+											label: funnelStage.name,
+											value: funnelStage.id,
+										},
+									],
+								},
+							};
+						}
+
+						return filter;
 					}
 				),
 			});
@@ -82,26 +109,31 @@ export function useCoverageFilter(assetFDSId: string): CoverageFilter {
 	);
 
 	const selectedCategoryIds = useMemo(() => {
-		const categoryFilter = (assetFDSState?.filters ?? []).find(
-			(filter: IBaseFilterState) => filter.id === ASSET_CATEGORY_FILTER_ID
+		const categoryFilters = (assetFDSState?.filters ?? []).filter(
+			(filter: IBaseFilterState) =>
+				filter.id === PERSONA_FILTER_ID ||
+				filter.id === FUNNEL_STAGE_FILTER_ID
 		);
 
-		const selectedData = categoryFilter?.selectedData as
-			| {exclude?: boolean; selectedItems?: Array<{value: string}>}
-			| undefined;
-
-		if (
-			!categoryFilter ||
-			!categoryFilter.active ||
-			selectedData?.exclude
-		) {
-			return new Set<string>();
-		}
-
 		return new Set<string>(
-			(selectedData?.selectedItems ?? []).map((item) =>
-				String(item.value)
-			)
+			categoryFilters
+				.filter((filter) => filter.active)
+				.flatMap((filter) => {
+					const selectedData = filter.selectedData as
+						| {
+								exclude?: boolean;
+								selectedItems?: Array<{value: string}>;
+						  }
+						| undefined;
+
+					if (selectedData?.exclude) {
+						return [];
+					}
+
+					return (selectedData?.selectedItems ?? []).map((item) =>
+						String(item.value)
+					);
+				})
 		);
 	}, [assetFDSState]);
 
