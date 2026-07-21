@@ -12,7 +12,12 @@ import {AssetTypeInfoPanelContext, IAssetTypeInfoPanelContext} from './context';
 import {TABS} from './tab_content';
 
 const DEFAULT_DROPDOWN_TABS = [TABS.VERSIONS, TABS.COMMENTS];
-const DEFAULT_MAIN_TABS = [TABS.DETAILS, TABS.CATEGORIZATION, TABS.PERFORMANCE];
+const DEFAULT_MAIN_TABS = [
+	TABS.DETAILS,
+	TABS.CATEGORIZATION,
+	TABS.PROJECTS,
+	TABS.PERFORMANCE,
+];
 
 const AssetTypeInfoPanelFilesView = () => {
 	const {actions}: IAssetTypeInfoPanelContext = useContext(

@@ -1,0 +1,16 @@
+@import 'atlas-variables';
+@import 'cadmin-variables';
+
+.cms-linked-projects {
+	.cms-linked-projects-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.cms-linked-projects-card {
+		border: 1px solid $secondary-l2;
+		border-radius: 0.25rem;
+		padding: 0.75rem;
+	}
+}

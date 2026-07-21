@@ -25,12 +25,15 @@ import {dateConfig, toMomentDate, toServerISOFormat} from './ScheduleField';
 import CategorizationPanel from './panels/CategorizationPanel';
 import CommentsPanel from './panels/CommentsPanel';
 import GeneralPanel from './panels/GeneralPanel';
+import ProjectsPanel from './panels/ProjectsPanel';
 import SchedulePanel from './panels/SchedulePanel';
 
 type Props = {
 	addCommentURL: string;
 	assetLibraryId: string;
 	assetType: number;
+	cmpProjectAssetRelationshipObjectDefinitionId?: number | null;
+	cmpProjectObjectDefinitionId?: number | null;
 	cmsGroupId: string;
 	comments: Comment[];
 	contentAPIURL: string;
@@ -38,8 +41,11 @@ type Props = {
 	editCommentURL: string;
 	editorConfig: LiferayEditorConfig;
 	entryClassName: string;
+	entryExternalReferenceCode?: string;
+	entryScopeKey?: string;
 	expirationDate: string;
 	getCommentsURL: string;
+	hasLinkProjectPermission?: boolean;
 	hasUpdatePermission: boolean;
 	id: string;
 	isSubscribed: boolean;
@@ -125,6 +131,12 @@ const items: Item[] = [
 		icon: 'comments',
 		id: 'comments',
 		title: Liferay.Language.get('comments'),
+	},
+	{
+		component: ProjectsPanel,
+		icon: 'archive',
+		id: 'projects',
+		title: Liferay.Language.get('projects'),
 	},
 ];
 
