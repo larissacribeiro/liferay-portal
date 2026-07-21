@@ -11,13 +11,8 @@ import React, {useContext, useState} from 'react';
 import {AssetTypeInfoPanelContext, IAssetTypeInfoPanelContext} from './context';
 import {TABS} from './tab_content';
 
-const DEFAULT_DROPDOWN_TABS = [TABS.VERSIONS, TABS.COMMENTS];
-const DEFAULT_MAIN_TABS = [
-	TABS.DETAILS,
-	TABS.CATEGORIZATION,
-	TABS.PROJECTS,
-	TABS.PERFORMANCE,
-];
+const DEFAULT_DROPDOWN_TABS = [TABS.VERSIONS, TABS.COMMENTS, TABS.PROJECTS];
+const DEFAULT_MAIN_TABS = [TABS.DETAILS, TABS.CATEGORIZATION, TABS.PERFORMANCE];
 
 const AssetTypeInfoPanelFilesView = () => {
 	const {actions}: IAssetTypeInfoPanelContext = useContext(
@@ -32,7 +27,7 @@ const AssetTypeInfoPanelFilesView = () => {
 		? DEFAULT_MAIN_TABS
 		: [...DEFAULT_MAIN_TABS, TABS.COMMENTS];
 
-	const DROPDOWN_TABS = href ? DEFAULT_DROPDOWN_TABS : [];
+	const DROPDOWN_TABS = href ? DEFAULT_DROPDOWN_TABS : [TABS.PROJECTS];
 
 	const ALL_TABS = [...MAIN_TABS, ...DROPDOWN_TABS];
 

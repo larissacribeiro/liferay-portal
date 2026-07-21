@@ -24,12 +24,16 @@ export type CMPProject = {
 
 	linkId?: number;
 
-	projectURL?: string;
 	scopeKey?: string;
 	state?: {
 		key: CMPProjectStateKey | string;
 		name: string;
 	};
+	title: string;
+};
+
+export type CMPTask = {
+	id: number;
 	title: string;
 };
 
@@ -84,6 +88,24 @@ const MOCK_PROJECTS: CMPProject[] = [
 		title: 'Devcon 2026',
 	},
 ];
+
+// Tasks are associated to an asset today through the CMP task's "related
+// assets" section (Liferay asset links), not a dedicated object. The reverse
+// query used here (tasks of a project related to this asset) is still mocked
+// until it is wired to that existing mechanism. LPD-97811 only guarantees the
+// current task-linking flow keeps working; it does not add a new backend.
+
+const MOCK_TASKS: {[projectId: number]: CMPTask[]} = {
+	1: [
+		{id: 101, title: 'Review Blog Post'},
+		{id: 102, title: 'Write Document'},
+		{id: 103, title: 'Publish Landing Page'},
+	],
+	3: [
+		{id: 301, title: 'Prepare Keynote'},
+		{id: 302, title: 'Book Venue'},
+	],
+};
 
 const mockLinkIdsByAsset = new Map<string, Map<number, number>>();
 
@@ -259,8 +281,15 @@ async function getLinkedProjects({
 	const linkedProjects: CMPProject[] = [];
 
 	data.forEach(({embedded}) => {
+
+		// `className` narrows the match when the caller knows it (the content
+		// editor). The content list's info panel only has the asset's external
+		// reference code and scope key, so the className check is skipped there
+		// and the effectively-unique classExternalReferenceCode + scopeKey pair
+		// identifies the asset.
+
 		if (
-			embedded.className !== entryClassName ||
+			(entryClassName && embedded.className !== entryClassName) ||
 			embedded.classExternalReferenceCode !==
 				entryExternalReferenceCode ||
 			embedded.scopeKey !== entryScopeKey
@@ -338,8 +367,90 @@ async function unlinkProject({
 	return ApiHelper.delete(`${PROJECT_ASSET_RELATIONSHIPS_URL}/${linkId}`);
 }
 
+type TaskSearchItem = {
+	embedded: {
+		id: number;
+		keywords?: string[];
+		r_cmpProjectToCMPTasks_c_cmpProjectId?: number;
+		title: string;
+	};
+};
+
+// A task is associated to an asset today through tag matching: the task owns
+// identity tags prefixed with the CMPTask external reference code, and an asset
+// is "related" to the task when it carries one of those tags in its keywords
+// (this is the legacy mechanism the epic replaces for projects but keeps for
+// tasks per LPD-97811).
+
+const TASK_TAG_PREFIX = 'L_CMP_TASK';
+
+/**
+ * Lists the asset's associated tasks grouped by project id, resolved from the
+ * asset's keywords (see TASK_TAG_PREFIX) in a single search. A project id
+ * absent from the result simply has no associated tasks. Falls back to the mock
+ * while MOCK is true or the task object definition id is unavailable.
+ */
+async function getLinkedTasks({
+	assetKeywords,
+	cmpTaskObjectDefinitionId,
+	signal,
+}: {
+	assetKeywords?: string[];
+	cmpTaskObjectDefinitionId?: number | null;
+	signal?: AbortSignal;
+}): Promise<RequestResult<{[projectId: number]: CMPTask[]}>> {
+	if (MOCK) {
+		return mockResult(MOCK_TASKS);
+	}
+
+	const taskTags = (assetKeywords ?? []).filter((keyword) =>
+		keyword.startsWith(TASK_TAG_PREFIX)
+	);
+
+	if (!cmpTaskObjectDefinitionId || !taskTags.length) {
+		return {data: {}, error: null};
+	}
+
+	const {data, error, status, type} = await ApiHelper.get<{
+		items?: TaskSearchItem[];
+	}>(
+		`/o/search/v1.0/search?emptySearch=true&nestedFields=embedded&pageSize=500&filter=${encodeURIComponent(
+			`objectDefinitionId eq ${cmpTaskObjectDefinitionId} and keywords/any(k:k in (${taskTags
+				.map((tag) => `'${tag}'`)
+				.join(',')}))`
+		)}`,
+		signal
+	);
+
+	if (error !== null) {
+		return {data: null, error, status, type};
+	}
+
+	const tasksByProjectId: {[projectId: number]: CMPTask[]} = {};
+
+	(data.items ?? []).forEach(({embedded}) => {
+		const projectId = embedded.r_cmpProjectToCMPTasks_c_cmpProjectId;
+
+		if (projectId === undefined) {
+			return;
+		}
+
+		if (!tasksByProjectId[projectId]) {
+			tasksByProjectId[projectId] = [];
+		}
+
+		tasksByProjectId[projectId].push({
+			id: embedded.id,
+			title: embedded.title,
+		});
+	});
+
+	return {data: tasksByProjectId, error: null};
+}
+
 const ProjectLinkService = {
 	getLinkedProjects,
+	getLinkedTasks,
 	getProjects,
 	linkProject,
 	unlinkProject,

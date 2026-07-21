@@ -10,17 +10,24 @@ import {useIsMounted} from '@liferay/frontend-js-react-web';
 import {openToast} from 'frontend-js-components-web';
 import React, {useEffect, useMemo, useState} from 'react';
 
-import ProjectLinkService, {CMPProject} from '../services/ProjectLinkService';
+import ProjectLinkService, {
+	CMPProject,
+	CMPTask,
+} from '../services/ProjectLinkService';
 
 import '../../../css/components/LinkedProjects.scss';
 
 type Props = {
+	assetKeywords?: string[];
 	cmpProjectAssetRelationshipObjectDefinitionId?: number | null;
 	cmpProjectObjectDefinitionId?: number | null;
+	cmpTaskObjectDefinitionId?: number | null;
 	entryClassName?: string;
 	entryExternalReferenceCode?: string;
 	entryScopeKey?: string;
 	hasLinkProjectPermission?: boolean;
+	projectViewURL?: string;
+	taskViewURL?: string;
 };
 
 const STATE_DISPLAY_TYPE: {
@@ -68,15 +75,25 @@ function formatDueDate(dueDate?: string): string {
  * panel.
  */
 export default function LinkedProjects({
+	assetKeywords,
 	cmpProjectAssetRelationshipObjectDefinitionId,
 	cmpProjectObjectDefinitionId,
+	cmpTaskObjectDefinitionId,
 	entryClassName,
 	entryExternalReferenceCode,
 	entryScopeKey,
 	hasLinkProjectPermission = true,
+	projectViewURL,
+	taskViewURL,
 }: Props) {
 	const [projects, setProjects] = useState<CMPProject[]>([]);
 	const [linkedProjects, setLinkedProjects] = useState<CMPProject[]>([]);
+	const [expandedProjectIds, setExpandedProjectIds] = useState<Set<number>>(
+		new Set()
+	);
+	const [tasksByProjectId, setTasksByProjectId] = useState<{
+		[projectId: number]: CMPTask[];
+	}>({});
 
 	const isMounted = useIsMounted();
 
@@ -135,6 +152,33 @@ export default function LinkedProjects({
 		projects,
 	]);
 
+	// The asset's associated tasks are loaded once, grouped by project, so each
+	// card knows whether it has tasks (and should be expandable) before the
+	// author expands it.
+
+	useEffect(() => {
+		const controller = new AbortController();
+
+		ProjectLinkService.getLinkedTasks({
+			assetKeywords,
+			cmpTaskObjectDefinitionId,
+			signal: controller.signal,
+		}).then(({data, error}) => {
+			if (!isMounted()) {
+				return;
+			}
+
+			if (data) {
+				setTasksByProjectId(data);
+			}
+			else if (error) {
+				openToast({message: error, type: 'danger'});
+			}
+		});
+
+		return () => controller.abort();
+	}, [assetKeywords, cmpTaskObjectDefinitionId, isMounted]);
+
 	// A project already linked to the asset cannot be linked twice, so it is
 	// removed from the picker options.
 
@@ -184,6 +228,13 @@ export default function LinkedProjects({
 					: linkedProject
 			)
 		);
+
+		openToast({
+			message: Liferay.Language.get(
+				'your-request-completed-successfully'
+			),
+			type: 'success',
+		});
 	};
 
 	const unlinkProject = async (project: CMPProject) => {
@@ -201,11 +252,39 @@ export default function LinkedProjects({
 			projectId: project.id,
 		});
 
-		if (error && isMounted()) {
+		if (!isMounted()) {
+			return;
+		}
+
+		if (error) {
 			setLinkedProjects((previous) => [...previous, project]);
 
 			openToast({message: error, type: 'danger'});
+
+			return;
 		}
+
+		openToast({
+			message: Liferay.Language.get(
+				'your-request-completed-successfully'
+			),
+			type: 'success',
+		});
+	};
+
+	const toggleTasks = (project: CMPProject) => {
+		setExpandedProjectIds((previous) => {
+			const expandedIds = new Set(previous);
+
+			if (expandedIds.has(project.id)) {
+				expandedIds.delete(project.id);
+			}
+			else {
+				expandedIds.add(project.id);
+			}
+
+			return expandedIds;
+		});
 	};
 
 	return (
@@ -236,31 +315,41 @@ export default function LinkedProjects({
 				</Picker>
 			) : null}
 
-			<div className="cms-linked-projects-list mt-3">
+			<div className="cms-linked-projects-list">
 				{linkedProjects.map((project) => {
 					const status = getStatus(project);
 
+					const projectURL = projectViewURL
+						? `${projectViewURL}${project.id}`
+						: undefined;
+
+					const expanded = expandedProjectIds.has(project.id);
+
+					const tasks = tasksByProjectId[project.id] ?? [];
+
+					const hasTasks = !!tasks.length;
+
 					return (
 						<div
-							className="align-items-start cms-linked-projects-card d-flex justify-content-between"
+							className="cms-linked-projects-card"
 							key={project.id}
 						>
-							<div>
-								{project.projectURL ? (
+							<div className="cms-linked-projects-card-title">
+								{projectURL ? (
 									<a
-										className="font-weight-semi-bold"
-										href={project.projectURL}
+										className="cms-linked-projects-card-name"
+										href={projectURL}
 									>
 										{project.title}
 									</a>
 								) : (
-									<span className="font-weight-semi-bold">
+									<span className="cms-linked-projects-card-name">
 										{project.title}
 									</span>
 								)}
 
 								{project.dueDate ? (
-									<div className="text-2 text-secondary">
+									<div className="cms-linked-projects-card-due-date">
 										{Liferay.Util.sub(
 											Liferay.Language.get('due-date-x'),
 											formatDueDate(project.dueDate)
@@ -270,7 +359,7 @@ export default function LinkedProjects({
 
 								{status ? (
 									<ClayLabel
-										className="mt-1"
+										className="cms-linked-projects-card-status"
 										displayType={
 											STATE_DISPLAY_TYPE[status.key] ??
 											'secondary'
@@ -280,19 +369,73 @@ export default function LinkedProjects({
 										{status.name}
 									</ClayLabel>
 								) : null}
+
+								{hasTasks && expanded ? (
+									<ul className="cms-linked-projects-tasks">
+										{tasks.map((task) => {
+											const taskURL = taskViewURL
+												? `${taskViewURL}${task.id}`
+												: undefined;
+
+											return (
+												<li key={task.id}>
+													{taskURL ? (
+														<a href={taskURL}>
+															{task.title}
+														</a>
+													) : (
+														task.title
+													)}
+												</li>
+											);
+										})}
+									</ul>
+								) : null}
 							</div>
 
-							{hasLinkProjectPermission ? (
-								<ClayButtonWithIcon
-									aria-label={Liferay.Language.get('remove')}
-									borderless
-									displayType="secondary"
-									onClick={() => unlinkProject(project)}
-									size="sm"
-									symbol="times-circle"
-									title={Liferay.Language.get('remove')}
-								/>
-							) : null}
+							<div className="cms-linked-projects-card-actions">
+								{hasTasks ? (
+									<ClayButtonWithIcon
+										aria-label={
+											expanded
+												? Liferay.Language.get(
+														'collapse'
+													)
+												: Liferay.Language.get('expand')
+										}
+										borderless
+										displayType="secondary"
+										onClick={() => toggleTasks(project)}
+										size="sm"
+										symbol={
+											expanded
+												? 'angle-down'
+												: 'angle-right'
+										}
+										title={
+											expanded
+												? Liferay.Language.get(
+														'collapse'
+													)
+												: Liferay.Language.get('expand')
+										}
+									/>
+								) : null}
+
+								{hasLinkProjectPermission ? (
+									<ClayButtonWithIcon
+										aria-label={Liferay.Language.get(
+											'remove'
+										)}
+										borderless
+										displayType="secondary"
+										onClick={() => unlinkProject(project)}
+										size="sm"
+										symbol="times-circle"
+										title={Liferay.Language.get('remove')}
+									/>
+								) : null}
+							</div>
 						</div>
 					);
 				})}

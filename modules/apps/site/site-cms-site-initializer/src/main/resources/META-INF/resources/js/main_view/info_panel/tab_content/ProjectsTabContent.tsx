@@ -9,16 +9,36 @@ import LinkedProjects from '../../../common/components/LinkedProjects';
 import {AssetTypeInfoPanelContext} from '../context';
 
 const ProjectsTabContent = () => {
-	const {asset} = useContext(AssetTypeInfoPanelContext);
+	const {
+		asset,
+		cmpProjectAssetRelationshipObjectDefinitionId,
+		cmpProjectObjectDefinitionId,
+		cmpProjectViewURL,
+		cmpTaskObjectDefinitionId,
+		cmpTaskViewURL,
+		entryClassName,
+	} = useContext(AssetTypeInfoPanelContext);
 
-	// The CMP project object definition ids are not yet wired into the content
-	// list's info panel props (LPD-97810 backend), so LinkedProjects falls back
-	// to its mock data until they are supplied here.
+	// The three identity fields must match what the link stores: className is the
+	// entry's model class name (required when creating a link), the external
+	// reference code is the entry's, and the scope key is the group's external
+	// reference code (in systemProperties.scope, not asset.scopeKey, which is the
+	// space's display key). The object definition ids come from the list's server
+	// props (BaseSectionDisplayContext).
 
 	return (
 		<LinkedProjects
+			assetKeywords={asset.keywords}
+			cmpProjectAssetRelationshipObjectDefinitionId={
+				cmpProjectAssetRelationshipObjectDefinitionId
+			}
+			cmpProjectObjectDefinitionId={cmpProjectObjectDefinitionId}
+			cmpTaskObjectDefinitionId={cmpTaskObjectDefinitionId}
+			entryClassName={entryClassName}
 			entryExternalReferenceCode={asset.externalReferenceCode}
-			entryScopeKey={asset.scopeKey}
+			entryScopeKey={asset.systemProperties?.scope?.externalReferenceCode}
+			projectViewURL={cmpProjectViewURL}
+			taskViewURL={cmpTaskViewURL}
 		/>
 	);
 };

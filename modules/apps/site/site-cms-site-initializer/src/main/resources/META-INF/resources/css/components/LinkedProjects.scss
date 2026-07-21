@@ -6,11 +6,56 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;
+		margin-top: 1rem;
 	}
 
 	.cms-linked-projects-card {
+		align-items: flex-start;
 		border: 1px solid $secondary-l2;
 		border-radius: 0.25rem;
+		display: flex;
+		justify-content: space-between;
 		padding: 0.75rem;
+	}
+
+	.cms-linked-projects-card-title {
+		align-items: flex-start;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.cms-linked-projects-card-name {
+		color: $gray-900;
+		font-size: 1rem;
+		font-weight: 600;
+	}
+
+	.cms-linked-projects-card-due-date {
+		color: $secondary;
+		font-size: 0.875rem;
+	}
+
+	.cms-linked-projects-card-status {
+		margin-top: 0.25rem;
+	}
+
+	.cms-linked-projects-card-actions {
+		align-items: flex-start;
+		display: flex;
+	}
+
+	.cms-linked-projects-tasks {
+		font-size: 0.875rem;
+		margin-bottom: 0;
+		margin-top: 0.5rem;
+		padding-left: 1rem;
+
+		li {
+			color: $secondary;
+		}
+
+		a {
+			color: inherit;
+		}
 	}
 }

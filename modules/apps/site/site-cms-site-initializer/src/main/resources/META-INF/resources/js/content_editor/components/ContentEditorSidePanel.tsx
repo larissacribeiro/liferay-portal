@@ -34,6 +34,9 @@ type Props = {
 	assetType: number;
 	cmpProjectAssetRelationshipObjectDefinitionId?: number | null;
 	cmpProjectObjectDefinitionId?: number | null;
+	cmpProjectViewURL?: string;
+	cmpTaskObjectDefinitionId?: number | null;
+	cmpTaskViewURL?: string;
 	cmsGroupId: string;
 	comments: Comment[];
 	contentAPIURL: string;
@@ -56,6 +59,7 @@ type Props = {
 };
 
 type SidePanelProps = Props & {
+	assetKeywords?: string[];
 	categorizationFields: CategorizationFields | null;
 	dateConfig: datetimeUtils.DateConfig;
 	onUpdateCategorization: (props: UpdateCategorizationProps) => void;
@@ -290,6 +294,7 @@ export default function ContentEditorSidePanel(props: Props) {
 		<>
 			<SidePanel
 				{...props}
+				assetKeywords={categorizationFields?.assetTagNames?.value}
 				categorizationFields={categorizationFields}
 				dateConfig={dateConfig}
 				onUpdateCategorization={onUpdateCategorization}

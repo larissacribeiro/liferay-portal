@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.site.cms.site.initializer.internal.util.CommentUtil;
@@ -179,6 +180,58 @@ public class ContentEditorSidePanelComponentSectionFragmentRenderer
 				}
 
 				return cmpProjectObjectDefinition.getObjectDefinitionId();
+			}
+		).put(
+			"cmpProjectViewURL",
+			() -> {
+				ObjectDefinition cmpProjectObjectDefinition =
+					_objectDefinitionLocalService.
+						fetchObjectDefinitionByExternalReferenceCode(
+							"L_CMP_PROJECT", themeDisplay.getCompanyId());
+
+				if (cmpProjectObjectDefinition == null) {
+					return null;
+				}
+
+				return StringBundler.concat(
+					themeDisplay.getPortalURL(),
+					PortalUtil.getPathFriendlyURLPublic(), "/cms/e/project/",
+					_classNameLocalService.getClassNameId(
+						cmpProjectObjectDefinition.getClassName()),
+					"/");
+			}
+		).put(
+			"cmpTaskObjectDefinitionId",
+			() -> {
+				ObjectDefinition cmpTaskObjectDefinition =
+					_objectDefinitionLocalService.
+						fetchObjectDefinitionByExternalReferenceCode(
+							"L_CMP_TASK", themeDisplay.getCompanyId());
+
+				if (cmpTaskObjectDefinition == null) {
+					return null;
+				}
+
+				return cmpTaskObjectDefinition.getObjectDefinitionId();
+			}
+		).put(
+			"cmpTaskViewURL",
+			() -> {
+				ObjectDefinition cmpTaskObjectDefinition =
+					_objectDefinitionLocalService.
+						fetchObjectDefinitionByExternalReferenceCode(
+							"L_CMP_TASK", themeDisplay.getCompanyId());
+
+				if (cmpTaskObjectDefinition == null) {
+					return null;
+				}
+
+				return StringBundler.concat(
+					themeDisplay.getPortalURL(),
+					PortalUtil.getPathFriendlyURLPublic(), "/cms/e/task/",
+					_classNameLocalService.getClassNameId(
+						cmpTaskObjectDefinition.getClassName()),
+					"/");
 			}
 		).put(
 			"cmsGroupId", themeDisplay.getScopeGroupId()

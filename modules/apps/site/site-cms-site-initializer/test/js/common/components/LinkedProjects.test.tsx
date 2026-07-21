@@ -62,6 +62,10 @@ function mockService({
 		data: null,
 		error: null,
 	});
+	jest.spyOn(ProjectLinkService, 'getLinkedTasks').mockResolvedValue({
+		data: {1: [{id: 101, title: 'Review Blog Post'}]},
+		error: null,
+	});
 }
 
 describe('LinkedProjects', () => {
@@ -133,5 +137,15 @@ describe('LinkedProjects', () => {
 		render(<LinkedProjects {...IDENTITY} />);
 
 		expect(await screen.findByText('overdue')).toBeInTheDocument();
+	});
+
+	it('shows the project tasks when the card is expanded', async () => {
+		mockService({linked: [GOV_DIGITAL]});
+
+		render(<LinkedProjects {...IDENTITY} />);
+
+		await userEvent.click(await screen.findByLabelText('expand'));
+
+		expect(await screen.findByText('Review Blog Post')).toBeInTheDocument();
 	});
 });
