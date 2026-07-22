@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.comment.DiscussionPermission;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.editor.configuration.EditorConfiguration;
 import com.liferay.portal.kernel.editor.configuration.EditorConfigurationFactoryUtil;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -35,6 +36,7 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.site.cms.site.initializer.internal.util.CommentUtil;
@@ -97,8 +99,9 @@ public class ContentEditorSidePanelComponentSectionFragmentRenderer
 
 	@Override
 	protected Map<String, Object> getProps(
-		FragmentRendererContext fragmentRendererContext,
-		HttpServletRequest httpServletRequest) {
+			FragmentRendererContext fragmentRendererContext,
+			HttpServletRequest httpServletRequest)
+		throws PortalException {
 
 		LayoutDisplayPageObjectProvider<?> layoutDisplayPageObjectProvider =
 			(LayoutDisplayPageObjectProvider<?>)httpServletRequest.getAttribute(
@@ -127,6 +130,15 @@ public class ContentEditorSidePanelComponentSectionFragmentRenderer
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
+		ObjectDefinition cmpProjectObjectDefinition =
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_CMP_PROJECT", themeDisplay.getCompanyId());
+		ObjectDefinition cmpTaskObjectDefinition =
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_CMP_TASK", themeDisplay.getCompanyId());
+
 		return HashMapBuilder.<String, Object>put(
 			"addCommentURL",
 			() -> {
@@ -152,34 +164,23 @@ public class ContentEditorSidePanelComponentSectionFragmentRenderer
 			"assetType", classNameId
 		).put(
 			"cmpProjectAssetRelationshipObjectDefinitionId",
-			() -> {
-				ObjectDefinition cmpProjectAssetRelationshipObjectDefinition =
-					_objectDefinitionLocalService.
-						fetchObjectDefinitionByExternalReferenceCode(
-							"L_CMP_PROJECT_ASSET_RELATIONSHIP",
-							themeDisplay.getCompanyId());
-
-				if (cmpProjectAssetRelationshipObjectDefinition == null) {
-					return null;
-				}
-
-				return cmpProjectAssetRelationshipObjectDefinition.
-					getObjectDefinitionId();
-			}
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_CMP_PROJECT_ASSET_RELATIONSHIP",
+					themeDisplay.getCompanyId()
+				).getObjectDefinitionId()
 		).put(
 			"cmpProjectObjectDefinitionId",
-			() -> {
-				ObjectDefinition cmpProjectObjectDefinition =
-					_objectDefinitionLocalService.
-						fetchObjectDefinitionByExternalReferenceCode(
-							"L_CMP_PROJECT", themeDisplay.getCompanyId());
-
-				if (cmpProjectObjectDefinition == null) {
-					return null;
-				}
-
-				return cmpProjectObjectDefinition.getObjectDefinitionId();
-			}
+			cmpProjectObjectDefinition.getObjectDefinitionId()
+		).put(
+			"cmpProjectViewURL",
+			_getCMPViewURL(cmpProjectObjectDefinition, themeDisplay, "project")
+		).put(
+			"cmpTaskObjectDefinitionId",
+			cmpTaskObjectDefinition.getObjectDefinitionId()
+		).put(
+			"cmpTaskViewURL",
+			_getCMPViewURL(cmpTaskObjectDefinition, themeDisplay, "task")
 		).put(
 			"cmsGroupId", themeDisplay.getScopeGroupId()
 		).put(
@@ -353,6 +354,18 @@ public class ContentEditorSidePanelComponentSectionFragmentRenderer
 		).build();
 	}
 
+	private String _getCMPViewURL(
+		ObjectDefinition objectDefinition, ThemeDisplay themeDisplay,
+		String type) {
+
+		return StringBundler.concat(
+			themeDisplay.getPortalURL(), _portal.getPathFriendlyURLPublic(),
+			"/cms/e/", type, "/",
+			_classNameLocalService.getClassNameId(
+				objectDefinition.getClassName()),
+			"/");
+	}
+
 	@Reference
 	private ClassNameLocalService _classNameLocalService;
 
@@ -370,6 +383,9 @@ public class ContentEditorSidePanelComponentSectionFragmentRenderer
 
 	@Reference
 	private ObjectEntryService _objectEntryService;
+
+	@Reference
+	private Portal _portal;
 
 	@Reference
 	private SubscriptionLocalService _subscriptionLocalService;
