@@ -18,9 +18,9 @@ import ProjectCard from './ProjectCard';
 import '../../../css/components/LinkedProjects.scss';
 
 type LinkedProjectsProps = {
-	assetKeywords?: string[];
 	cmpProjectLinkObjectDefinitionId?: number | null;
 	cmpProjectObjectDefinitionId?: number | null;
+	cmpTaskLinkObjectDefinitionId?: number | null;
 	cmpTaskObjectDefinitionId?: number | null;
 	entryClassName?: string;
 	entryExternalReferenceCode?: string;
@@ -36,9 +36,9 @@ type LinkedProjectsProps = {
  * panel.
  */
 export default function LinkedProjects({
-	assetKeywords,
 	cmpProjectLinkObjectDefinitionId,
 	cmpProjectObjectDefinitionId,
+	cmpTaskLinkObjectDefinitionId,
 	cmpTaskObjectDefinitionId,
 	entryClassName,
 	entryExternalReferenceCode,
@@ -114,8 +114,11 @@ export default function LinkedProjects({
 		const controller = new AbortController();
 
 		ProjectLinkService.getLinkedTasks({
-			assetKeywords,
+			cmpTaskLinkObjectDefinitionId,
 			cmpTaskObjectDefinitionId,
+			entryClassName,
+			entryExternalReferenceCode,
+			entryGroupExternalReferenceCode,
 			signal: controller.signal,
 		}).then(({data, error}) => {
 			if (!isMounted()) {
@@ -131,7 +134,14 @@ export default function LinkedProjects({
 		});
 
 		return () => controller.abort();
-	}, [assetKeywords, cmpTaskObjectDefinitionId, isMounted]);
+	}, [
+		cmpTaskLinkObjectDefinitionId,
+		cmpTaskObjectDefinitionId,
+		entryClassName,
+		entryExternalReferenceCode,
+		entryGroupExternalReferenceCode,
+		isMounted,
+	]);
 
 	const linkedProjects = useMemo(() => {
 		const projectsById = new Map(

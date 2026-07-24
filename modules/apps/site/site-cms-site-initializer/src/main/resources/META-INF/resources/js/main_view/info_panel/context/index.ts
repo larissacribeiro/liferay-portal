@@ -23,6 +23,7 @@ export interface IAssetTypeInfoPanelContext {
 	cmpProjectLinkObjectDefinitionId?: number | null;
 	cmpProjectObjectDefinitionId?: number | null;
 	cmpProjectViewURL?: string;
+	cmpTaskLinkObjectDefinitionId?: number | null;
 	cmpTaskObjectDefinitionId?: number | null;
 	cmpTaskViewURL?: string;
 	cmsGroupId: number | string;

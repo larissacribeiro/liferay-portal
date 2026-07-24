@@ -62,6 +62,16 @@ type ProjectSearchItem = {
 	};
 };
 
+type TaskLinkSearchItem = {
+	embedded: {
+		classExternalReferenceCode: string;
+		className: string;
+		groupExternalReferenceCode: string;
+		id: number;
+		r_cmpTaskToCMPTaskLinks_c_cmpTaskId?: number;
+	};
+};
+
 type TaskSearchItem = {
 	embedded: {
 		id: number;
@@ -71,8 +81,6 @@ type TaskSearchItem = {
 };
 
 const PROJECT_LINKS_URL = '/o/cmp/project-links';
-
-const TASK_TAG_PREFIX = 'L_CMP_TASK';
 
 function buildSearchURL(
 	objectDefinitionId: number,
@@ -128,32 +136,97 @@ async function fetchAllSearchItems<T>({
 }
 
 /**
+ * Matches a link entry's stored soft reference against the asset being
+ * displayed. `entryClassName` is optional because some callers cannot resolve
+ * it and match on the reference code and group alone.
+ */
+function matchesAssetIdentity(
+	embedded: {
+		classExternalReferenceCode: string;
+		className: string;
+		groupExternalReferenceCode: string;
+	},
+	{
+		entryClassName,
+		entryExternalReferenceCode,
+		entryGroupExternalReferenceCode,
+	}: AssetIdentity
+): boolean {
+	return (
+		(!entryClassName || embedded.className === entryClassName) &&
+		embedded.classExternalReferenceCode === entryExternalReferenceCode &&
+		embedded.groupExternalReferenceCode === entryGroupExternalReferenceCode
+	);
+}
+
+/**
  * Lists the asset's associated tasks grouped by project id, resolved from the
- * asset's keywords (see TASK_TAG_PREFIX) in a single search. A project id
- * absent from the result simply has no associated tasks.
+ * CMPTaskLink entries pointing at the asset. Like getProjectLinks, the
+ * `/o/search` filter does not cover object entry fields (nor the object entry
+ * id), so every CMPTaskLink entry is fetched and matched against the asset
+ * client side to collect the linked task ids, then every task is fetched and
+ * kept when its id is in that set. A project id absent from the result simply
+ * has no associated tasks.
  */
 async function getLinkedTasks({
-	assetKeywords,
+	cmpTaskLinkObjectDefinitionId,
 	cmpTaskObjectDefinitionId,
+	entryClassName,
+	entryExternalReferenceCode,
+	entryGroupExternalReferenceCode,
 	signal,
-}: {
-	assetKeywords?: string[];
+}: AssetIdentity & {
+	cmpTaskLinkObjectDefinitionId?: number | null;
 	cmpTaskObjectDefinitionId?: number | null;
 	signal?: AbortSignal;
 }): Promise<RequestResult<{[projectId: number]: CMPTask[]}>> {
-	const taskTags = (assetKeywords ?? []).filter((keyword) =>
-		keyword.startsWith(TASK_TAG_PREFIX)
-	);
+	if (!cmpTaskLinkObjectDefinitionId || !cmpTaskObjectDefinitionId) {
+		return {data: {}, error: null};
+	}
 
-	if (!cmpTaskObjectDefinitionId || !taskTags.length) {
+	const {
+		data: taskLinks,
+		error: taskLinksError,
+		status: taskLinksStatus,
+		type: taskLinksType,
+	} = await fetchAllSearchItems<TaskLinkSearchItem>({
+		objectDefinitionId: cmpTaskLinkObjectDefinitionId,
+		signal,
+	});
+
+	if (taskLinksError !== null) {
+		return {
+			data: null,
+			error: taskLinksError,
+			status: taskLinksStatus,
+			type: taskLinksType,
+		};
+	}
+
+	const linkedTaskIds = new Set<number>();
+
+	taskLinks.forEach(({embedded}) => {
+		if (
+			!matchesAssetIdentity(embedded, {
+				entryClassName,
+				entryExternalReferenceCode,
+				entryGroupExternalReferenceCode,
+			})
+		) {
+			return;
+		}
+
+		if (embedded.r_cmpTaskToCMPTaskLinks_c_cmpTaskId !== undefined) {
+			linkedTaskIds.add(embedded.r_cmpTaskToCMPTaskLinks_c_cmpTaskId);
+		}
+	});
+
+	if (!linkedTaskIds.size) {
 		return {data: {}, error: null};
 	}
 
 	const {data, error, status, type} =
 		await fetchAllSearchItems<TaskSearchItem>({
-			filter: `keywords/any(k:k in (${taskTags
-				.map((tag) => `'${tag.replace(/'/g, "''")}'`)
-				.join(',')}))`,
 			objectDefinitionId: cmpTaskObjectDefinitionId,
 			signal,
 		});
@@ -165,8 +238,11 @@ async function getLinkedTasks({
 	const tasksByProjectId: {[projectId: number]: CMPTask[]} = {};
 
 	data.forEach(({embedded}) => {
-		const cmpProjectObjectEntryId =
-			embedded.r_cmpProjectToCMPTasks_c_cmpProjectId;
+		if (!linkedTaskIds.has(embedded.id)) {
+			return;
+		}
+
+		const cmpProjectObjectEntryId = embedded.r_cmpProjectToCMPTasks_c_cmpProjectId;
 
 		if (cmpProjectObjectEntryId === undefined) {
 			return;
@@ -219,11 +295,11 @@ async function getProjectLinks({
 
 	data.forEach(({embedded}) => {
 		if (
-			(entryClassName && embedded.className !== entryClassName) ||
-			embedded.classExternalReferenceCode !==
-				entryExternalReferenceCode ||
-			embedded.groupExternalReferenceCode !==
-				entryGroupExternalReferenceCode
+			!matchesAssetIdentity(embedded, {
+				entryClassName,
+				entryExternalReferenceCode,
+				entryGroupExternalReferenceCode,
+			})
 		) {
 			return;
 		}
