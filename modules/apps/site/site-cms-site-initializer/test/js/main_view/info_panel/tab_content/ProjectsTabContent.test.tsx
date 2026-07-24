@@ -38,7 +38,6 @@ describe('ProjectsTabContent', () => {
 					{
 						asset: {
 							externalReferenceCode: 'ASSET-1',
-							keywords: ['L_CMP_TASK_X'],
 							systemProperties: {
 								scope: {externalReferenceCode: 'SPACE-1'},
 							},
@@ -46,6 +45,7 @@ describe('ProjectsTabContent', () => {
 						cmpProjectLinkObjectDefinitionId: 11,
 						cmpProjectObjectDefinitionId: 22,
 						cmpProjectViewURL: '/project',
+						cmpTaskLinkObjectDefinitionId: 44,
 						cmpTaskObjectDefinitionId: 33,
 						cmpTaskViewURL: '/task',
 						entryClassName: 'com.example.Content',
@@ -57,9 +57,9 @@ describe('ProjectsTabContent', () => {
 		);
 
 		expect(mockLinkedProjects).toHaveBeenCalledWith({
-			assetKeywords: ['L_CMP_TASK_X'],
 			cmpProjectLinkObjectDefinitionId: 11,
 			cmpProjectObjectDefinitionId: 22,
+			cmpTaskLinkObjectDefinitionId: 44,
 			cmpTaskObjectDefinitionId: 33,
 			entryClassName: 'com.example.Content',
 			entryExternalReferenceCode: 'ASSET-1',

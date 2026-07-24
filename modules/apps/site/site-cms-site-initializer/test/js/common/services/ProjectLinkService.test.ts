@@ -51,6 +51,30 @@ function relationshipItem({
 	};
 }
 
+function taskLinkItem({
+	classExternalReferenceCode = 'ASSET-1',
+	className = 'com.example.Content',
+	groupExternalReferenceCode = 'SPACE-1',
+	id = 11,
+	taskId = 101,
+}: {
+	classExternalReferenceCode?: string;
+	className?: string;
+	groupExternalReferenceCode?: string;
+	id?: number;
+	taskId?: number;
+}) {
+	return {
+		embedded: {
+			classExternalReferenceCode,
+			className,
+			groupExternalReferenceCode,
+			id,
+			r_cmpTaskToCMPTaskLinks_c_cmpTaskId: taskId,
+		},
+	};
+}
+
 describe('ProjectLinkService', () => {
 	afterEach(() => {
 		mockFetch.mockReset();
@@ -87,35 +111,69 @@ describe('ProjectLinkService', () => {
 	});
 
 	it('groups the asset tasks by project id', async () => {
-		mockFetch.mockResolvedValueOnce(
-			mockSearchResponse([
-				{
-					embedded: {
-						id: 101,
-						r_cmpProjectToCMPTasks_c_cmpProjectId: 1,
-						title: 'Task A',
+		mockFetch
+			.mockResolvedValueOnce(
+				mockSearchResponse([
+					taskLinkItem({id: 11, taskId: 101}),
+					taskLinkItem({id: 12, taskId: 102}),
+					taskLinkItem({id: 13, taskId: 201}),
+					taskLinkItem({
+						classExternalReferenceCode: 'OTHER-ASSET',
+						id: 14,
+						taskId: 999,
+					}),
+					taskLinkItem({id: 15, taskId: 401}),
+				])
+			)
+			.mockResolvedValueOnce(
+				mockSearchResponse([
+					{
+						embedded: {
+							id: 101,
+							r_cmpProjectToCMPTasks_c_cmpProjectId: 1,
+							title: 'Task A',
+						},
 					},
-				},
-				{
-					embedded: {
-						id: 102,
-						r_cmpProjectToCMPTasks_c_cmpProjectId: 1,
-						title: 'Task B',
+					{
+						embedded: {
+							id: 102,
+							r_cmpProjectToCMPTasks_c_cmpProjectId: 1,
+							title: 'Task B',
+						},
 					},
-				},
-				{
-					embedded: {
-						id: 201,
-						r_cmpProjectToCMPTasks_c_cmpProjectId: 2,
-						title: 'Task C',
+					{
+						embedded: {
+							id: 201,
+							r_cmpProjectToCMPTasks_c_cmpProjectId: 2,
+							title: 'Task C',
+						},
 					},
-				},
-				{embedded: {id: 301, title: 'Orphan'}},
-			])
-		);
+					{
+						embedded: {
+							id: 999,
+							r_cmpProjectToCMPTasks_c_cmpProjectId: 5,
+							title: 'Linked to another asset',
+						},
+					},
+					{
+						embedded: {
+							id: 301,
+							r_cmpProjectToCMPTasks_c_cmpProjectId: 3,
+							title: 'Not linked',
+						},
+					},
+					{
+						embedded: {
+							id: 401,
+							title: 'Linked but without a project',
+						},
+					},
+				])
+			);
 
 		const {data} = await ProjectLinkService.getLinkedTasks({
-			assetKeywords: ["L_CMP_TASK_O'BRIEN", 'unrelated-tag'],
+			...ASSET_IDENTITY,
+			cmpTaskLinkObjectDefinitionId: 55,
 			cmpTaskObjectDefinitionId: 42,
 		});
 
@@ -127,10 +185,13 @@ describe('ProjectLinkService', () => {
 			2: [{id: 201, title: 'Task C'}],
 		});
 
-		const [url] = fetchCall(0);
-
-		expect(url).toContain("O''BRIEN");
-		expect(url).not.toContain('unrelated-tag');
+		expect(mockFetch).toHaveBeenCalledTimes(2);
+		expect(fetchCall(0)[0]).toContain(
+			encodeURIComponent('objectDefinitionId eq 55')
+		);
+		expect(fetchCall(1)[0]).toContain(
+			encodeURIComponent('objectDefinitionId eq 42')
+		);
 	});
 
 	it('links a project in the scope of its depot', async () => {
@@ -198,7 +259,8 @@ describe('ProjectLinkService', () => {
 			cmpProjectObjectDefinitionId: null,
 		});
 		const tasksResult = await ProjectLinkService.getLinkedTasks({
-			assetKeywords: ['L_CMP_TASK_X'],
+			...ASSET_IDENTITY,
+			cmpTaskLinkObjectDefinitionId: null,
 			cmpTaskObjectDefinitionId: null,
 		});
 
