@@ -14,6 +14,7 @@ import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.sql.dsl.expression.Predicate;
+import com.liferay.portal.kernel.audit.AuditRouter;
 import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -46,8 +47,11 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.security.audit.event.generators.util.Attribute;
+import com.liferay.portal.security.audit.event.generators.util.AuditMessageBuilder;
 import com.liferay.portal.workflow.kaleo.model.KaleoTaskInstanceToken;
 import com.liferay.portal.workflow.kaleo.service.KaleoTaskInstanceTokenLocalService;
+import com.liferay.site.cmp.site.initializer.internal.constants.CMPSiteInitializerConstants;
 import com.liferay.site.cmp.site.initializer.internal.util.RoleUtil;
 
 import java.io.Serializable;
@@ -74,6 +78,7 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 
 		try {
 			_reindexLinkedObjectEntry(objectEntry);
+			_route(CMPSiteInitializerConstants.CMP_ADD_ASSET, objectEntry);
 			_setResourcePermissions(objectEntry);
 			_updateGroup(objectEntry);
 			_updateProjectCompletionRate(objectEntry);
@@ -89,6 +94,7 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 
 		try {
 			_reindexLinkedObjectEntry(objectEntry);
+			_route(CMPSiteInitializerConstants.CMP_REMOVE_ASSET, objectEntry);
 			_updateProjectCompletionRate(objectEntry);
 		}
 		catch (Exception exception) {
@@ -143,6 +149,38 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 			new Long[] {objectEntry.getGroupId()}, 0, 0,
 			objectEntry.getObjectDefinitionId(),
 			_filterFactory.create(filterString, objectDefinition), false, null);
+	}
+
+	private String _getLinkedObjectEntryTitle(
+			long companyId, Map<String, Serializable> values)
+		throws Exception {
+
+		Group group = _groupLocalService.fetchGroupByExternalReferenceCode(
+			MapUtil.getString(values, "groupExternalReferenceCode"), companyId);
+
+		if (group == null) {
+			return null;
+		}
+
+		ObjectDefinition linkedObjectDefinition =
+			_objectDefinitionLocalService.fetchObjectDefinitionByClassName(
+				companyId, MapUtil.getString(values, "className"));
+
+		if (linkedObjectDefinition == null) {
+			return null;
+		}
+
+		ObjectEntry linkedObjectEntry =
+			_objectEntryLocalService.fetchObjectEntry(
+				MapUtil.getString(values, "classExternalReferenceCode"),
+				group.getGroupId(),
+				linkedObjectDefinition.getObjectDefinitionId());
+
+		if (linkedObjectEntry == null) {
+			return null;
+		}
+
+		return linkedObjectEntry.getTitleValue();
 	}
 
 	private String[] _getProjectContributorActionIds(
@@ -243,54 +281,53 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 			});
 	}
 
-	private void _reindexLinkedObjectEntry(
-			ObjectEntry cmpProjectLinkObjectEntry)
+	private void _route(String eventType, ObjectEntry objectEntry)
 		throws Exception {
 
-		ObjectDefinition cmpProjectLinkObjectDefinition =
-			cmpProjectLinkObjectEntry.getObjectDefinition();
+		if (!FeatureFlagManagerUtil.isEnabled(
+				objectEntry.getCompanyId(), "LPD-58677")) {
+
+			return;
+		}
+
+		ObjectDefinition objectDefinition = objectEntry.getObjectDefinition();
 
 		if (!StringUtil.equals(
-				cmpProjectLinkObjectDefinition.getExternalReferenceCode(),
-				"L_CMP_PROJECT_LINK")) {
+				objectDefinition.getExternalReferenceCode(),
+				"L_CMP_TASK_LINK")) {
 
 			return;
 		}
 
-		Map<String, Serializable> values =
-			cmpProjectLinkObjectEntry.getValues();
-
-		Group group = _groupLocalService.fetchGroupByExternalReferenceCode(
-			MapUtil.getString(values, "groupExternalReferenceCode"),
-			cmpProjectLinkObjectEntry.getCompanyId());
-
-		if (group == null) {
-			return;
-		}
-
-		ObjectDefinition linkedObjectDefinition =
-			_objectDefinitionLocalService.fetchObjectDefinitionByClassName(
-				cmpProjectLinkObjectEntry.getCompanyId(),
-				MapUtil.getString(values, "className"));
-
-		if (linkedObjectDefinition == null) {
-			return;
-		}
-
-		ObjectEntry linkedObjectEntry =
+		ObjectEntry cmpTaskObjectEntry =
 			_objectEntryLocalService.fetchObjectEntry(
-				MapUtil.getString(values, "classExternalReferenceCode"),
-				group.getGroupId(),
-				linkedObjectDefinition.getObjectDefinitionId());
+				MapUtil.getLong(
+					objectEntry.getValues(),
+					"r_cmpTaskToCMPTaskLinks_c_cmpTaskId"));
 
-		if (linkedObjectEntry == null) {
+		if (cmpTaskObjectEntry == null) {
 			return;
 		}
 
-		Indexer<ObjectEntry> indexer = IndexerRegistryUtil.nullSafeGetIndexer(
-			linkedObjectDefinition.getClassName());
+		ObjectDefinition cmpTaskObjectDefinition =
+			cmpTaskObjectEntry.getObjectDefinition();
 
-		indexer.reindex(linkedObjectEntry);
+		if (!cmpTaskObjectDefinition.isEnableObjectEntryHistory()) {
+			return;
+		}
+
+		String title = _getLinkedObjectEntryTitle(
+			objectEntry.getCompanyId(), objectEntry.getValues());
+
+		if (title == null) {
+			return;
+		}
+
+		_auditRouter.route(
+			AuditMessageBuilder.buildAuditMessage(
+				cmpTaskObjectEntry.getModelClassName(),
+				cmpTaskObjectEntry.getObjectEntryId(), eventType,
+				Collections.singletonList(new Attribute(title))));
 	}
 
 	private void _setResourcePermissions(ObjectEntry objectEntry)
@@ -505,6 +542,9 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 					return role.getRoleId();
 				}));
 	}
+
+	@Reference
+	private AuditRouter _auditRouter;
 
 	@Reference(
 		target = "(filter.factory.key=" + ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT + ")"
