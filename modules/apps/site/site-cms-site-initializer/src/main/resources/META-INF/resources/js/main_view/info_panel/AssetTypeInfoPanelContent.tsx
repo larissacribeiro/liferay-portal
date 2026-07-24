@@ -97,6 +97,8 @@ const AssetTypeInfoPanelContent = ({
 					cmpProjectObjectDefinitionId:
 						otherProps.cmpProjectObjectDefinitionId,
 					cmpProjectViewURL: otherProps.cmpProjectViewURL,
+					cmpTaskLinkObjectDefinitionId:
+						otherProps.cmpTaskLinkObjectDefinitionId,
 					cmpTaskObjectDefinitionId:
 						otherProps.cmpTaskObjectDefinitionId,
 					cmpTaskViewURL: otherProps.cmpTaskViewURL,

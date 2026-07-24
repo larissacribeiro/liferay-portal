@@ -14,6 +14,7 @@ const ProjectsTabContent = () => {
 		cmpProjectLinkObjectDefinitionId,
 		cmpProjectObjectDefinitionId,
 		cmpProjectViewURL,
+		cmpTaskLinkObjectDefinitionId,
 		cmpTaskObjectDefinitionId,
 		cmpTaskViewURL,
 		entryClassName,
@@ -21,9 +22,9 @@ const ProjectsTabContent = () => {
 
 	return (
 		<LinkedProjects
-			assetKeywords={asset.keywords}
 			cmpProjectLinkObjectDefinitionId={cmpProjectLinkObjectDefinitionId}
 			cmpProjectObjectDefinitionId={cmpProjectObjectDefinitionId}
+			cmpTaskLinkObjectDefinitionId={cmpTaskLinkObjectDefinitionId}
 			cmpTaskObjectDefinitionId={cmpTaskObjectDefinitionId}
 			entryClassName={entryClassName}
 			entryExternalReferenceCode={asset.externalReferenceCode}
