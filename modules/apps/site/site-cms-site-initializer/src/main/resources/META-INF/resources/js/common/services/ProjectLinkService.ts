@@ -242,7 +242,8 @@ async function getLinkedTasks({
 			return;
 		}
 
-		const cmpProjectObjectEntryId = embedded.r_cmpProjectToCMPTasks_c_cmpProjectId;
+		const cmpProjectObjectEntryId =
+			embedded.r_cmpProjectToCMPTasks_c_cmpProjectId;
 
 		if (cmpProjectObjectEntryId === undefined) {
 			return;
