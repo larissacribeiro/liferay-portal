@@ -10,7 +10,6 @@ import React, {useEffect, useMemo, useState} from 'react';
 
 import ProjectLinkService, {
 	CMPProject,
-	CMPTask,
 	ProjectLink,
 } from '../services/ProjectLinkService';
 import ProjectCard from './ProjectCard';
@@ -20,13 +19,10 @@ import '../../../css/components/LinkedProjects.scss';
 type LinkedProjectsProps = {
 	cmpProjectLinkObjectDefinitionId?: number | null;
 	cmpProjectObjectDefinitionId?: number | null;
-	cmpTaskLinkObjectDefinitionId?: number | null;
-	cmpTaskObjectDefinitionId?: number | null;
 	entryClassName?: string;
 	entryExternalReferenceCode?: string;
 	entryGroupExternalReferenceCode?: string;
 	projectViewURL?: string;
-	taskViewURL?: string;
 };
 
 /**
@@ -38,22 +34,13 @@ type LinkedProjectsProps = {
 export default function LinkedProjects({
 	cmpProjectLinkObjectDefinitionId,
 	cmpProjectObjectDefinitionId,
-	cmpTaskLinkObjectDefinitionId,
-	cmpTaskObjectDefinitionId,
 	entryClassName,
 	entryExternalReferenceCode,
 	entryGroupExternalReferenceCode,
 	projectViewURL,
-	taskViewURL,
 }: LinkedProjectsProps) {
-	const [expandedProjectIds, setExpandedProjectIds] = useState<Set<number>>(
-		new Set()
-	);
 	const [links, setLinks] = useState<ProjectLink[]>([]);
 	const [projects, setProjects] = useState<CMPProject[]>([]);
-	const [tasksByProjectId, setTasksByProjectId] = useState<{
-		[projectId: number]: CMPTask[];
-	}>({});
 
 	const isMounted = useIsMounted();
 
@@ -104,39 +91,6 @@ export default function LinkedProjects({
 		return () => controller.abort();
 	}, [
 		cmpProjectLinkObjectDefinitionId,
-		entryClassName,
-		entryExternalReferenceCode,
-		entryGroupExternalReferenceCode,
-		isMounted,
-	]);
-
-	useEffect(() => {
-		const controller = new AbortController();
-
-		ProjectLinkService.getLinkedTasks({
-			cmpTaskLinkObjectDefinitionId,
-			cmpTaskObjectDefinitionId,
-			entryClassName,
-			entryExternalReferenceCode,
-			entryGroupExternalReferenceCode,
-			signal: controller.signal,
-		}).then(({data, error}) => {
-			if (!isMounted()) {
-				return;
-			}
-
-			if (data) {
-				setTasksByProjectId(data);
-			}
-			else if (error) {
-				openToast({message: error, type: 'danger'});
-			}
-		});
-
-		return () => controller.abort();
-	}, [
-		cmpTaskLinkObjectDefinitionId,
-		cmpTaskObjectDefinitionId,
 		entryClassName,
 		entryExternalReferenceCode,
 		entryGroupExternalReferenceCode,
@@ -259,21 +213,6 @@ export default function LinkedProjects({
 		});
 	};
 
-	const toggleTasks = (project: CMPProject) => {
-		setExpandedProjectIds((previous) => {
-			const expandedIds = new Set(previous);
-
-			if (expandedIds.has(project.id)) {
-				expandedIds.delete(project.id);
-			}
-			else {
-				expandedIds.add(project.id);
-			}
-
-			return expandedIds;
-		});
-	};
-
 	return (
 		<div className="cms-linked-projects">
 			<Picker<CMPProject>
@@ -301,14 +240,10 @@ export default function LinkedProjects({
 			<div className="cms-linked-projects-list">
 				{linkedProjects.map((project) => (
 					<ProjectCard
-						expanded={expandedProjectIds.has(project.id)}
 						key={project.id}
 						onRemove={() => unlinkProject(project)}
-						onToggleTasks={() => toggleTasks(project)}
 						project={project}
 						projectViewURL={projectViewURL}
-						taskViewURL={taskViewURL}
-						tasks={tasksByProjectId[project.id] ?? []}
 					/>
 				))}
 			</div>

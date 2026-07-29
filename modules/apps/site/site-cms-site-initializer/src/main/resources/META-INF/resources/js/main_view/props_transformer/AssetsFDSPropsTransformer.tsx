@@ -149,7 +149,6 @@ export type AdditionalProps = {
 	cmpProjectLinkObjectDefinitionId?: number;
 	cmpProjectObjectDefinitionId?: number;
 	cmpProjectViewURL?: string;
-	cmpTaskLinkObjectDefinitionId?: number;
 	cmsGroupId?: number;
 	collaboratorURLs: Record<string, string>;
 	contentViewURL: string;

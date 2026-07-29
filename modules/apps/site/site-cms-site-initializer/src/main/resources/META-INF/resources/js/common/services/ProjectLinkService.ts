@@ -28,11 +28,6 @@ export type CMPProject = {
 	title: string;
 };
 
-export type CMPTask = {
-	id: number;
-	title: string;
-};
-
 /**
  * A CMPProjectLink entry reduced to what the panels need: the
  * entry id (required to unlink) and the linked project id.
@@ -58,24 +53,6 @@ type ProjectSearchItem = {
 		id: number;
 		scopeKey: string;
 		state?: {key: string; name: string};
-		title: string;
-	};
-};
-
-type TaskLinkSearchItem = {
-	embedded: {
-		classExternalReferenceCode: string;
-		className: string;
-		groupExternalReferenceCode: string;
-		id: number;
-		r_cmpTaskToCMPTaskLinks_c_cmpTaskId?: number;
-	};
-};
-
-type TaskSearchItem = {
-	embedded: {
-		id: number;
-		r_cmpProjectToCMPTasks_c_cmpProjectId?: number;
 		title: string;
 	};
 };
@@ -137,8 +114,8 @@ async function fetchAllSearchItems<T>({
 
 /**
  * Whether a link entry's stored soft reference points at the asset being
- * displayed. `entryClassName` is optional because some callers cannot resolve
- * it and match on the reference code and group alone.
+ * displayed. `entryClassName` is optional because the info panel cannot always
+ * resolve it, and then matches on the reference code and group alone.
  */
 function isLinkedToAsset(
 	link: {
@@ -157,109 +134,6 @@ function isLinkedToAsset(
 		link.classExternalReferenceCode === entryExternalReferenceCode &&
 		link.groupExternalReferenceCode === entryGroupExternalReferenceCode
 	);
-}
-
-/**
- * Lists the asset's associated tasks grouped by project id, resolved from the
- * CMPTaskLink entries pointing at the asset. Like getProjectLinks, the
- * `/o/search` filter does not cover object entry fields (nor the object entry
- * id), so every CMPTaskLink entry is fetched and matched against the asset
- * client side to collect the linked task ids, then every task is fetched and
- * kept when its id is in that set. A project id absent from the result simply
- * has no associated tasks.
- */
-async function getLinkedTasks({
-	cmpTaskLinkObjectDefinitionId,
-	cmpTaskObjectDefinitionId,
-	entryClassName,
-	entryExternalReferenceCode,
-	entryGroupExternalReferenceCode,
-	signal,
-}: AssetIdentity & {
-	cmpTaskLinkObjectDefinitionId?: number | null;
-	cmpTaskObjectDefinitionId?: number | null;
-	signal?: AbortSignal;
-}): Promise<RequestResult<{[projectId: number]: CMPTask[]}>> {
-	if (!cmpTaskLinkObjectDefinitionId || !cmpTaskObjectDefinitionId) {
-		return {data: {}, error: null};
-	}
-
-	const {
-		data: taskLinks,
-		error: taskLinksError,
-		status: taskLinksStatus,
-		type: taskLinksType,
-	} = await fetchAllSearchItems<TaskLinkSearchItem>({
-		objectDefinitionId: cmpTaskLinkObjectDefinitionId,
-		signal,
-	});
-
-	if (taskLinksError !== null) {
-		return {
-			data: null,
-			error: taskLinksError,
-			status: taskLinksStatus,
-			type: taskLinksType,
-		};
-	}
-
-	const linkedTaskIds = new Set<number>();
-
-	taskLinks.forEach(({embedded: taskLink}) => {
-		if (
-			!isLinkedToAsset(taskLink, {
-				entryClassName,
-				entryExternalReferenceCode,
-				entryGroupExternalReferenceCode,
-			})
-		) {
-			return;
-		}
-
-		if (taskLink.r_cmpTaskToCMPTaskLinks_c_cmpTaskId !== undefined) {
-			linkedTaskIds.add(taskLink.r_cmpTaskToCMPTaskLinks_c_cmpTaskId);
-		}
-	});
-
-	if (!linkedTaskIds.size) {
-		return {data: {}, error: null};
-	}
-
-	const {data, error, status, type} =
-		await fetchAllSearchItems<TaskSearchItem>({
-			objectDefinitionId: cmpTaskObjectDefinitionId,
-			signal,
-		});
-
-	if (error !== null) {
-		return {data: null, error, status, type};
-	}
-
-	const tasksByProjectId: {[projectId: number]: CMPTask[]} = {};
-
-	data.forEach(({embedded: task}) => {
-		if (!linkedTaskIds.has(task.id)) {
-			return;
-		}
-
-		const cmpProjectObjectEntryId =
-			task.r_cmpProjectToCMPTasks_c_cmpProjectId;
-
-		if (cmpProjectObjectEntryId === undefined) {
-			return;
-		}
-
-		if (!tasksByProjectId[cmpProjectObjectEntryId]) {
-			tasksByProjectId[cmpProjectObjectEntryId] = [];
-		}
-
-		tasksByProjectId[cmpProjectObjectEntryId].push({
-			id: task.id,
-			title: task.title,
-		});
-	});
-
-	return {data: tasksByProjectId, error: null};
 }
 
 /**
@@ -389,7 +263,6 @@ async function unlinkProject({
 }
 
 const ProjectLinkService = {
-	getLinkedTasks,
 	getProjectLinks,
 	getProjects,
 	linkProject,

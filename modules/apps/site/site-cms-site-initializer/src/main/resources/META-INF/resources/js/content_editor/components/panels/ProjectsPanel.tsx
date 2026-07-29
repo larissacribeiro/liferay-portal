@@ -11,9 +11,6 @@ type ProjectsPanelProps = {
 	cmpProjectLinkObjectDefinitionId?: number | null;
 	cmpProjectObjectDefinitionId?: number | null;
 	cmpProjectViewURL?: string;
-	cmpTaskLinkObjectDefinitionId?: number | null;
-	cmpTaskObjectDefinitionId?: number | null;
-	cmpTaskViewURL?: string;
 	entryClassName?: string;
 	entryExternalReferenceCode?: string;
 	entryGroupExternalReferenceCode?: string;
@@ -23,9 +20,6 @@ export default function ProjectsPanel({
 	cmpProjectLinkObjectDefinitionId,
 	cmpProjectObjectDefinitionId,
 	cmpProjectViewURL,
-	cmpTaskLinkObjectDefinitionId,
-	cmpTaskObjectDefinitionId,
-	cmpTaskViewURL,
 	entryClassName,
 	entryExternalReferenceCode,
 	entryGroupExternalReferenceCode,
@@ -37,15 +31,12 @@ export default function ProjectsPanel({
 					cmpProjectLinkObjectDefinitionId
 				}
 				cmpProjectObjectDefinitionId={cmpProjectObjectDefinitionId}
-				cmpTaskLinkObjectDefinitionId={cmpTaskLinkObjectDefinitionId}
-				cmpTaskObjectDefinitionId={cmpTaskObjectDefinitionId}
 				entryClassName={entryClassName}
 				entryExternalReferenceCode={entryExternalReferenceCode}
 				entryGroupExternalReferenceCode={
 					entryGroupExternalReferenceCode
 				}
 				projectViewURL={cmpProjectViewURL}
-				taskViewURL={cmpTaskViewURL}
 			/>
 		</div>
 	);

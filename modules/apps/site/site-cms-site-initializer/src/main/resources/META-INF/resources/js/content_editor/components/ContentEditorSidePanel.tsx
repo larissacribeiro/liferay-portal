@@ -36,9 +36,6 @@ type Props = {
 	cmpProjectLinkObjectDefinitionId?: number | null;
 	cmpProjectObjectDefinitionId?: number | null;
 	cmpProjectViewURL?: string;
-	cmpTaskLinkObjectDefinitionId?: number | null;
-	cmpTaskObjectDefinitionId?: number | null;
-	cmpTaskViewURL?: string;
 	cmsGroupId: string;
 	comments: Comment[];
 	contentAPIURL: string;

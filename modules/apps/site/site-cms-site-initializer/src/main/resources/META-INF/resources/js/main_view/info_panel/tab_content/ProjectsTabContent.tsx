@@ -14,9 +14,6 @@ const ProjectsTabContent = () => {
 		cmpProjectLinkObjectDefinitionId,
 		cmpProjectObjectDefinitionId,
 		cmpProjectViewURL,
-		cmpTaskLinkObjectDefinitionId,
-		cmpTaskObjectDefinitionId,
-		cmpTaskViewURL,
 		entryClassName,
 	} = useContext(AssetTypeInfoPanelContext);
 
@@ -24,15 +21,12 @@ const ProjectsTabContent = () => {
 		<LinkedProjects
 			cmpProjectLinkObjectDefinitionId={cmpProjectLinkObjectDefinitionId}
 			cmpProjectObjectDefinitionId={cmpProjectObjectDefinitionId}
-			cmpTaskLinkObjectDefinitionId={cmpTaskLinkObjectDefinitionId}
-			cmpTaskObjectDefinitionId={cmpTaskObjectDefinitionId}
 			entryClassName={entryClassName}
 			entryExternalReferenceCode={asset.externalReferenceCode}
 			entryGroupExternalReferenceCode={
 				asset.systemProperties?.scope?.externalReferenceCode
 			}
 			projectViewURL={cmpProjectViewURL}
-			taskViewURL={cmpTaskViewURL}
 		/>
 	);
 };
