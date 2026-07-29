@@ -104,10 +104,6 @@ public abstract class BaseSectionDisplayContext {
 			ObjectDefinitionLocalServiceUtil.
 				fetchObjectDefinitionByExternalReferenceCode(
 					"L_CMP_PROJECT", themeDisplay.getCompanyId());
-		ObjectDefinition cmpTaskObjectDefinition =
-			ObjectDefinitionLocalServiceUtil.
-				fetchObjectDefinitionByExternalReferenceCode(
-					"L_CMP_TASK", themeDisplay.getCompanyId());
 
 		return HashMapBuilder.<String, Object>put(
 			"additionalAPIURLParameters",
@@ -179,38 +175,6 @@ public abstract class BaseSectionDisplayContext {
 				}
 
 				return _getCMPViewURL(cmpProjectObjectDefinition, "project");
-			}
-		).put(
-			"cmpTaskLinkObjectDefinitionId",
-			() -> {
-				ObjectDefinition cmpTaskLinkObjectDefinition =
-					ObjectDefinitionLocalServiceUtil.
-						fetchObjectDefinitionByExternalReferenceCode(
-							"L_CMP_TASK_LINK", themeDisplay.getCompanyId());
-
-				if (cmpTaskLinkObjectDefinition == null) {
-					return null;
-				}
-
-				return cmpTaskLinkObjectDefinition.getObjectDefinitionId();
-			}
-		).put(
-			"cmpTaskObjectDefinitionId",
-			() -> {
-				if (cmpTaskObjectDefinition == null) {
-					return null;
-				}
-
-				return cmpTaskObjectDefinition.getObjectDefinitionId();
-			}
-		).put(
-			"cmpTaskViewURL",
-			() -> {
-				if (cmpTaskObjectDefinition == null) {
-					return null;
-				}
-
-				return _getCMPViewURL(cmpTaskObjectDefinition, "task");
 			}
 		).put(
 			"cmsGroupId",
