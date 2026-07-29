@@ -45,9 +45,6 @@ describe('ProjectsTabContent', () => {
 						cmpProjectLinkObjectDefinitionId: 11,
 						cmpProjectObjectDefinitionId: 22,
 						cmpProjectViewURL: '/project',
-						cmpTaskLinkObjectDefinitionId: 44,
-						cmpTaskObjectDefinitionId: 33,
-						cmpTaskViewURL: '/task',
 						entryClassName: 'com.example.Content',
 					} as unknown as IAssetTypeInfoPanelContext
 				}
@@ -59,13 +56,10 @@ describe('ProjectsTabContent', () => {
 		expect(mockLinkedProjects).toHaveBeenCalledWith({
 			cmpProjectLinkObjectDefinitionId: 11,
 			cmpProjectObjectDefinitionId: 22,
-			cmpTaskLinkObjectDefinitionId: 44,
-			cmpTaskObjectDefinitionId: 33,
 			entryClassName: 'com.example.Content',
 			entryExternalReferenceCode: 'ASSET-1',
 			entryGroupExternalReferenceCode: 'SPACE-1',
 			projectViewURL: '/project',
-			taskViewURL: '/task',
 		});
 	});
 });
