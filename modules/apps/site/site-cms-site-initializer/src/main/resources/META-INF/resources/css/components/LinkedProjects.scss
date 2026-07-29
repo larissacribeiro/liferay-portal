@@ -2,20 +2,26 @@
 @import 'cadmin-variables';
 
 .cms-linked-projects {
+	// The cards share one bordered container, separated by a single hairline,
+	// so the list reads the same way as the CMS asset versions list.
+
 	&-list {
+		border: 1px solid $secondary-l2;
+		border-radius: 0.25rem;
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
 		margin-top: 1rem;
 	}
 
 	&-card {
 		align-items: flex-start;
-		border: 1px solid $secondary-l2;
-		border-radius: 0.25rem;
 		display: flex;
 		justify-content: space-between;
 		padding: 0.75rem;
+	}
+
+	&-card + &-card {
+		border-top: 1px solid $secondary-l2;
 	}
 
 	&-card-title {
