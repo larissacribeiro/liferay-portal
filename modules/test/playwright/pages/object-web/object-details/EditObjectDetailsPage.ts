@@ -90,7 +90,9 @@ export class EditObjectDetailsPage {
 		await this.accountRestrictionToggle.check();
 
 		await this.accountRestrictedFieldCombobox.click();
-		await this.page.getByRole('option', {name: fieldName}).click();
+		await this.page
+			.getByRole('option', {name: fieldName})
+			.dispatchEvent('click');
 	}
 
 	async goto(objectDefinitionLabel: string) {
@@ -114,7 +116,9 @@ export class EditObjectDetailsPage {
 	async selectEntryTitleField(fieldName: string) {
 		await this.entryTitleFieldCombobox.click();
 
-		await this.page.getByRole('option', {name: fieldName}).click();
+		await this.page
+			.getByRole('option', {name: fieldName})
+			.dispatchEvent('click');
 	}
 
 	async selectLabelLanguage(language: string) {
@@ -125,13 +129,15 @@ export class EditObjectDetailsPage {
 				exact: false,
 				name: `${language} language:`,
 			})
-			.click();
+			.dispatchEvent('click');
 	}
 
 	async selectPanelLink(optionName: string) {
 		await this.panelLinkCombobox.click();
 
-		await this.page.getByRole('option', {name: optionName}).click();
+		await this.page
+			.getByRole('option', {name: optionName})
+			.dispatchEvent('click');
 	}
 
 	async selectPluralLabelLanguage(language: string) {
@@ -142,7 +148,7 @@ export class EditObjectDetailsPage {
 				exact: false,
 				name: `${language} language:`,
 			})
-			.click();
+			.dispatchEvent('click');
 	}
 
 	async selectScope(optionName: string) {

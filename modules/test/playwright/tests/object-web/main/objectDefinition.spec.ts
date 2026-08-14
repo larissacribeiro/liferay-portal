@@ -863,7 +863,7 @@ test.describe('Manage object definitions through Model Builder', () => {
 
 			await page
 				.getByRole('option', {name: 'pt_BR language: Translated'})
-				.click();
+				.dispatchEvent('click');
 
 			await expect(
 				modelBuilderRightSidebarPage.sidebarLabelInput
@@ -1251,7 +1251,7 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 
 			await page
 				.getByRole('option', {exact: true, name: 'Screen Name'})
-				.click();
+				.dispatchEvent('click');
 
 			await editObjectDetailsPage.saveObjectDefinition();
 
