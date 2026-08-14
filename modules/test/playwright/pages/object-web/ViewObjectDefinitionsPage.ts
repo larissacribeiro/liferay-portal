@@ -106,15 +106,7 @@ export class ViewObjectDefinitionsPage {
 		objectDefinitionLabel: string,
 		placeholder?: string
 	) {
-		const input = this.page
-			.locator('.management-bar')
-			.getByRole('searchbox', {
-				name: placeholder ?? 'Search',
-			});
-
-		await input.fill(objectDefinitionLabel);
-
-		await this.page.keyboard.press('Enter');
+		await this.searchObjectDefinition(objectDefinitionLabel, placeholder);
 
 		await this.page
 			.getByRole('link', {exact: true, name: objectDefinitionLabel})
@@ -124,7 +116,7 @@ export class ViewObjectDefinitionsPage {
 	async clickObjectDefinitionActionButton(objectDefinitionLabel: string) {
 		await this.page
 			.getByRole('row', {name: objectDefinitionLabel})
-			.getByRole('button')
+			.getByRole('button', {name: 'Actions'})
 			.click();
 	}
 
@@ -264,5 +256,25 @@ export class ViewObjectDefinitionsPage {
 			.getByRole('listitem')
 			.filter({hasText: objectFolderLabel})
 			.click({timeout: options?.timeout});
+	}
+
+	/**
+	 * Filters the object definitions list down to the given label. The list is
+	 * paginated and holds every system object definition in the instance, so a
+	 * row is only reachable once the list has been filtered.
+	 */
+	async searchObjectDefinition(
+		objectDefinitionLabel: string,
+		placeholder?: string
+	) {
+		const input = this.page
+			.locator('.management-bar')
+			.getByRole('searchbox', {
+				name: placeholder ?? 'Search',
+			});
+
+		await input.fill(objectDefinitionLabel);
+
+		await this.page.keyboard.press('Enter');
 	}
 }

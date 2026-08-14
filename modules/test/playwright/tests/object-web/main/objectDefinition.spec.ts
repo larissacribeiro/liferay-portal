@@ -2151,6 +2151,10 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 
 			await viewObjectDefinitionsPage.goto();
 
+			await viewObjectDefinitionsPage.searchObjectDefinition(
+				objectDefinition.label['en_US']
+			);
+
 			await expect(
 				page.getByRole('link', {
 					name: objectDefinition.label['en_US'],
@@ -2337,6 +2341,10 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 
 			await viewObjectDefinitionsPage.goto();
 
+			await viewObjectDefinitionsPage.searchObjectDefinition(
+				objectDefinition.label['en_US']
+			);
+
 			await viewObjectDefinitionsPage.clickObjectDefinitionActionButton(
 				objectDefinition.label['en_US']
 			);
@@ -2373,6 +2381,10 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 
 			await viewObjectDefinitionsPage.goto();
 
+			await viewObjectDefinitionsPage.searchObjectDefinition(
+				objectDefinition.label['en_US']
+			);
+
 			await viewObjectDefinitionsPage.clickObjectDefinitionActionButton(
 				objectDefinition.label['en_US']
 			);
@@ -2387,11 +2399,15 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 				objectDefinition.name
 			);
 
-			expect(
+			await expect(
 				page.getByRole('switch', {name: 'Activate Object'})
 			).not.toBeChecked();
 
 			await viewObjectDefinitionsPage.goto();
+
+			await viewObjectDefinitionsPage.searchObjectDefinition(
+				objectDefinition.label['en_US']
+			);
 
 			await viewObjectDefinitionsPage.clickObjectDefinitionActionButton(
 				objectDefinition.label['en_US']
