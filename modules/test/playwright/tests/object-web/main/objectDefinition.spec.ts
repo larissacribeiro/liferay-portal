@@ -1809,22 +1809,20 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 	});
 
 	const titleFieldTest = test.extend<{
-		restoreAccountEntryTitleFieldAndDefaultLanguage: void;
+		restoreAccountEntryTitleField: void;
 	}>({
-		restoreAccountEntryTitleFieldAndDefaultLanguage: async (
-			{editObjectDetailsPage, localizationInstanceSettingsPage, page},
+		restoreAccountEntryTitleField: async (
+			{
+				editObjectDetailsPage,
+				page,
+				restoreInstanceDefaultLanguage: _restoreInstanceDefaultLanguage,
+			},
 			use
 		) => {
 			try {
 				await use();
 			}
 			finally {
-				await localizationInstanceSettingsPage.goto('Language', false);
-
-				await localizationInstanceSettingsPage.setDefaultLanguage(
-					'en_US'
-				);
-
 				await editObjectDetailsPage.goto('Account');
 
 				await editObjectDetailsPage.selectEntryTitleField('Name');
@@ -1843,8 +1841,7 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 			editObjectDetailsPage,
 			localizationInstanceSettingsPage,
 			page,
-			restoreAccountEntryTitleFieldAndDefaultLanguage:
-				_restoreAccountEntryTitleFieldAndDefaultLanguage,
+			restoreAccountEntryTitleField: _restoreAccountEntryTitleField,
 			viewObjectEntriesPage,
 		}) => {
 			let objectDefinition: ObjectDefinition;
