@@ -138,6 +138,12 @@ export interface IProps<T>
 	filterKey?: Locator;
 
 	/**
+	 * Content rendered at the bottom of the menu, after the list of items and
+	 * the infinite scroll feedback.
+	 */
+	footer?: React.ReactNode;
+
+	/**
 	 * Property to render content with dynamic data.
 	 */
 	items?: Array<T> | null;
@@ -258,6 +264,7 @@ function AutocompleteInner<T extends Item>(
 		displayKeyboardArrowsIndicator = false,
 		estimateSize,
 		filterKey,
+		footer,
 		items: externalItems,
 		loadingState,
 		menuTrigger = 'input',
@@ -795,6 +802,7 @@ function AutocompleteInner<T extends Item>(
 						role="presentation"
 						style={{
 							maxWidth: 'none',
+							...(footer ? {paddingBottom: 0} : {}),
 							width: `${containerElementRef.current?.clientWidth}px`,
 						}}
 					>
@@ -831,6 +839,8 @@ function AutocompleteInner<T extends Item>(
 						</AutocompleteContext.Provider>
 
 						<InfiniteScrollFeedback />
+
+						{footer}
 					</div>
 				</Overlay>
 			)}
