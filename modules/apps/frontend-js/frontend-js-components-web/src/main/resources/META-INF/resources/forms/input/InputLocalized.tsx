@@ -13,6 +13,7 @@ import './InputLocalized.scss';
 
 interface InputLocalizedProps {
 	className?: string;
+	component?: 'input' | 'textarea';
 	disabled?: boolean;
 	error?: string;
 	helpMessage?: string;
@@ -28,6 +29,7 @@ interface InputLocalizedProps {
 	placeholder?: string;
 	required?: boolean;
 	resultFormatter?: (value: string) => React.ReactNode;
+	rows?: number;
 	selectedLocale?: Liferay.Language.Locale;
 	tooltip?: string;
 	translations: Liferay.Language.LocalizedValue<string> &
