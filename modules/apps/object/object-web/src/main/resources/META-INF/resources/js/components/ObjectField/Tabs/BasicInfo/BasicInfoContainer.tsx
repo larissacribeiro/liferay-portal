@@ -126,6 +126,7 @@ export function BasicInfoContainer({
 					setObjectDefinitionExternalReferenceCode2
 				}
 				onSubmit={onSubmit}
+				readOnly={readOnly}
 				setDbObjectFieldRequired={setDbObjectFieldRequired}
 				setValues={setValues}
 			>
