@@ -91,6 +91,8 @@ export function EditObjectRelationshipContent({
 
 				<ObjectRelationshipFormBase
 					baseResourceURL={baseResourceURL}
+					descriptionDisabled={readOnly}
+					editingObjectRelationship
 					errors={errors}
 					handleChange={handleChange}
 					inheritanceCheckboxDisabled={inheritanceCheckboxDisabled}

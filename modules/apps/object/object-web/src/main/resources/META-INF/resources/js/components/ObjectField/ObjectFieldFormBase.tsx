@@ -483,7 +483,9 @@ export default function ObjectFieldFormBase({
 			{showDescription && (
 				<InputLocalized
 					component="textarea"
-					disabled={readOnly}
+					disabled={
+						readOnly || values.businessType === 'Relationship'
+					}
 					error={errors.description}
 					helpMessage={Liferay.Language.get(
 						'object-description-help'
