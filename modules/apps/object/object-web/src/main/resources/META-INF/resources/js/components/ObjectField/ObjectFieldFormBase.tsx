@@ -17,6 +17,7 @@ import {
 } from '@liferay/object-js-components-web';
 import {
 	ILearnResourceContext,
+	InputLocalized,
 	LearnMessage,
 	LearnResourcesContext,
 } from 'frontend-js-components-web';
@@ -35,6 +36,7 @@ import {
 	getUpdatedDefaultValueType,
 } from '../../utils/defaultValues';
 import {removeFieldSettings} from '../../utils/fieldSettings';
+import {isMetadataObjectField} from '../../utils/isMetadataObjectField';
 import {toCamelCase} from '../../utils/string';
 import {AggregationFormBase} from './AggregationFormBase';
 import {AttachmentFormBase} from './AttachmentFormBase';
@@ -71,6 +73,7 @@ interface ObjectFieldFormBaseProps {
 		objectDefinitionExternalReferenceCode2: string
 	) => void;
 	onSubmit?: (values?: Partial<ObjectField>) => void;
+	readOnly?: boolean;
 	setDbObjectFieldRequired?: (value: boolean) => void;
 	setValues: (values: Partial<ObjectField>) => void;
 }
@@ -219,6 +222,7 @@ export default function ObjectFieldFormBase({
 	onAggregationFilterChange,
 	onObjectRelationshipChange,
 	onSubmit,
+	readOnly,
 	setDbObjectFieldRequired,
 	setValues,
 }: ObjectFieldFormBaseProps) {
@@ -238,6 +242,16 @@ export default function ObjectFieldFormBase({
 	const validListTypeDefinitionId =
 		values.listTypeDefinitionId !== undefined &&
 		values.listTypeDefinitionId !== 0;
+
+	const showDescription =
+		Liferay.FeatureFlags['LPD-80279'] &&
+		editingObjectField &&
+		!isMetadataObjectField(values.name) &&
+		!(
+			!objectDefinition?.modifiable &&
+			objectDefinition?.system &&
+			values.system
+		);
 
 	const listTypeDefinitionsItems = useMemo(() => {
 		return listTypeDefinitions.map(({externalReferenceCode, name}) => ({
@@ -465,6 +479,32 @@ export default function ObjectFieldFormBase({
 					toCamelCase(values.label?.[defaultLanguageId] ?? '', true)
 				}
 			/>
+
+			{showDescription && (
+				<InputLocalized
+					component="textarea"
+					disabled={readOnly}
+					error={errors.description}
+					helpMessage={Liferay.Language.get(
+						'object-description-help'
+					)}
+					id="objectFieldDescriptionInput"
+					label={Liferay.Language.get('description')}
+					onBlur={(event) => {
+						event.stopPropagation();
+
+						if (onSubmit) {
+							onSubmit();
+						}
+					}}
+					onChange={(description) => setValues({description})}
+					placeholder=""
+					rows={3}
+					translations={
+						(values.description ?? {}) as LocalizedValue<string>
+					}
+				/>
+			)}
 
 			<SingleSelect<ObjectFieldBusinessType>
 				className={className}
