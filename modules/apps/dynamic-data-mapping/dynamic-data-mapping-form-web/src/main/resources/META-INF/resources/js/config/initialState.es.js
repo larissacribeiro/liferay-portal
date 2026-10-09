@@ -4,11 +4,13 @@
  */
 
 import {
+	EVENT_TYPES as CORE_EVENT_TYPES,
 	INITIAL_PAGES,
 	INITIAL_STATE,
 	PagesVisitor,
 	RulesSupport,
 	getUid,
+	languageReducer,
 } from 'data-engine-js-components-web';
 
 export const BUILDER_INITIAL_STATE = {
@@ -83,6 +85,26 @@ const normalizePages = (pages) => {
 	);
 };
 
+/**
+ * The backend renders the field properties in the user's language while the
+ * form opens on the editing language, so the pages go through the same
+ * update a language change applies before the first render.
+ */
+const localizePages = (
+	pages,
+	{availableLanguageIds, defaultLanguageId, editingLanguageId}
+) => {
+	const {pages: localizedPages} = languageReducer(
+		{availableLanguageIds, defaultLanguageId},
+		{
+			payload: {editingLanguageId, pages},
+			type: CORE_EVENT_TYPES.LANGUAGE.CHANGE,
+		}
+	);
+
+	return localizedPages;
+};
+
 export function initState(
 	{
 		pages: initialPages,
@@ -94,7 +116,7 @@ export function initState(
 	{view}
 ) {
 	const pages = initialPages.length
-		? normalizePages(initialPages)
+		? localizePages(normalizePages(initialPages), otherProps)
 		: INITIAL_PAGES;
 
 	// Before starting the application formats the rules there may be a broken rule with
