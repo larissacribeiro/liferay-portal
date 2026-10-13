@@ -4,6 +4,7 @@
  */
 
 import {
+	FieldSupport,
 	INITIAL_PAGES,
 	INITIAL_STATE,
 	PagesVisitor,
@@ -34,7 +35,10 @@ export const BUILDER_INITIAL_STATE = {
  * Called only at application startup, but adds an initial computing load
  * to traverse through all fields on the form as well as nested fields.
  */
-const normalizePages = (pages) => {
+const normalizePages = (
+	pages,
+	{availableLanguageIds, defaultLanguageId, editingLanguageId}
+) => {
 	const visitor = new PagesVisitor(pages);
 
 	return visitor.mapFields(
@@ -46,35 +50,42 @@ const normalizePages = (pages) => {
 			// implementation of the LayoutProvider, to remove this it is necessary
 			// to refactor the Options field to better deal with states and location.
 
+			const settingsContextPages = visitor.mapFields((field) => {
+				if (field.type === 'options') {
+					const languageIds = Object.keys(field.value);
+
+					return {
+						...field,
+						value: languageIds.reduce(
+							(previousValue, currentLanguageId) => ({
+								...previousValue,
+								[currentLanguageId]: field.value[
+									currentLanguageId
+								].map((option) => ({
+									...option,
+									edited: true,
+								})),
+							}),
+							{}
+						),
+					};
+				}
+
+				return field;
+			});
+
 			return {
-				...otherProps,
+				...FieldSupport.updateFieldLanguage(
+					{
+						...otherProps,
+						settingsContext: {
+							...settingsContext,
+							pages: settingsContextPages,
+						},
+					},
+					{availableLanguageIds, defaultLanguageId, editingLanguageId}
+				),
 				localizedValue: {},
-				settingsContext: {
-					...settingsContext,
-					pages: visitor.mapFields((field) => {
-						if (field.type === 'options') {
-							const languageIds = Object.keys(field.value);
-
-							return {
-								...field,
-								value: languageIds.reduce(
-									(previousValue, currentLanguageId) => ({
-										...previousValue,
-										[currentLanguageId]: field.value[
-											currentLanguageId
-										].map((option) => ({
-											...option,
-											edited: true,
-										})),
-									}),
-									{}
-								),
-							};
-						}
-
-						return field;
-					}),
-				},
 				value: undefined,
 			};
 		},
@@ -94,7 +105,7 @@ export function initState(
 	{view}
 ) {
 	const pages = initialPages.length
-		? normalizePages(initialPages)
+		? normalizePages(initialPages, otherProps)
 		: INITIAL_PAGES;
 
 	// Before starting the application formats the rules there may be a broken rule with

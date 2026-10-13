@@ -3,14 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {
-	generateInstanceId,
-	getField,
-	getFieldProperties,
-	localizeField,
-	updateInputMaskProperties,
-} from '../../utils/fieldSupport';
-import {generateName, getRepeatedIndex} from '../../utils/repeatable.es';
+import {getField, updateFieldLanguage} from '../../utils/fieldSupport';
 import {PagesVisitor} from '../../utils/visitors.es';
 import {EVENT_TYPES} from '../actions/eventTypes.es';
 
@@ -108,78 +101,6 @@ const getLocalizedValue = ({
 	}
 };
 
-const updateFieldLanguage = ({
-	availableLanguageIds,
-	dataSourceType,
-	defaultLanguageId,
-	editingLanguageId,
-	instanceId,
-	name,
-	options,
-	settingsContext,
-	type,
-}) => {
-	const settingsVisitor = new PagesVisitor(settingsContext.pages);
-
-	const fieldOptions = settingsVisitor.findField(
-		({fieldName}) => fieldName === 'options'
-	);
-
-	const currentOptions =
-		fieldOptions?.value[editingLanguageId] ??
-		fieldOptions?.value[defaultLanguageId];
-
-	const pages = settingsVisitor.mapFields((field) => {
-		const updatedField = localizeField(
-			field,
-			defaultLanguageId,
-			editingLanguageId
-		);
-
-		if (currentOptions && field.fieldName === 'predefinedValue') {
-			updatedField.options = currentOptions;
-		}
-
-		updatedField.locale = editingLanguageId;
-
-		return updatedField;
-	});
-
-	const newSettingsContext = {
-		...settingsContext,
-		availableLanguageIds,
-		defaultLanguageId,
-		pages,
-	};
-
-	const newField = {
-		...getFieldProperties(
-			newSettingsContext,
-			defaultLanguageId,
-			editingLanguageId
-		),
-		locale: editingLanguageId,
-		name: generateName(name, {
-			instanceId: instanceId || generateInstanceId(),
-			repeatedIndex: getRepeatedIndex(name),
-		}),
-		settingsContext: newSettingsContext,
-	};
-
-	if (
-		type === 'select' &&
-		dataSourceType &&
-		dataSourceType.includes('data-provider')
-	) {
-		return {
-			...newField,
-			options,
-		};
-	}
-
-	return newField;
-};
-
 const removeLanguageFromForm = (focusedField, pages, ...deletedLanguageIds) => {
 	let updatedPages = deleteLanguageId(pages, ...deletedLanguageIds);
 
@@ -241,13 +162,7 @@ export default function languageReducer(state, action) {
 			const visitor = new PagesVisitor(pages ?? state.pages);
 
 			const newPages = visitor.mapFields(
-				({
-					localizable,
-					localizedValue,
-					localizedValueEdited,
-					value: previousValue,
-					...field
-				}) => {
+				(field) => {
 
 					// When languageReducer is used in the context of the
 					// Form Builder, the fields contain settingsContext
@@ -255,36 +170,18 @@ export default function languageReducer(state, action) {
 					// the fields in the settingsContext structure.
 
 					if (field.settingsContext) {
-						const newField = {
-							...field,
-							...updateFieldLanguage({
-								...field,
-								availableLanguageIds,
-								defaultLanguageId,
-								editingLanguageId,
-							}),
-							value: previousValue,
-						};
-
-						if (newField.inputMask) {
-							updateInputMaskProperties(
-								editingLanguageId,
-								newField
-							);
-						}
-
-						return newField;
+						return updateFieldLanguage(field, {
+							availableLanguageIds,
+							defaultLanguageId,
+							editingLanguageId,
+						});
 					}
 
 					return {
 						value: getLocalizedValue({
+							...field,
 							defaultLanguageId,
 							editingLanguageId,
-							localizable,
-							localizedValue,
-							localizedValueEdited,
-							type: field.type,
-							value: previousValue,
 						}),
 					};
 				},
