@@ -578,6 +578,80 @@ export function localizeField(field, defaultLanguageId, editingLanguageId) {
 	};
 }
 
+export function updateFieldLanguage(
+	field,
+	{availableLanguageIds, defaultLanguageId, editingLanguageId}
+) {
+	const {dataSourceType, instanceId, name, options, settingsContext, type} =
+		field;
+
+	const settingsVisitor = new PagesVisitor(settingsContext.pages);
+
+	const fieldOptions = settingsVisitor.findField(
+		({fieldName}) => fieldName === 'options'
+	);
+
+	const currentOptions =
+		fieldOptions?.value[editingLanguageId] ??
+		fieldOptions?.value[defaultLanguageId];
+
+	const pages = settingsVisitor.mapFields((settingsContextField) => {
+		const updatedField = localizeField(
+			settingsContextField,
+			defaultLanguageId,
+			editingLanguageId
+		);
+
+		if (
+			currentOptions &&
+			settingsContextField.fieldName === 'predefinedValue'
+		) {
+			updatedField.options = currentOptions;
+		}
+
+		updatedField.locale = editingLanguageId;
+
+		return updatedField;
+	});
+
+	const newSettingsContext = {
+		...settingsContext,
+		availableLanguageIds,
+		defaultLanguageId,
+		pages,
+	};
+
+	const newField = {
+		...field,
+		...getFieldProperties(
+			newSettingsContext,
+			defaultLanguageId,
+			editingLanguageId
+		),
+		locale: editingLanguageId,
+		name: generateName(name, {
+			instanceId: instanceId || generateInstanceId(),
+			repeatedIndex: getRepeatedIndex(name),
+		}),
+		settingsContext: newSettingsContext,
+		value: field.value,
+	};
+
+	if (
+		type === 'select' &&
+		dataSourceType &&
+		dataSourceType.includes('data-provider')
+	) {
+		newField.options = options;
+	}
+
+	if (newField.inputMask) {
+		updateInputMaskProperties(editingLanguageId, newField);
+	}
+
+	return newField;
+}
+
 export function updatePagesOnFieldChange(
 	pages,
 	{
