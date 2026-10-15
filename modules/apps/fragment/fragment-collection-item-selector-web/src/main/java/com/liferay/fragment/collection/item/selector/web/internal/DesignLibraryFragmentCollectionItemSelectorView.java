@@ -1,18 +1,20 @@
 /**
- * SPDX-FileCopyrightText: (c) 2000 Liferay, Inc. https://liferay.com
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
 package com.liferay.fragment.collection.item.selector.web.internal;
 
+import com.liferay.design.library.util.DesignLibraryUtil;
 import com.liferay.fragment.collection.item.selector.FragmentCollectionItemSelectorCriterion;
 import com.liferay.fragment.collection.item.selector.FragmentCollectionItemSelectorReturnType;
-import com.liferay.fragment.contributor.FragmentCollectionContributorRegistry;
 import com.liferay.item.selector.ItemSelectorReturnType;
 import com.liferay.item.selector.ItemSelectorView;
 import com.liferay.item.selector.ItemSelectorViewDescriptorRenderer;
 import com.liferay.portal.kernel.language.Language;
-import com.liferay.portal.kernel.model.CompanyConstants;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 
 import jakarta.portlet.PortletURL;
 
@@ -31,13 +33,14 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 /**
- * @author Rubén Pulido
+ * @author Gabriel Lima
+ * @author Thiago Buarque
  */
 @Component(
-	property = "item.selector.view.order:Integer=100",
+	property = "item.selector.view.order:Integer=400",
 	service = ItemSelectorView.class
 )
-public class FragmentCollectionSystemItemSelectorView
+public class DesignLibraryFragmentCollectionItemSelectorView
 	implements ItemSelectorView<FragmentCollectionItemSelectorCriterion> {
 
 	@Override
@@ -54,7 +57,18 @@ public class FragmentCollectionSystemItemSelectorView
 
 	@Override
 	public String getTitle(Locale locale) {
-		return _language.get(locale, "default");
+		return _language.get(locale, "design-libraries");
+	}
+
+	@Override
+	public boolean isVisible(
+		FragmentCollectionItemSelectorCriterion
+			fragmentCollectionItemSelectorCriterion,
+		ThemeDisplay themeDisplay) {
+
+		return ArrayUtil.isNotEmpty(
+			DesignLibraryUtil.fetchConnectedDesignLibraryGroupIds(
+				themeDisplay.getSiteGroupId()));
 	}
 
 	@Override
@@ -65,25 +79,22 @@ public class FragmentCollectionSystemItemSelectorView
 			PortletURL portletURL, String itemSelectedEventName, boolean search)
 		throws IOException, ServletException {
 
-		fragmentCollectionItemSelectorCriterion.setGroupId(
-			CompanyConstants.SYSTEM);
+		ThemeDisplay themeDisplay = (ThemeDisplay)servletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
 		_itemSelectorViewDescriptorRenderer.renderHTML(
 			servletRequest, servletResponse,
 			fragmentCollectionItemSelectorCriterion, portletURL,
 			itemSelectedEventName, search,
-			new FragmentCollectionContributorItemSelectorViewDescriptor(
-				_fragmentCollectionContributorRegistry,
+			new DesignLibraryFragmentCollectionItemSelectorViewDescriptor(
+				DesignLibraryUtil.fetchConnectedDesignLibraryGroupIds(
+					themeDisplay.getSiteGroupId()),
 				(HttpServletRequest)servletRequest, portletURL));
 	}
 
 	private static final List<ItemSelectorReturnType>
 		_supportedItemSelectorReturnTypes = Collections.singletonList(
 			new FragmentCollectionItemSelectorReturnType());
-
-	@Reference
-	private FragmentCollectionContributorRegistry
-		_fragmentCollectionContributorRegistry;
 
 	@Reference
 	private ItemSelectorViewDescriptorRenderer

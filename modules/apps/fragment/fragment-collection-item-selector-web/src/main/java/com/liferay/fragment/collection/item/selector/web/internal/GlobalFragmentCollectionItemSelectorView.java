@@ -32,12 +32,13 @@ import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Rubén Pulido
+ * @author Thiago Buarque
  */
 @Component(
 	property = "item.selector.view.order:Integer=200",
 	service = ItemSelectorView.class
 )
-public class FragmentCollectionGlobalItemSelectorView
+public class GlobalFragmentCollectionItemSelectorView
 	implements ItemSelectorView<FragmentCollectionItemSelectorCriterion> {
 
 	@Override
@@ -68,16 +69,12 @@ public class FragmentCollectionGlobalItemSelectorView
 		ThemeDisplay themeDisplay = (ThemeDisplay)servletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		fragmentCollectionItemSelectorCriterion.setGroupId(
-			themeDisplay.getCompanyGroupId());
-
 		_itemSelectorViewDescriptorRenderer.renderHTML(
 			servletRequest, servletResponse,
 			fragmentCollectionItemSelectorCriterion, portletURL,
 			itemSelectedEventName, search,
-			new FragmentCollectionItemSelectorViewDescriptor(
-				fragmentCollectionItemSelectorCriterion,
-				themeDisplay.getCompanyGroupId(),
+			new SiteFragmentCollectionItemSelectorViewDescriptor(
+				new long[] {themeDisplay.getCompanyGroupId()},
 				(HttpServletRequest)servletRequest, portletURL));
 	}
 

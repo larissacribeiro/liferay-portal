@@ -39,12 +39,13 @@ import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Rubén Pulido
+ * @author Thiago Buarque
  */
 @Component(
 	property = "item.selector.view.order:Integer=300",
 	service = ItemSelectorView.class
 )
-public class FragmentCollectionSiteItemSelectorView
+public class SiteFragmentCollectionItemSelectorView
 	implements ItemSelectorView<FragmentCollectionItemSelectorCriterion> {
 
 	@Override
@@ -99,21 +100,17 @@ public class FragmentCollectionSiteItemSelectorView
 		ThemeDisplay themeDisplay = (ThemeDisplay)servletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		fragmentCollectionItemSelectorCriterion.setGroupId(
-			themeDisplay.getSiteGroupId());
-
 		_itemSelectorViewDescriptorRenderer.renderHTML(
 			servletRequest, servletResponse,
 			fragmentCollectionItemSelectorCriterion, portletURL,
 			itemSelectedEventName, search,
-			new FragmentCollectionItemSelectorViewDescriptor(
-				fragmentCollectionItemSelectorCriterion,
-				themeDisplay.getSiteGroupId(),
+			new SiteFragmentCollectionItemSelectorViewDescriptor(
+				new long[] {themeDisplay.getSiteGroupId()},
 				(HttpServletRequest)servletRequest, portletURL));
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
-		FragmentCollectionSiteItemSelectorView.class);
+		SiteFragmentCollectionItemSelectorView.class);
 
 	private static final List<ItemSelectorReturnType>
 		_supportedItemSelectorReturnTypes = Arrays.asList(
