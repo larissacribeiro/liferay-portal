@@ -7,8 +7,10 @@ package com.liferay.content.marketing.platform.web.internal.upgrade.registry;
 
 import com.liferay.content.marketing.platform.web.internal.upgrade.v2_0_0.CMPDescriptionObjectFieldUpgradeProcess;
 import com.liferay.content.marketing.platform.web.internal.upgrade.v2_1_0.CMPDescriptionDisplayPageTemplateUpgradeProcess;
+import com.liferay.content.marketing.platform.web.internal.upgrade.v2_2_0.CMPDescriptionLayoutPageTemplateStructureUpgradeProcess;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
+import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
@@ -16,6 +18,7 @@ import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -44,6 +47,16 @@ public class CMPSiteInitializerUpgradeStepRegistrator
 				_fragmentEntryLinkLocalService, _groupLocalService,
 				_layoutLocalService, _layoutPageTemplateEntryLocalService,
 				_objectDefinitionLocalService));
+
+		registry.register(
+			"2.1.0", "2.2.0",
+			new CMPDescriptionLayoutPageTemplateStructureUpgradeProcess(
+				_classNameLocalService, _companyLocalService,
+				_fragmentEntryLinkLocalService, _groupLocalService,
+				_layoutLocalService, _layoutPageTemplateEntryLocalService,
+				_layoutPageTemplateStructureLocalService,
+				_objectDefinitionLocalService,
+				_segmentsExperienceLocalService));
 	}
 
 	@Reference
@@ -66,9 +79,16 @@ public class CMPSiteInitializerUpgradeStepRegistrator
 		_layoutPageTemplateEntryLocalService;
 
 	@Reference
+	private LayoutPageTemplateStructureLocalService
+		_layoutPageTemplateStructureLocalService;
+
+	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
 
 	@Reference
 	private ObjectFieldLocalService _objectFieldLocalService;
+
+	@Reference
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 }
