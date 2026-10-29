@@ -19,7 +19,6 @@ import com.liferay.osb.faro.engine.client.model.AcquisitionParameter;
 import com.liferay.osb.faro.engine.client.model.Activity;
 import com.liferay.osb.faro.engine.client.model.ActivityAggregation;
 import com.liferay.osb.faro.engine.client.model.ActivityAsset;
-import com.liferay.osb.faro.engine.client.model.ActivityGroup;
 import com.liferay.osb.faro.engine.client.model.ApiUsageMetric;
 import com.liferay.osb.faro.engine.client.model.Asset;
 import com.liferay.osb.faro.engine.client.model.AssetSummary;
@@ -37,11 +36,7 @@ import com.liferay.osb.faro.engine.client.model.CatalogField;
 import com.liferay.osb.faro.engine.client.model.Channel;
 import com.liferay.osb.faro.engine.client.model.ChannelDataSource;
 import com.liferay.osb.faro.engine.client.model.Credentials;
-import com.liferay.osb.faro.engine.client.model.DXPGroup;
-import com.liferay.osb.faro.engine.client.model.DXPOrganization;
-import com.liferay.osb.faro.engine.client.model.DXPUserGroup;
 import com.liferay.osb.faro.engine.client.model.DataSource;
-import com.liferay.osb.faro.engine.client.model.DataSourceField;
 import com.liferay.osb.faro.engine.client.model.DataSourceFieldCatalogEntry;
 import com.liferay.osb.faro.engine.client.model.DataSourceProgress;
 import com.liferay.osb.faro.engine.client.model.DataSourceUsageMetric;
@@ -66,7 +61,6 @@ import com.liferay.osb.faro.engine.client.model.ProjectUsageMetric;
 import com.liferay.osb.faro.engine.client.model.Provider;
 import com.liferay.osb.faro.engine.client.model.Results;
 import com.liferay.osb.faro.engine.client.model.SegmentActivation;
-import com.liferay.osb.faro.engine.client.model.provider.LiferayProvider;
 import com.liferay.osb.faro.engine.client.util.FilterBuilder;
 import com.liferay.osb.faro.engine.client.util.OrderByField;
 import com.liferay.osb.faro.model.FaroProject;
@@ -207,11 +201,6 @@ public interface ContactsEngineClient {
 		FaroProject faroProject, Long channelId, String fieldMappingFieldName,
 		String query, int cur, int delta);
 
-	public Results<IndividualSegment> getAccountIndividualSegments(
-		FaroProject faroProject, String accountId, String channelId,
-		String query, String status, int cur, int delta,
-		List<OrderByField> orderByFields);
-
 	public Results<Individual> getAccountIndividuals(
 		FaroProject faroProject, String accountId, String channelId,
 		String query, String rangeEnd, Integer rangeKey, String rangeStart,
@@ -276,11 +265,6 @@ public interface ContactsEngineClient {
 		FaroProject faroProject, String channelId, String filterString,
 		String query, int cur, int delta, String sortString);
 
-	public Results<Distribution> getAccountsDistribution(
-		FaroProject faroProject, String channelId, String fieldMappingFieldName,
-		String filterString, String individualSegmentId, int count,
-		int numberOfBins, List<OrderByField> orderByFields);
-
 	public List<AcquisitionParameter> getAcquisitionParameters(
 		FaroProject faroProject, String channelId);
 
@@ -304,11 +288,6 @@ public interface ContactsEngineClient {
 	public Results<ActivityAsset> getActivityAssets(
 		FaroProject faroProject, String query, String applicationId,
 		String channelId, String eventId, String objectDefinitionName, int cur,
-		int delta, List<OrderByField> orderByFields);
-
-	public Results<ActivityGroup> getActivityGroups(
-		FaroProject faroProject, String channelId, String ownerId,
-		String ownerType, String query, Date startDate, Date endDate, int cur,
 		int delta, List<OrderByField> orderByFields);
 
 	public Results<ApiUsageMetric> getApiUsageMetrics(
@@ -415,32 +394,6 @@ public interface ContactsEngineClient {
 	public DataSource getDataSource(FaroProject faroProject, String id)
 		throws FaroEngineClientException;
 
-	public List<DXPGroup> getDataSourceDXPGroups(
-		FaroProject faroProject, String id, List<Long> groupIds);
-
-	public Results<DXPGroup> getDataSourceDXPGroups(
-		FaroProject faroProject, String id, long parentGroupId, boolean site,
-		String name, int cur, int delta);
-
-	public List<DXPOrganization> getDataSourceDXPOrganizations(
-		FaroProject faroProject, String id, List<Long> organizationIds);
-
-	public Results<DXPOrganization> getDataSourceDXPOrganizations(
-		FaroProject faroProject, String id, long parentOrganizationId,
-		String name, int cur, int delta);
-
-	public long getDataSourceDXPTotal(FaroProject faroProject, String id);
-
-	public long getDataSourceDXPTotal(
-		FaroProject faroProject, String id,
-		LiferayProvider.ContactsConfiguration contactsConfiguration);
-
-	public List<DXPUserGroup> getDataSourceDXPUserGroups(
-		FaroProject faroProject, String id, List<Long> userGroupIds);
-
-	public Results<DXPUserGroup> getDataSourceDXPUserGroups(
-		FaroProject faroProject, String id, String name, int cur, int delta);
-
 	public Map<String, List<DataSourceFieldCatalogEntry>>
 		getDataSourceFieldCatalogEntries(
 			FaroProject faroProject, String id, boolean refresh);
@@ -450,9 +403,6 @@ public interface ContactsEngineClient {
 				FaroProject faroProject, String entityType, String filterString,
 				String id, String search, int cur, int delta, String sortString)
 		throws FaroEngineClientException;
-
-	public List<DataSourceField> getDataSourceFields(
-		FaroProject faroProject, String id, String context, int count);
 
 	public long getDataSourceMetricsAccountsCount(
 		FaroProject faroProject, String dataSourceId);
@@ -718,8 +668,6 @@ public interface ContactsEngineClient {
 		FaroProject faroProject, String id, Credentials credentials,
 		Event event, String name, Provider provider, String status, String url,
 		long userId);
-
-	public List<Map<String, Object>> refreshLiferay(FaroProject faroProject);
 
 	public void setEngineURL(String engineURL);
 
