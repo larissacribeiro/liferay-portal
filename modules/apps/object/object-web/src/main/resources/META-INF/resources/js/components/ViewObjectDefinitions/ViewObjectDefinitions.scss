@@ -27,18 +27,6 @@
 			margin-bottom: 1rem;
 		}
 
-		&-item {
-			background-color: $gray-200;
-			border: none;
-			margin-bottom: 5px;
-			padding: 0.5rem;
-		}
-
-		&-item-label {
-			max-width: 15rem;
-			padding-left: 8px;
-		}
-
 		&-title {
 			font-weight: 700;
 		}
@@ -59,10 +47,6 @@
 		display: flex;
 		max-height: 40px;
 	}
-}
-
-.cursor-pointer {
-	cursor: pointer;
 }
 
 .dropdown-menu {
