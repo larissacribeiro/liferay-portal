@@ -271,10 +271,7 @@ public class ThumbnailsOSGiCommandsTest {
 			new ImagePreviewableDLProcessor();
 
 		_serviceRegistration = bundleContext.registerService(
-			new String[] {
-				DLProcessor.class.getName(), ImageProcessor.class.getName()
-			},
-			imagePreviewableDLProcessor,
+			DLProcessor.class, imagePreviewableDLProcessor,
 			MapUtil.singletonDictionary(
 				"type", DLProcessorConstants.IMAGE_PROCESSOR));
 
@@ -851,7 +848,7 @@ public class ThumbnailsOSGiCommandsTest {
 				}
 
 				addFileToStore(
-					fileVersion.getCompanyId(), PREVIEW_PATH,
+					fileVersion.getCompanyId(),
 					getPreviewFilePath(fileVersion, type), file);
 			}
 			finally {
@@ -891,7 +888,7 @@ public class ThumbnailsOSGiCommandsTest {
 			try {
 				file = FileUtil.createTempFile(inputStream);
 
-				addFileToStore(companyId, THUMBNAIL_PATH, filePath, file);
+				addFileToStore(companyId, filePath, file);
 			}
 			finally {
 				FileUtil.delete(file);
