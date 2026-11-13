@@ -241,6 +241,83 @@ public class TaskBreadcrumbComponentSectionFragmentRendererTest
 
 		Assert.assertTrue((Boolean)props.get("hideSpace"));
 		Assert.assertEquals("lg", props.get("size"));
+
+		ObjectEntry cmpTaskObjectEntry2 = addCMPTaskObjectEntry(
+			HashMapBuilder.<String, Serializable>put(
+				"r_cmpTaskToCMPTasks_c_cmpTaskId",
+				_cmpTaskObjectEntry.getObjectEntryId()
+			).build());
+
+		ObjectEntry cmpTaskObjectEntry3 = addCMPTaskObjectEntry(
+			HashMapBuilder.<String, Serializable>put(
+				"r_cmpTaskToCMPTasks_c_cmpTaskId",
+				cmpTaskObjectEntry2.getObjectEntryId()
+			).build());
+
+		mockHttpServletRequest = getMockHttpServletRequest(
+			_cmpTaskObjectDefinition, cmpTaskObjectEntry3);
+
+		props = getProps();
+
+		jsonArray = (JSONArray)props.get("actionItems");
+
+		jsonObject = jsonArray.getJSONObject(1);
+
+		Assert.assertEquals("Watch Subtask", jsonObject.getString("label"));
+
+		jsonArray = (JSONArray)props.get("breadcrumbItems");
+
+		Assert.assertEquals(jsonArray.toString(), 5, jsonArray.length());
+
+		jsonObject = jsonArray.getJSONObject(2);
+
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				"active", false
+			).put(
+				"href",
+				StringBundler.concat(
+					themeDisplay.getPathFriendlyURLPublic(),
+					GroupConstants.CMS_FRIENDLY_URL, "/e/task/",
+					PortalUtil.getClassNameId(
+						_cmpTaskObjectDefinition.getClassName()),
+					StringPool.SLASH, _cmpTaskObjectEntry.getObjectEntryId())
+			).put(
+				"label", _cmpTaskObjectEntryTitle
+			).toString(),
+			jsonObject.toString(), true);
+
+		jsonObject = jsonArray.getJSONObject(3);
+
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				"active", false
+			).put(
+				"href",
+				StringBundler.concat(
+					themeDisplay.getPathFriendlyURLPublic(),
+					GroupConstants.CMS_FRIENDLY_URL, "/e/task/",
+					PortalUtil.getClassNameId(
+						_cmpTaskObjectDefinition.getClassName()),
+					StringPool.SLASH, cmpTaskObjectEntry2.getObjectEntryId())
+			).put(
+				"label",
+				MapUtil.getString(cmpTaskObjectEntry2.getValues(), "title")
+			).toString(),
+			jsonObject.toString(), true);
+
+		jsonObject = jsonArray.getJSONObject(4);
+
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				"active", true
+			).put(
+				"href", StringPool.BLANK
+			).put(
+				"label",
+				MapUtil.getString(cmpTaskObjectEntry3.getValues(), "title")
+			).toString(),
+			jsonObject.toString(), true);
 	}
 
 	@Override
