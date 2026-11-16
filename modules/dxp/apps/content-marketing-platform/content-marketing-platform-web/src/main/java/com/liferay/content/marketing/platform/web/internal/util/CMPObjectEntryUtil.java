@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -72,6 +73,30 @@ public class CMPObjectEntryUtil {
 
 						return cmpProjectObjectEntryId;
 					})));
+	}
+
+	public static List<ObjectEntry> getCMPTaskAncestorObjectEntries(
+			ObjectEntry cmpTaskObjectEntry,
+			ObjectEntryLocalService objectEntryLocalService)
+		throws PortalException {
+
+		List<ObjectEntry> cmpTaskAncestorObjectEntries = new ArrayList<>();
+
+		long parentObjectEntryId = MapUtil.getLong(
+			cmpTaskObjectEntry.getValues(), "r_cmpTaskToCMPTasks_c_cmpTaskId");
+
+		while (parentObjectEntryId > 0) {
+			ObjectEntry parentObjectEntry =
+				objectEntryLocalService.getObjectEntry(parentObjectEntryId);
+
+			cmpTaskAncestorObjectEntries.add(parentObjectEntry);
+
+			parentObjectEntryId = MapUtil.getLong(
+				parentObjectEntry.getValues(),
+				"r_cmpTaskToCMPTasks_c_cmpTaskId");
+		}
+
+		return cmpTaskAncestorObjectEntries;
 	}
 
 	public static long[] getCMPTaskObjectEntryIds(
