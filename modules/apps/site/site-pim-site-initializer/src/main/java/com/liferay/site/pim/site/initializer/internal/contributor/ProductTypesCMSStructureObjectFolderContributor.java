@@ -86,15 +86,39 @@ public class ProductTypesCMSStructureObjectFolderContributor
 			return Collections.emptyMap();
 		}
 
+		return HashMapBuilder.<String, List<String>>put(
+			PIMObjectDefinitionConstants.EXTERNAL_REFERENCE_CODE_BASIC_PRODUCT,
+			() -> _getSystemObjectFieldNames(
+				companyId,
+				PIMObjectDefinitionConstants.
+					EXTERNAL_REFERENCE_CODE_BASIC_PRODUCT)
+		).put(
+			PIMObjectDefinitionConstants.
+				EXTERNAL_REFERENCE_CODE_BASIC_PRODUCT_ATTACHMENT,
+			() -> _getSystemObjectFieldNames(
+				companyId,
+				PIMObjectDefinitionConstants.
+					EXTERNAL_REFERENCE_CODE_BASIC_PRODUCT_ATTACHMENT)
+		).put(
+			PIMObjectDefinitionConstants.
+				EXTERNAL_REFERENCE_CODE_BASIC_PRODUCT_IMAGE,
+			() -> _getSystemObjectFieldNames(
+				companyId,
+				PIMObjectDefinitionConstants.
+					EXTERNAL_REFERENCE_CODE_BASIC_PRODUCT_IMAGE)
+		).build();
+	}
+
+	private List<String> _getSystemObjectFieldNames(
+		long companyId, String externalReferenceCode) {
+
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.
 				fetchObjectDefinitionByExternalReferenceCode(
-					PIMObjectDefinitionConstants.
-						EXTERNAL_REFERENCE_CODE_BASIC_PRODUCT,
-					companyId);
+					externalReferenceCode, companyId);
 
 		if (objectDefinition == null) {
-			return Collections.emptyMap();
+			return null;
 		}
 
 		List<String> systemObjectFieldNames = TransformUtil.transform(
@@ -119,13 +143,10 @@ public class ProductTypesCMSStructureObjectFolderContributor
 			});
 
 		if (systemObjectFieldNames.isEmpty()) {
-			return Collections.emptyMap();
+			return null;
 		}
 
-		return HashMapBuilder.<String, List<String>>put(
-			PIMObjectDefinitionConstants.EXTERNAL_REFERENCE_CODE_BASIC_PRODUCT,
-			systemObjectFieldNames
-		).build();
+		return systemObjectFieldNames;
 	}
 
 	@Reference
