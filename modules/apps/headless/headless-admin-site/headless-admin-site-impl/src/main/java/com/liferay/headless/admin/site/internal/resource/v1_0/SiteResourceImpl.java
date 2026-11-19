@@ -694,7 +694,8 @@ public class SiteResourceImpl
 				_getTypeSettings(site, null),
 				_isManualMembership(site.getManualMembership()),
 				_getMembershipRestriction(site.getMembershipRestriction()),
-				_getFriendlyUrlPath(null, site), true, false,
+				_getFriendlyUrlPath(null, site), true,
+				GetterUtil.getBoolean(site.getInheritContent()),
 				_isActive(site.getActive()), serviceContext);
 		}
 		finally {
@@ -1066,6 +1067,15 @@ public class SiteResourceImpl
 				String.valueOf(site.getInheritLocales()));
 		}
 
+		if (GetterUtil.getBoolean(site.getMaintenanceMode()) &&
+			FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-82960")) {
+
+			unicodeProperties.put(
+				GroupConstants.TYPE_SETTINGS_KEY_MAINTENANCE_MODE,
+				Boolean.TRUE.toString());
+		}
+
 		unicodeProperties.put(
 			"MAP_PROVIDER_KEY", site.getMapProviderKeyAsString());
 		unicodeProperties.put(
@@ -1242,6 +1252,7 @@ public class SiteResourceImpl
 				setExternalReferenceCode(group::getExternalReferenceCode);
 				setFriendlyUrlPath(group::getFriendlyURL);
 				setId(group::getGroupId);
+				setInheritContent(group::isInheritContent);
 				setInheritLocales(
 					() -> {
 						if (group.getTypeSettingsProperty("inheritLocales") !=
@@ -1269,6 +1280,17 @@ public class SiteResourceImpl
 						};
 
 						return group.getLogoURL(themeDisplay, true);
+					});
+				setMaintenanceMode(
+					() -> {
+						if (group.isMaintenanceMode() &&
+							FeatureFlagManagerUtil.isEnabled(
+								contextCompany.getCompanyId(), "LPD-82960")) {
+
+							return true;
+						}
+
+						return null;
 					});
 				setManualMembership(group::getManualMembership);
 				setMapProviderKey(
@@ -1331,7 +1353,8 @@ public class SiteResourceImpl
 					_getTypeSettings(site, group.getTypeSettingsProperties()),
 					_isManualMembership(site.getManualMembership()),
 					_getMembershipRestriction(site.getMembershipRestriction()),
-					_getFriendlyUrlPath(group, site), false,
+					_getFriendlyUrlPath(group, site),
+					GetterUtil.getBoolean(site.getInheritContent()),
 					_isActive(site.getActive()), serviceContext);
 
 				LiveUsers.joinGroup(

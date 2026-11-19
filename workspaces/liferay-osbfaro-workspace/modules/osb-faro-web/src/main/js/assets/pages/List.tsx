@@ -157,6 +157,9 @@ const columns = {
 				</div>
 			);
 		},
+	assetTypeRenderer: ({itemData, value}: {itemData: any; value?: string}) => (
+		<span>{itemData.assetTypeLabel ?? value}</span>
+	),
 };
 
 const assetsEmptyStateDescription = (
@@ -186,6 +189,7 @@ const TABLE_FIELDS = [
 		truncate: true,
 	},
 	{
+		contentRenderer: 'assetTypeRenderer',
 		fieldName: 'assetType',
 		label: Liferay.Language.get('type'),
 		sortable: true,
@@ -309,7 +313,7 @@ const List = () => {
 				autocompleteEnabled: true,
 				entityFieldType: 'string',
 				id: 'assetType',
-				itemKey: 'name',
+				itemKey: 'id',
 				itemLabel: 'name',
 				label: Liferay.Language.get('type'),
 				multiple: true,
@@ -488,6 +492,7 @@ const List = () => {
 								segmentId,
 								segmentName,
 							}),
+							assetTypeRenderer: columns.assetTypeRenderer,
 						}}
 
 						// The API sorts by views when no sort is sent.

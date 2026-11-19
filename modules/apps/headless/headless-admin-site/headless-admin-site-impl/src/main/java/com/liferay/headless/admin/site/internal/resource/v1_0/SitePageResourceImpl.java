@@ -464,8 +464,8 @@ public class SitePageResourceImpl
 		long groupId = GroupUtil.getStagingAwareGroupId(
 			contextCompany.getCompanyId(), siteExternalReferenceCode);
 
-		Layout layout = _layoutService.fetchLayoutByExternalReferenceCode(
-			sitePageExternalReferenceCode, groupId);
+		Layout layout = _fetchOrUpdateLayout(
+			groupId, privateLayout, sitePage, sitePageExternalReferenceCode);
 
 		if (layout == null) {
 			if (Objects.equals(sitePage.getType(), SitePage.Type.WIDGET_PAGE)) {
@@ -678,6 +678,32 @@ public class SitePageResourceImpl
 		}
 
 		return layout;
+	}
+
+	private Layout _fetchOrUpdateLayout(
+			long groupId, boolean privateLayout, SitePage sitePage,
+			String sitePageExternalReferenceCode)
+		throws Exception {
+
+		Layout layout = _layoutService.fetchLayoutByExternalReferenceCode(
+			sitePageExternalReferenceCode, groupId);
+
+		if ((layout != null) || !ExportImportThreadLocal.isImportInProcess() ||
+			(sitePage.getUuid() == null)) {
+
+			return layout;
+		}
+
+		layout = _layoutLocalService.fetchLayoutByUuidAndGroupId(
+			sitePage.getUuid(), groupId, privateLayout);
+
+		if (layout == null) {
+			return null;
+		}
+
+		layout.setExternalReferenceCode(sitePageExternalReferenceCode);
+
+		return _layoutLocalService.updateLayout(layout);
 	}
 
 	private CustomMetaTag[] _getCustomMetaTags(PageSettings pageSettings) {
@@ -939,16 +965,9 @@ public class SitePageResourceImpl
 					sitemapIncludeChildLayouts = "true";
 				}
 
-				Double pagePriority = sitemapSettings.getPagePriority();
-
-				if (pagePriority != null) {
-					if ((pagePriority < 0) || (pagePriority > 1)) {
-						throw new IllegalArgumentException(
-							"The sitemap page priority must be between 0 and " +
-								"1");
-					}
-
-					sitemapPagePriority = String.valueOf(pagePriority);
+				if (sitemapSettings.getPagePriority() != null) {
+					sitemapPagePriority = String.valueOf(
+						sitemapSettings.getPagePriority());
 				}
 			}
 		}

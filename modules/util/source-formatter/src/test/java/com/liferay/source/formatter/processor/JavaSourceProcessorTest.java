@@ -781,6 +781,16 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testMVCRenderCommandViewTemplate() throws Exception {
+		test(
+			"MVCRenderCommandViewTemplate.testjava",
+			"The MVC render command only maps \"/\" to \"/view.jsp\"; set " +
+				"\"jakarta.portlet.init-param.view-template=/view.jsp\" on " +
+					"the portlet and remove the command",
+			21);
+	}
+
+	@Test
 	public void testMapBuilderGenerics() throws Exception {
 		test("MapBuilderGenerics.testjava");
 	}
@@ -1045,6 +1055,27 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 				"Use \"if/else\" statement instead of \"switch\"", 35
 			).addExpectedMessage(
 				"Do not use pattern matching for switch", 36
+			));
+	}
+
+	@Test
+	public void testPersistenceCall() throws Exception {
+		String message =
+			"Illegal call to class " +
+				"\"com.liferay.portal.kernel.service.persistence.UserUtil\", " +
+					"see LPS-68923";
+
+		test(
+			"modules/src/testIntegration/java/com/liferay/persistence/call" +
+				"/PersistenceCall.testjava",
+			message, 19);
+		test(
+			SourceProcessorTestParameters.create(
+				"modules/PersistenceCall.testjava"
+			).addExpectedMessage(
+				message, 19
+			).addExpectedMessage(
+				message, 24
 			));
 	}
 

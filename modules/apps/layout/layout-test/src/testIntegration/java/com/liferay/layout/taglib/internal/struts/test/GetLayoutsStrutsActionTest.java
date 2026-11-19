@@ -140,6 +140,7 @@ public class GetLayoutsStrutsActionTest {
 
 		_assertLayoutInTree(false, unpublishedLayout, false);
 		_assertLayoutInTree(false, unpublishedLayout, true);
+
 		_assertLayoutInTree(true, publishedLayout, false);
 		_assertLayoutInTree(true, publishedLayout, true);
 
@@ -379,12 +380,12 @@ public class GetLayoutsStrutsActionTest {
 		MockHttpServletRequest mockHttpServletRequest =
 			new MockHttpServletRequest();
 
+		mockHttpServletRequest.addParameter("end", String.valueOf(end));
 		mockHttpServletRequest.addParameter(
 			"groupId", String.valueOf(_group.getGroupId()));
 		mockHttpServletRequest.addParameter(
 			"includeDraftLayouts", String.valueOf(includeDraftLayouts));
 		mockHttpServletRequest.addParameter("start", String.valueOf(start));
-		mockHttpServletRequest.addParameter("end", String.valueOf(end));
 
 		mockHttpServletRequest.setAttribute(
 			WebKeys.LAYOUT, _themeDisplay.getLayout());

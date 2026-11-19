@@ -44,6 +44,17 @@ test(
 				await expect(
 					productStructuresPage.getTreeItem('Details')
 				).toBeVisible();
+
+				await structureBuilderPage.expandField({label: 'Details'});
+
+				await structureBuilderPage.checkIsParent({
+					child: {label: 'Image'},
+					parent: {label: 'Images'},
+				});
+				await structureBuilderPage.checkIsParent({
+					child: {label: 'Attachment'},
+					parent: {label: 'Attachments'},
+				});
 			});
 
 			await test.step('Add a field to the Units of Measure tab', async () => {
@@ -68,7 +79,7 @@ test(
 				label: structureLabel,
 			});
 
-			await structureBuilderPage.saveStructure();
+			await structureBuilderPage.saveStructure({timeout: 20000});
 
 			await structureBuilderPage.publishStructure();
 
@@ -87,6 +98,13 @@ test(
 
 				await productPage.sku.fill(getRandomString());
 				await productPage.title.fill(productTitle);
+
+				await expect(
+					productPage.getRepeatableGroup('Images')
+				).toBeVisible();
+				await expect(
+					productPage.getRepeatableGroup('Attachments')
+				).toBeVisible();
 
 				await clickAndExpectToBeVisible({
 					target: productPage.unitOfMeasureName,
@@ -176,7 +194,7 @@ test(
 				label: structureLabel,
 			});
 
-			await structureBuilderPage.saveStructure();
+			await structureBuilderPage.saveStructure({timeout: 20000});
 
 			await structureBuilderPage.publishStructure();
 
@@ -271,7 +289,9 @@ test(
 				label: structureLabel,
 			});
 
-			const structureId = await structureBuilderPage.saveStructure();
+			const structureId = await structureBuilderPage.saveStructure({
+				timeout: 20000,
+			});
 
 			await structureBuilderPage.publishStructure();
 
@@ -388,7 +408,7 @@ test(
 			label: structureLabel,
 		});
 
-		await structureBuilderPage.saveStructure();
+		await structureBuilderPage.saveStructure({timeout: 20000});
 
 		await structureBuilderPage.publishStructure();
 

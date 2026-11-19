@@ -218,7 +218,9 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 			_addUserWithRegularRole(RoleConstants.CMS_ADMINISTRATOR));
 	}
 
-	@FeatureFlags(featureFlags = @FeatureFlag("LPD-85946"))
+	@FeatureFlags(
+		featureFlags = {@FeatureFlag("LPD-82960"), @FeatureFlag("LPD-85946")}
+	)
 	@LazyReferencing
 	@Override
 	@Test
@@ -244,9 +246,11 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 		_testPostSiteSuccessSiteTemplate();
 		_testPostSiteWithCreatorWithoutAddSitePermissionOnImport();
 		_testPostSiteWithFriendlyURLMissingSlash();
+		_testPostSiteWithInheritContent();
 		_testPostSiteWithInheritLocales();
 		_testPostSiteWithLocalizedDescription();
 		_testPostSiteWithLocalizedName();
+		_testPostSiteWithMaintenanceMode();
 		_testPostSiteWithNondefaultLocales();
 		_testPostSiteWithParentSiteExternalReferenceCode();
 		_testPostSiteWithSelectedSitesOnExport();
@@ -257,7 +261,9 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 		_testPostSiteWithoutAuthentication();
 	}
 
-	@FeatureFlags(featureFlags = @FeatureFlag("LPD-85946"))
+	@FeatureFlags(
+		featureFlags = {@FeatureFlag("LPD-82960"), @FeatureFlag("LPD-85946")}
+	)
 	@LazyReferencing
 	@Override
 	@Test
@@ -269,6 +275,9 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 		_testPutSiteSystemSite();
 		_testPutSiteWithCreatorWithoutUpdatePermissionOnImport();
 		_testPutSiteWithExcludedTypeSettings();
+		_testPutSiteWithInheritContent();
+		_testPutSiteWithMaintenanceMode();
+		_testPutSiteWithMaintenanceModeAndSystemSite();
 		_testPutSiteWithParentSiteExternalReferenceCode();
 		_testPutSiteWithoutUpdatePermission();
 	}
@@ -1366,6 +1375,63 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 			StringPool.SLASH + friendlyUrlPath, site.getFriendlyUrlPath());
 	}
 
+	private void _testPostSiteWithInheritContent() throws Exception {
+		Site postParentSite = _testPostSite_addSite(randomSite());
+
+		Site randomSite = randomSite();
+
+		randomSite.setInheritContent(true);
+		randomSite.setParentSiteExternalReferenceCode(
+			postParentSite.getExternalReferenceCode());
+
+		Site postSite = _testPostSite_addSite(randomSite);
+
+		Assert.assertTrue(postSite.getInheritContent());
+
+		Site getSite = siteResource.getSite(
+			postSite.getExternalReferenceCode());
+
+		Assert.assertTrue(getSite.getInheritContent());
+
+		randomSite = randomSite();
+
+		randomSite.setInheritContent(true);
+
+		try {
+			_testPostSite_addSite(randomSite);
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
+			Assert.assertEquals(
+				"This site cannot inherit content from its parent site",
+				problem.getTitle());
+		}
+
+		randomSite = randomSite();
+
+		randomSite.setInheritContent(true);
+		randomSite.setParentSiteExternalReferenceCode(
+			postSite.getExternalReferenceCode());
+
+		try {
+			_testPostSite_addSite(randomSite);
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
+			Assert.assertEquals(
+				"This site cannot inherit content from its parent site",
+				problem.getTitle());
+		}
+	}
+
 	private void _testPostSiteWithInheritLocales() throws Exception {
 		Site randomSite = randomSite();
 
@@ -1437,6 +1503,33 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 
 		Assert.assertEquals(name1, nameMap.get("en-US"));
 		Assert.assertEquals(name2, nameMap.get("pt-BR"));
+	}
+
+	private void _testPostSiteWithMaintenanceMode() throws Exception {
+		Site randomSite = randomSite();
+
+		randomSite.setActive(true);
+
+		Site postSite = _testPostSite_addSite(randomSite);
+
+		Assert.assertTrue(postSite.getActive());
+		Assert.assertNull(postSite.getMaintenanceMode());
+
+		randomSite = randomSite();
+
+		randomSite.setActive(true);
+		randomSite.setMaintenanceMode(true);
+
+		postSite = _testPostSite_addSite(randomSite);
+
+		Assert.assertFalse(postSite.getActive());
+		Assert.assertTrue(postSite.getMaintenanceMode());
+
+		Site getSite = siteResource.getSite(
+			postSite.getExternalReferenceCode());
+
+		Assert.assertFalse(getSite.getActive());
+		Assert.assertTrue(getSite.getMaintenanceMode());
 	}
 
 	private void _testPostSiteWithNondefaultLocales() throws Exception {
@@ -2190,6 +2283,114 @@ public class SiteResourceTest extends BaseSiteResourceTestCase {
 		Assert.assertEquals(
 			unicodeProperties.get("MAP_PROVIDER_KEY"),
 			putSiteUnicodeProperties.get("MAP_PROVIDER_KEY"));
+	}
+
+	private void _testPutSiteWithInheritContent() throws Exception {
+		Site postParentSite = _testPostSite_addSite(randomSite());
+
+		Site randomSite = randomSite();
+
+		randomSite.setParentSiteExternalReferenceCode(
+			postParentSite.getExternalReferenceCode());
+
+		Site postSite = _testPostSite_addSite(randomSite);
+
+		Assert.assertFalse(postSite.getInheritContent());
+
+		randomSite = randomSite();
+
+		randomSite.setExternalReferenceCode(
+			postSite.getExternalReferenceCode());
+		randomSite.setInheritContent(true);
+		randomSite.setParentSiteExternalReferenceCode(
+			postParentSite.getExternalReferenceCode());
+
+		Site putSite = siteResource.putSite(
+			randomSite.getExternalReferenceCode(), randomSite);
+
+		Assert.assertTrue(putSite.getInheritContent());
+
+		randomSite.setInheritContent((Boolean)null);
+
+		putSite = siteResource.putSite(
+			randomSite.getExternalReferenceCode(), randomSite);
+
+		Assert.assertFalse(putSite.getInheritContent());
+	}
+
+	private void _testPutSiteWithMaintenanceMode() throws Exception {
+		Site randomSite = randomSite();
+
+		randomSite.setActive(true);
+
+		Site postSite = _testPostSite_addSite(randomSite);
+
+		randomSite.setExternalReferenceCode(
+			postSite.getExternalReferenceCode());
+
+		randomSite.setMaintenanceMode(true);
+
+		Site putSite = siteResource.putSite(
+			randomSite.getExternalReferenceCode(), randomSite);
+
+		Assert.assertFalse(putSite.getActive());
+		Assert.assertTrue(putSite.getMaintenanceMode());
+
+		putSite = siteResource.putSite(
+			randomSite.getExternalReferenceCode(), randomSite);
+
+		Assert.assertTrue(putSite.getActive());
+		Assert.assertNull(putSite.getMaintenanceMode());
+
+		randomSite.setActive(false);
+
+		putSite = siteResource.putSite(
+			randomSite.getExternalReferenceCode(), randomSite);
+
+		Assert.assertFalse(putSite.getActive());
+		Assert.assertTrue(putSite.getMaintenanceMode());
+
+		randomSite.setMaintenanceMode(false);
+
+		putSite = siteResource.putSite(
+			randomSite.getExternalReferenceCode(), randomSite);
+
+		Assert.assertFalse(putSite.getActive());
+		Assert.assertNull(putSite.getMaintenanceMode());
+	}
+
+	private void _testPutSiteWithMaintenanceModeAndSystemSite()
+		throws Exception {
+
+		Group guestGroup = _groupLocalService.getGroup(
+			TestPropsValues.getCompanyId(), GroupConstants.GUEST);
+
+		try {
+			siteResource.putSite(
+				guestGroup.getExternalReferenceCode(),
+				new Site() {
+					{
+						active = true;
+						externalReferenceCode =
+							guestGroup.getExternalReferenceCode();
+						maintenanceMode = true;
+						name = GroupConstants.GUEST;
+					}
+				});
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals("METHOD_NOT_ALLOWED", problem.getStatus());
+			Assert.assertEquals(
+				String.format(
+					"Site %s cannot be deactivated because it is a system " +
+						"required site",
+					guestGroup.getExternalReferenceCode()),
+				problem.getTitle());
+		}
 	}
 
 	private void _testPutSiteWithParentSiteExternalReferenceCode()

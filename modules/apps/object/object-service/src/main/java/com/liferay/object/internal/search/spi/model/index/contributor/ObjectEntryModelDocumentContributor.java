@@ -613,12 +613,18 @@ public class ObjectEntryModelDocumentContributor
 
 			document.addDate("cmpDueDate", (Timestamp)values.get("dueDate"));
 			document.addKeyword(
+				"cmpParentTaskId",
+				MapUtil.getLong(values, "r_cmpTaskToCMPTasks_c_cmpTaskId"));
+			document.addKeyword(
 				"cmpProjectManagerUserId",
 				MapUtil.getLong(values, "r_userToCMPProjectManager_userId"));
 			document.addKeyword(
 				"cmpProjectSponsorUserId",
 				MapUtil.getLong(values, "r_userToCMPProjectSponsor_userId"));
 			document.addKeyword("cmpState", MapUtil.getString(values, "state"));
+			document.addKeyword(
+				"cmpSubtask",
+				MapUtil.getLong(values, "r_cmpTaskToCMPTasks_c_cmpTaskId") > 0);
 			document.addKeyword(
 				"cmpTaskCMPProjectId",
 				MapUtil.getLong(
@@ -686,6 +692,12 @@ public class ObjectEntryModelDocumentContributor
 				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES)) {
 
 			return "files";
+		}
+
+		if (externalReferenceCode.equals(
+				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_PRODUCTS)) {
+
+			return "products";
 		}
 
 		return null;
@@ -846,17 +858,7 @@ public class ObjectEntryModelDocumentContributor
 	private ObjectEntryFolder _getRootObjectEntryFolder(
 		ObjectEntryFolder objectEntryFolder) {
 
-		if (objectEntryFolder == null) {
-			return null;
-		}
-
-		if (Objects.equals(
-				objectEntryFolder.getExternalReferenceCode(),
-				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS) ||
-			Objects.equals(
-				objectEntryFolder.getExternalReferenceCode(),
-				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES)) {
-
+		if (objectEntryFolder.isRoot()) {
 			return objectEntryFolder;
 		}
 

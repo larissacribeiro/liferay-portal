@@ -28,15 +28,16 @@ const UtmParametersCard: React.FC<IUtmParametersCardProps> = ({
 	return (
 		<Card>
 			<Panel
-				className="card-root"
+				className="card-root mb-0"
 				collapsable
+				collapseHeaderClassNames="p-3"
 				displayTitle={
 					<Panel.Title className="card-title">
 						{Liferay.Language.get('utm-parameters')}
 					</Panel.Title>
 				}
 			>
-				<Panel.Body>
+				<Panel.Body className="pb-3 pt-2 px-3">
 					{isEmpty ? (
 						<UtmParametersEmptyState />
 					) : (
