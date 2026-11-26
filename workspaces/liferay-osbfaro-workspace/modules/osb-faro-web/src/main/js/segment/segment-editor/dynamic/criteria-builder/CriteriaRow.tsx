@@ -33,6 +33,7 @@ import {
 	AddProperty,
 	withReferencedObjectsConsumer,
 } from '../context/referencedObjects';
+import {ClayButtonWithIcon} from '@clayui/button';
 import {compose} from 'redux';
 import {
 	Conjunctions,
@@ -61,6 +62,7 @@ import {
 import {Criterion, CriterionGroup, OnMove, Operator} from '../utils/types';
 import {DragTypes} from '../utils/drag-types';
 import {get} from 'lodash';
+import {getCriterionLabel} from '../utils/getCriterionLabel';
 import {Map} from 'immutable';
 import {Option, Picker} from '@clayui/core';
 import {Property} from 'shared/util/records';
@@ -422,6 +424,7 @@ class CriteriaRow extends React.Component<
 					supportedOperators[0].label
 				) : (
 					<Picker
+						aria-label={Liferay.Language.get('operator')}
 						className="criterion-input operator-input"
 						items={supportedOperators.map(({key, label}) => ({
 							label,
@@ -524,6 +527,7 @@ class CriteriaRow extends React.Component<
 				connectDragPreview,
 				connectDragSource,
 				connectDropTarget,
+				criterion,
 				dragging,
 				hover,
 				keyboardTarget,
@@ -540,7 +544,14 @@ class CriteriaRow extends React.Component<
 
 		return connectDropTarget(
 			connectDragPreview(
-				<div className={classes}>
+				<div
+					aria-label={
+						getCriterionLabel(criterion, selectedProperty) ||
+						undefined
+					}
+					className={classes}
+					role="group"
+				>
 					<div
 						className={`color-stripe color--${get(
 							selectedProperty,
@@ -570,7 +581,15 @@ class CriteriaRow extends React.Component<
 						{selectedProperty ? (
 							this.renderValueInput()
 						) : (
-							<div className="non-existent-property-message">
+							<div
+								className="align-items-center d-flex flex-grow-1 non-existent-property-message"
+								role="alert"
+							>
+								<ClayIcon
+									className="flex-shrink-0 mr-2"
+									symbol="exclamation-full"
+								/>
+
 								{Liferay.Language.get(
 									'attribute-no-longer-exists'
 								)}
@@ -578,20 +597,34 @@ class CriteriaRow extends React.Component<
 						)}
 
 						<div className="actions">
-							<RowActions
-								actions={[
-									{
-										label: Liferay.Language.get(
-											'duplicate'
-										),
-										onClick: this.handleDuplicate,
-									},
-									{
-										label: Liferay.Language.get('delete'),
-										onClick: this.handleDelete,
-									},
-								]}
-							/>
+							{selectedProperty ? (
+								<RowActions
+									actions={[
+										{
+											label: Liferay.Language.get(
+												'duplicate'
+											),
+											onClick: this.handleDuplicate,
+										},
+										{
+											label: Liferay.Language.get(
+												'delete'
+											),
+											onClick: this.handleDelete,
+										},
+									]}
+								/>
+							) : (
+								<ClayButtonWithIcon
+									aria-label={Liferay.Language.get('delete')}
+									borderless
+									displayType="secondary"
+									onClick={this.handleDelete}
+									size="sm"
+									symbol="trash"
+									title={Liferay.Language.get('delete')}
+								/>
+							)}
 						</div>
 					</div>
 				</div>

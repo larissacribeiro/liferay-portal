@@ -20,7 +20,7 @@ import org.osgi.service.component.annotations.Component;
  */
 @Component(service = FragmentRenderer.class)
 public class FaroDataSourceOnboardingSectionFragmentRenderer
-	extends BaseSettingsSectionFragmentRenderer {
+	extends BaseSectionFragmentRenderer {
 
 	@Override
 	protected String getLabelKey() {
@@ -28,7 +28,7 @@ public class FaroDataSourceOnboardingSectionFragmentRenderer
 	}
 
 	@Override
-	protected String getModule() {
+	protected String getModule(HttpServletRequest httpServletRequest) {
 		return "{DataSourceOnboarding} from osb-faro-web/settings";
 	}
 

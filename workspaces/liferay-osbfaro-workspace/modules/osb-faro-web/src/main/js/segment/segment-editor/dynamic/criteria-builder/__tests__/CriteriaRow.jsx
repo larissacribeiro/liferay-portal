@@ -11,8 +11,6 @@ import {MockedProvider} from '@apollo/client/testing';
 import {mockPreferenceReq} from 'test/graphql-data';
 import {Provider} from 'react-redux';
 
-jest.unmock('react-dom');
-
 const WrapperComponent = ({children}) => (
 	<ApolloProvider client={client}>
 		<Provider store={mockStore()}>
@@ -77,11 +75,19 @@ describe('CriteriaRow', () => {
 		expect(getByText('is unknown')).toBeInTheDocument();
 	});
 
-	it('should render w/ Non-Existent Property message', () => {
-		const {queryByText} = render(
+	it('should name the row with its attribute, operator and value, and its operator picker', () => {
+		const {getByRole} = render(
 			<WrapperComponent>
 				<DndProvider backend={HTML5Backend}>
 					<CriteriaRow
+						criterion={{
+							operatorName: 'eq',
+							propertyName: 'knownSinceDate',
+							rowId: 'row_0',
+							touched: false,
+							valid: true,
+							value: '2026-01-15'
+						}}
 						referencedAssetsIMap={new Map()}
 						referencedPropertiesIMap={new Map()}
 					/>
@@ -89,6 +95,36 @@ describe('CriteriaRow', () => {
 			</WrapperComponent>
 		);
 
-		expect(queryByText(/^attribute no longer exists\.$/i)).toBeTruthy();
+		expect(
+			getByRole('group', {name: /known since date.*2026/i})
+		).toBeInTheDocument();
+		expect(getByRole('combobox', {name: /^operator$/i})).toBeInTheDocument();
+		expect(getByRole('button', {name: /^menu$/i})).toBeInTheDocument();
+	});
+
+	it('should render w/ Non-Existent Property message and only the delete action', () => {
+		const onDelete = jest.fn();
+
+		const {getByRole, queryByRole} = render(
+			<WrapperComponent>
+				<DndProvider backend={HTML5Backend}>
+					<CriteriaRow
+						index={3}
+						onDelete={onDelete}
+						referencedAssetsIMap={new Map()}
+						referencedPropertiesIMap={new Map()}
+					/>
+				</DndProvider>
+			</WrapperComponent>
+		);
+
+		expect(getByRole('alert')).toHaveTextContent(
+			/^attribute no longer exists\.$/i
+		);
+		expect(queryByRole('button', {name: /^menu$/i})).not.toBeInTheDocument();
+
+		fireEvent.click(getByRole('button', {name: /^delete$/i}));
+
+		expect(onDelete).toHaveBeenCalledWith(3);
 	});
 });
